@@ -4,13 +4,13 @@ using UnityEngine.EventSystems;
 namespace IsntGwent
 { 
     [RequireComponent (typeof(BoxCollider2D))]
-    [RequireComponent(typeof(CardList))]
+    [RequireComponent(typeof(Row))]
     public class DropOnPlace : MonoBehaviour, IDropHandler
     {
-        private CardList _cards;
+        private Row _cards;
         private void Awake()
         {
-            _cards = GetComponent<CardList>();
+            _cards = GetComponent<Row>();
         }
         public void OnDrop(PointerEventData eventData)
         {

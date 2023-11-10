@@ -9,7 +9,7 @@ namespace IsntGwent {
     /// <summary>
     /// ¬ыставл€ет хранимые в нем карты на поле
     /// </summary>
-    public class CardList : MonoBehaviour
+    public class Row : MonoBehaviour
     {
         [SerializeField] private float _offsetX = 0.1f;
         private ObservableCollection<Card> _cards;
@@ -27,7 +27,10 @@ namespace IsntGwent {
 
         private void OnChange(object sender, NotifyCollectionChangedEventArgs e)
         {
-            ArrangeTheCards();
+            if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                ArrangeTheCards();
+            }
         }
 
         public void AddCard(Card card)
