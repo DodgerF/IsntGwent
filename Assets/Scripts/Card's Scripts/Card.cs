@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace IsntGwent
 {
-    [RequireComponent (typeof (CardMover))]
     [RequireComponent (typeof (ParentSetter))]
     public class Card : MonoBehaviour
     {

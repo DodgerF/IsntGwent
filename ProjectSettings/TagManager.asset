@@ -44,3 +44,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: CardMove
+    uniqueID: 3415650659
+    locked: 0

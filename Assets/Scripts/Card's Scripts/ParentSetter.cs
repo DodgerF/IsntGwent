@@ -18,14 +18,18 @@ namespace IsntGwent
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+
             _parent = transform.parent;
             transform.SetParent(_parent.parent);
+
+            _parent.GetComponent<CardList>().RemoveCard(GetComponent<Card>());
 
             _raycaster.enabled = true;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            _parent = transform.parent;
             _raycaster.enabled = false;
         }
     }

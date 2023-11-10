@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
 
@@ -9,15 +12,32 @@ namespace IsntGwent {
     public class CardList : MonoBehaviour
     {
         [SerializeField] private float _offsetX = 0.1f;
-
-        private List<Card> _cards;
+        private ObservableCollection<Card> _cards;
 
         private void Start()
         {
-            //временно в Start
-            _cards = GetComponentsInChildren<Card>().ToList();
-            //временно в Start
+            _cards = new ObservableCollection<Card>();
+            foreach (Card card in GetComponentsInChildren<Card>())
+            {
+                _cards.Add(card);
+            }
+            _cards.CollectionChanged += OnChange;
             ArrangeTheCards();
+        }
+
+        private void OnChange(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            ArrangeTheCards();
+        }
+
+        public void AddCard(Card card)
+        {
+            card.transform.localPosition = Vector3.zero;
+            _cards.Add(card);
+        }
+        public void RemoveCard(Card card)
+        {
+            _cards.Remove(card);
         }
 
         private void ArrangeTheCards()
