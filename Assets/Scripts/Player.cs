@@ -21,9 +21,11 @@ namespace IsntGwent
 
         public void PlayCard()
         {
-            Row.AddCard(_draggableCard);
-
             _eventBus.Invoke(new PlayerHavePlayedCardSignal(_draggableCard, Row));
+
+            if (Row == null) return;
+
+            Row.AddCard(_draggableCard);
 
             _draggableCard = null;
             Row = null;
