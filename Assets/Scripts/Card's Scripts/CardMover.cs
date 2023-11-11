@@ -1,56 +1,50 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace IsntGwent
 {
+    /// <summary>
+    /// Передвижение каты и ее вид в это время.
+    /// </summary>
     [RequireComponent (typeof (Card))]
-    public class CardMover : MonoBehaviour, IBeginDragHandler, IDragHandler, IDropHandler
+    [RequireComponent (typeof (BoxCollider))]
+    public class CardMover : MonoBehaviour
     {
         #region Fields
-        private Vector3 _offset;
-
         private Canvas _canvas;
+        private Vector3 _mousePos;
 
-        private string _moveLayer = "CardMove";
         private string _defaultLayer = "Default";
+        private string _cardMoveLayer = "CardMove";
         #endregion
 
         #region Unity events
         private void Awake()
         {
             _canvas = GetComponentInChildren<Canvas>();
-
-            _canvas.worldCamera = Camera.main;
-        }
-        #endregion
-
-        #region Interface implementations
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            _offset = transform.position - Camera.main.ScreenToWorldPoint(GetMousePos(eventData));
-            //_canvas.sortingOrder = 1;
-            _offset.z = 0f;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            Vector3 newPos = Camera.main.ScreenToWorldPoint(GetMousePos(eventData));
-            transform.position = newPos + _offset;
-        }
-
-        public void OnDrop(PointerEventData eventData)
-        {
-            //_canvas.sortingOrder = 0;
         }
         #endregion
 
         #region Private methods
-        private Vector3 GetMousePos(PointerEventData eventData)
+        private Vector3 GetMousePos()
         {
-            Vector3 mousePos = eventData.position;
-            mousePos.z = Camera.main.nearClipPlane - Camera.main.transform.position.z;
-            return mousePos;
-        } 
+            return Camera.main.WorldToScreenPoint(transform.position);
+        }
+
+        private void OnMouseDown()
+        {
+            _canvas.sortingLayerName = _cardMoveLayer;
+            _mousePos = Input.mousePosition - GetMousePos();
+        }
+
+        private void OnMouseDrag() 
+        {
+            transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition - _mousePos);
+        }
+
+        private void OnMouseUp()
+        {
+            _canvas.sortingLayerName = _defaultLayer;
+        }
         #endregion
 
 
