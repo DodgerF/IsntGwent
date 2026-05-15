@@ -35,6 +35,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                 .Subscribe(_ =>
                 {
                     _vm.ConfirmJoinWithPassword(PasswordInput.text);
+                    PasswordInput.text = "";
                 })
                 .AddTo(this);
         }

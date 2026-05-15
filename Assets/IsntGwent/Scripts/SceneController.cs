@@ -2,7 +2,7 @@
 using UnityEngine.SceneManagement;
 using Zenject;
 
-namespace IsntGwent.Scripts.Lobby
+namespace IsntGwent.Scripts
 {
     public class SceneController : IInitializable
     {

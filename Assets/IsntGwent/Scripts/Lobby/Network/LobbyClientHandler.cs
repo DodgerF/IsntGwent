@@ -2,6 +2,7 @@
 using IsntGwent.Scripts.Messages;
 using Mirror;
 using UniRx;
+using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Lobby.Network
@@ -25,6 +26,11 @@ namespace IsntGwent.Scripts.Lobby.Network
 
         private void OnJoinLobbyResult(JoinLobbyResultMessage msg)
         {
+            if (!msg.IsSuccess)
+            {
+                //_service.OnError.OnNext(msg.ErrorMessage);
+                return;
+            }
             _service.CurrentLobbyId.Value = msg.LobbyId;
             _service.OnJoinedLobby.OnNext(Unit.Default);
         }
