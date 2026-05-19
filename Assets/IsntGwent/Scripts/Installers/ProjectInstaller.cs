@@ -1,5 +1,4 @@
-﻿using IsntGwent.Scripts.Lobby;
-using Zenject;
+﻿using Zenject;
 
 namespace IsntGwent.Scripts.Installers
 {
@@ -14,6 +13,13 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .BindInterfacesAndSelfTo<SceneController>()
                 .AsSingle()
+                .NonLazy();
+            
+            Container.BindInterfacesAndSelfTo<CardDatabase>()
+                .AsSingle()
+                .NonLazy();
+            Container.BindInterfacesAndSelfTo<DeckDatabase>()
+                .AsSingle() 
                 .NonLazy();
         }
     }

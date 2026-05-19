@@ -1,0 +1,8 @@
+{
+  "id": "giant",
+  "name": "Giant",
+  "imageName": "giant",
+  "type": "Unit",
+  "power": 10,
+  "effects": []
+} 

@@ -1,0 +1,16 @@
+{
+  "id": "fireball",
+  "name": "Fireball",
+  "imageName": "fireball_art",
+  "type": "Spell",
+  "effects":
+  [
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "targetType": "Single",
+      "amount": 8
+    }
+  ]
+}
+

@@ -12,7 +12,7 @@ namespace IsntGwent.Scripts
             _service.OnJoinedLobby
                 .Subscribe(_ =>
                 {
-                    SceneManager.LoadScene("Game");
+                    SceneManager.LoadScene("DeckSelection");
                 });
         }
     }

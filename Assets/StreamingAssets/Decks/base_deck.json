@@ -1,0 +1,17 @@
+{
+  "id": "base_deck",
+  "name": "test",
+  "image": "base_deck_image",
+
+  "cards":
+  [
+    {
+      "cardId": "giant",
+      "count": 10
+    },
+    {
+      "cardId": "fireball",
+      "count": 10
+    }
+  ]
+}
