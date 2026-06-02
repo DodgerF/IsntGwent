@@ -2,7 +2,7 @@
 using Mirror;
 using UniRx;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Game.Services
 {
     public class SessionService
     {

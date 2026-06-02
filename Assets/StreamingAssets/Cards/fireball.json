@@ -1,8 +1,9 @@
 {
   "id": "fireball",
   "name": "Fireball",
-  "imageName": "fireball_art",
+  "imageName": "fireball",
   "type": "Spell",
+  "description": "Deal 8 damage",
   "effects":
   [
     {

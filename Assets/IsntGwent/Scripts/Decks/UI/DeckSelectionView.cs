@@ -1,10 +1,11 @@
-﻿using System;
+﻿using IsntGwent.Scripts.Decks.Definitions;
 using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Decks.UI
 {
     [RequireComponent(typeof(Button))]
     [RequireComponent(typeof(Image))]
@@ -13,6 +14,8 @@ namespace IsntGwent.Scripts
         private Image _image;
         private DeckDefinition _deck;
         public TextMeshProUGUI deckName;
+        
+        [Inject] private DeckPreviewService _deckPreviewService;
 
         private void Awake()
         {
@@ -25,7 +28,7 @@ namespace IsntGwent.Scripts
             button.OnClickAsObservable()
                 .Subscribe(_ =>
                 {
-                    Debug.Log(_deck.Name);
+                    _deckPreviewService.OnDeckSelected.OnNext(_deck);
                 })
                 .AddTo(this);
         }

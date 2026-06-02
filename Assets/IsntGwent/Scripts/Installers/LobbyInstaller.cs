@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Lobby.Network;
+﻿using IsntGwent.Scripts.Cards.Services;
+using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.Services;
 using IsntGwent.Scripts.Lobby.UI;
 using Zenject;
@@ -9,6 +10,9 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
+            Container.Bind<DeckPreviewService>().AsSingle();
+            Container.Bind<CardPreviewService>().AsSingle();
+            
             Container.Bind<LobbyService>().AsSingle();
             Container.Bind<LobbyViewModel>().AsSingle();
             Container.Bind<LobbyNetworkHub>().FromComponentInHierarchy().AsSingle();

@@ -8,6 +8,7 @@ namespace IsntGwent.Scripts.Cards.Definitions
     {
         public string Id;
         public string Name;
+        public CardType Type;
         public string Description;
         public string ImageName;
         

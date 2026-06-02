@@ -3,5 +3,6 @@
     public class UnitDefinition : CardDefinition
     {
         public int Power;
+        public RowType Row;
     }
 }

@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using IsntGwent.Scripts.Cards;
+using UnityEngine;
 using Zenject;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Decks.UI
 {
-    public class DeckViewLoader : MonoBehaviour
+    public class DecksViewLoader : MonoBehaviour
     {
         public Transform parent;
         public DeckSelectionView deckViewPrefab;

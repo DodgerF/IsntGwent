@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using IsntGwent.Scripts.Cards.Definitions;
-using Mirror;
 using Newtonsoft.Json;
 using UnityEngine;
 using Zenject;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Cards
 {
     public class CardJsonBase
     {
@@ -15,11 +14,11 @@ namespace IsntGwent.Scripts
     }
     public class CardDatabase : IInitializable
     {
-        private readonly Dictionary<string, CardDefinition> _cards = new();
+        public readonly Dictionary<string, CardDefinition> Cards = new();
 
         public CardDefinition Get(string id)
         {
-            return _cards[id];
+            return Cards[id];
         }
 
         private void LoadAll(string directory)
@@ -56,7 +55,7 @@ namespace IsntGwent.Scripts
                     card.Effects.Add(effect); 
                 }
                 
-                _cards.Add(card.Id, card);
+                Cards.Add(card.Id, card);
             }
         }
 

@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using IsntGwent.Scripts.Decks.Definitions;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Decks
 {
-    public class ClientDatabase
+    public class ClientDeckDatabase
     {
         public Dictionary<string, DeckDefinition> Decks;
         

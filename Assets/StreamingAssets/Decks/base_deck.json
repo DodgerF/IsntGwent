@@ -1,13 +1,12 @@
 {
   "id": "base_deck",
-  "name": "test",
-  "image": "base_deck_image",
+  "name": "Base Deck",
 
   "cards":
   [
     {
       "cardId": "giant",
-      "count": 10
+      "count": 15
     },
     {
       "cardId": "fireball",

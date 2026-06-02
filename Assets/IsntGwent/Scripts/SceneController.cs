@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using IsntGwent.Scripts.Game.Services;
+using UniRx;
 using UnityEngine.SceneManagement;
 using Zenject;
 
@@ -12,7 +13,7 @@ namespace IsntGwent.Scripts
             _service.OnJoinedLobby
                 .Subscribe(_ =>
                 {
-                    SceneManager.LoadScene("DeckSelection");
+                    SceneManager.LoadScene("GameScene");
                 });
         }
     }

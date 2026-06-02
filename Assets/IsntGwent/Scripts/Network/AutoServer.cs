@@ -1,7 +1,7 @@
 using Mirror;
 using UnityEngine;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Network
 {
     public class AutoServer : MonoBehaviour
     {

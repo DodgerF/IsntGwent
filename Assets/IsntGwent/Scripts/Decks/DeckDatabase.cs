@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using IsntGwent.Scripts.Decks.Definitions;
 using Newtonsoft.Json;
 using UnityEngine;
 using Zenject;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Decks
 {
     public class DeckDatabase : IInitializable
     {

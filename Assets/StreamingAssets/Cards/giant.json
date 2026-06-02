@@ -3,6 +3,7 @@
   "name": "Giant",
   "imageName": "giant",
   "type": "Unit",
+  "row": "Melee",
   "power": 10,
   "effects": []
 } 

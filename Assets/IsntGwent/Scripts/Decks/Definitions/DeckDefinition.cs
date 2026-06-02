@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IsntGwent.Scripts
+namespace IsntGwent.Scripts.Decks.Definitions
 {
     public class DeckDefinition
     {

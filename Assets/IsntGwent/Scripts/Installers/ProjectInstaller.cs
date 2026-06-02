@@ -1,4 +1,7 @@
-﻿using Zenject;
+﻿using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Game.Services;
+using Zenject;
 
 namespace IsntGwent.Scripts.Installers
 {
