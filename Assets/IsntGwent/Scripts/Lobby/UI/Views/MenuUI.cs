@@ -25,6 +25,12 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
             _vm.Lobbies.ObserveRemove()
                 .Subscribe(removeEvent => RemoveEntry(removeEvent.Value))
                 .AddTo(this);
+            _vm.CanCreateOrJoinLobby
+                .Subscribe(canCreate =>  
+                {  
+                    createButton.interactable = canCreate;
+                })  
+                .AddTo(this);
             
             foreach (var lobby in _vm.Lobbies)
             {

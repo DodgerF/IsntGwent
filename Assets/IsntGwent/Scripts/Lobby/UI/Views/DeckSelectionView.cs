@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace IsntGwent.Scripts.Decks.UI
+namespace IsntGwent.Scripts.Lobby.UI.Views
 {
     [RequireComponent(typeof(Button))]
     [RequireComponent(typeof(Image))]
@@ -15,7 +15,7 @@ namespace IsntGwent.Scripts.Decks.UI
         private DeckDefinition _deck;
         public TextMeshProUGUI deckName;
         
-        [Inject] private DeckPreviewService _deckPreviewService;
+        [Inject] private DeckSelectService _deckSelectService;
 
         private void Awake()
         {
@@ -28,7 +28,7 @@ namespace IsntGwent.Scripts.Decks.UI
             button.OnClickAsObservable()
                 .Subscribe(_ =>
                 {
-                    _deckPreviewService.OnDeckSelected.OnNext(_deck);
+                    _deckSelectService.SelectedDeck.Value = _deck;
                 })
                 .AddTo(this);
         }

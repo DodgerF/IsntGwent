@@ -1,8 +1,9 @@
 ﻿using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Decks;
 using UnityEngine;
 using Zenject;
 
-namespace IsntGwent.Scripts.Decks.UI
+namespace IsntGwent.Scripts.Lobby.UI.Views
 {
     public class DecksViewLoader : MonoBehaviour
     {

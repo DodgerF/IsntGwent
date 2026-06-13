@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Lobby;
+using ModestTree;
 using UniRx;
 using UnityEngine;
 using Zenject;
@@ -16,12 +18,12 @@ namespace IsntGwent.Scripts.Cards.UI
         public CardView cardViewPrefab;
         
         [Inject] private CardDatabase _cardDatabase;
-        [Inject] private DeckPreviewService _deckPreviewService;
+        [Inject] private DeckSelectService _deckSelectService;
         [Inject] private DiContainer _container;
 
         private void Start()
         {
-            _deckPreviewService.OnDeckSelected
+            _deckSelectService.SelectedDeck
                 .Subscribe(deck =>
                 {
                     StartCoroutine(ViewCards(deck));
@@ -33,7 +35,9 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             ClearRows();
             
-            yield return null; 
+            yield return null;
+            if (deck == null || deck.Cards.IsEmpty())
+                yield break;
 
             foreach (var cardEntry in deck.Cards)
             {

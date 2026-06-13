@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Network;
+using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Messages;
 using Mirror;
 using UnityEngine;
 using Zenject;
 
-namespace IsntGwent.Scripts.Lobby.Services
+namespace IsntGwent.Scripts.Server
 {
     public class LobbyManager
     {
         [Inject] private readonly LobbyNetworkHub _hub;
+        [Inject] private readonly DiContainer _container;
 
         private readonly Dictionary<string, LobbyRoom> _rooms = new();
         private readonly Dictionary<NetworkConnectionToClient, string> _playerLobbyMap = new();
+        private readonly Dictionary<string, GameContext> _games = new();
         
         public LobbyError TryCreateLobby(NetworkConnectionToClient conn, CreateLobbyMessage msg)
         {
@@ -28,7 +32,7 @@ namespace IsntGwent.Scripts.Lobby.Services
                 IsPrivate = !string.IsNullOrEmpty(msg.Password)
             };
             var room = new LobbyRoom(data, msg.Password);
-            room.TryAddPlayer(conn);
+            room.TryAddPlayer(new PlayerLobby(conn, msg.Deck));
             
             _rooms.Add(room.Data.LobbyId, room);
             _playerLobbyMap[conn] = room.Data.LobbyId;
@@ -41,6 +45,7 @@ namespace IsntGwent.Scripts.Lobby.Services
         {
             if (!_rooms.TryGetValue(message.LobbyId, out var room))
                 return LobbyError.LobbyNotFound;
+                
             
             if (_playerLobbyMap.ContainsKey(conn))
                 return LobbyError.AlreadyInLobby;
@@ -54,11 +59,8 @@ namespace IsntGwent.Scripts.Lobby.Services
                 return LobbyError.InvalidPassword;
             }
             
-            room.TryAddPlayer(conn);
+            room.TryAddPlayer(new PlayerLobby(conn, message.Deck));
             _playerLobbyMap[conn] = message.LobbyId;
-
-            if (room.IsFull)
-                StartLobby(room);
             
             
             return LobbyError.None;
@@ -69,14 +71,38 @@ namespace IsntGwent.Scripts.Lobby.Services
             return _playerLobbyMap[conn];
         }
 
-        private void StartLobby(LobbyRoom room)
+        public bool TryStartLobby(string lobbyId)
         {
+            var room = _rooms[lobbyId];
+            if (!room.IsFull)
+                return false;
+
+            var gc = _container.Instantiate<GameContext>();
+            gc.SetPlayers(room.Players.First(), room.Players.Last());
+            _games.Add(lobbyId, gc);
+            
             _hub.SyncLobbies.Remove(room.Data);
+            
+            GameController.StartGame(gc); 
             
             foreach (var player in room.Players)
             {
-                //player.Send(new GameStartedMessage());
+                var playerContext = gc.GetPlayer(player.Connection);
+                string[] cardsInHand = new string[playerContext.Hand.Count];
+                int i = 0;
+                foreach (var cardInstance in playerContext.Hand)
+                {
+                    cardsInHand[i] = cardInstance.Definition.Id;
+                    i++;
+                }
+                player.Connection.Send(new GameStartedMessage
+                {
+                    CardsInHand = cardsInHand,
+                    IsMyTurn = gc.CurrentPlayer == playerContext,
+                });
             }
+
+            return true;
         }
     }
 }

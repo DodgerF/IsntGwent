@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using IsntGwent.Scripts.Decks.Definitions;
+using Mirror;
 
 namespace IsntGwent.Scripts.Messages
 {
@@ -6,5 +7,6 @@ namespace IsntGwent.Scripts.Messages
     {
         public string LobbyId;
         public string Password;
+        public DeckDefinition Deck;
     }
 }

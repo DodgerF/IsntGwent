@@ -7,6 +7,5 @@ namespace IsntGwent.Scripts.Messages
     {
         public bool IsSuccess;
         public LobbyError Error;
-        public string LobbyId;
     }
 }

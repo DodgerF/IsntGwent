@@ -1,6 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
-using IsntGwent.Scripts.Game.Services;
+using IsntGwent.Scripts.Match;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -10,11 +10,7 @@ namespace IsntGwent.Scripts.Installers
         public override void InstallBindings()
         {
             Container
-                .Bind<SessionService>()
-                .AsSingle()
-                .NonLazy();
-            Container
-                .BindInterfacesAndSelfTo<SceneController>()
+                .BindInterfacesAndSelfTo<SceneService>()
                 .AsSingle()
                 .NonLazy();
             

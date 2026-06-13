@@ -1,5 +1,4 @@
 ﻿using IsntGwent.Scripts.Lobby.Core;
-using IsntGwent.Scripts.Lobby.Services;
 using Mirror;
 using UnityEngine;
 using Zenject;
@@ -10,18 +9,18 @@ namespace IsntGwent.Scripts.Lobby.Network
     public class LobbyNetworkHub : NetworkBehaviour
     {
         public readonly SyncList<LobbyData> SyncLobbies = new();
-        [Inject] private LobbyService _service;
+        [Inject] private LobbyStore _store;
         
         public override void OnStartClient()
         {
             SyncLobbies.Callback += OnSyncListChanged;
             
-            if (_service != null && _service.Lobbies != null)
+            if (_store != null && _store.Lobbies != null)
             {
-                _service.Lobbies.Clear();
+                _store.Lobbies.Clear();
                 foreach (var lobbyData in SyncLobbies)
                 {
-                    _service.Lobbies.Add(lobbyData);
+                    _store.Lobbies.Add(lobbyData);
                 }
             }
         }
@@ -36,10 +35,10 @@ namespace IsntGwent.Scripts.Lobby.Network
             switch (op)
             {
                 case SyncList<LobbyData>.Operation.OP_ADD:
-                    _service.Lobbies.Add(newData);
+                    _store.Lobbies.Add(newData);
                     break;
                 case SyncList<LobbyData>.Operation.OP_REMOVEAT:
-                    _service.Lobbies.RemoveAt(index);
+                    _store.Lobbies.RemoveAt(index);
                     break;
                 default:
                     break;

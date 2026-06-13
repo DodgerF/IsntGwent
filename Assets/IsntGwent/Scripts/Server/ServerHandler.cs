@@ -1,17 +1,17 @@
 ﻿using System;
 using IsntGwent.Scripts.Lobby.Core;
-using IsntGwent.Scripts.Lobby.Services;
 using IsntGwent.Scripts.Messages;
 using Mirror;
 using Zenject;
+using ReadyMessage = IsntGwent.Scripts.Messages.ReadyMessage;
 
-namespace IsntGwent.Scripts.Lobby.Network
+namespace IsntGwent.Scripts.Server
 {
-    public class LobbyServerHandler : IInitializable, IDisposable
+    public class ServerHandler : IInitializable, IDisposable
     {
-        private LobbyManager _lobbyManager;
+        private readonly LobbyManager _lobbyManager;
 
-        public LobbyServerHandler(LobbyManager lobbyManager)
+        public ServerHandler(LobbyManager lobbyManager)
         {
             _lobbyManager = lobbyManager;
         }
@@ -22,7 +22,14 @@ namespace IsntGwent.Scripts.Lobby.Network
             {
                 NetworkServer.RegisterHandler<CreateLobbyMessage>(OnCreateLobbyRequested);
                 NetworkServer.RegisterHandler<JoinLobbyMessage>(OnJoinLobbyRequested);
+                NetworkServer.RegisterHandler<ReadyMessage>(OnReady);
             }
+        }
+
+        private void OnReady(NetworkConnectionToClient conn, ReadyMessage _)
+        {
+            var lobbyId = _lobbyManager.GetLobbyId(conn);
+            _lobbyManager.TryStartLobby(lobbyId);
         }
 
         private void OnJoinLobbyRequested(NetworkConnectionToClient conn, JoinLobbyMessage message)
@@ -33,7 +40,6 @@ namespace IsntGwent.Scripts.Lobby.Network
             {
                 IsSuccess = result == LobbyError.None,
                 Error = result,
-                LobbyId = message.LobbyId
             });
         }
 
@@ -45,7 +51,6 @@ namespace IsntGwent.Scripts.Lobby.Network
             {
                 IsSuccess = result == LobbyError.None,
                 Error = result,
-                LobbyId = result == LobbyError.None ? _lobbyManager.GetLobbyId(conn) : null
             });
             
         }

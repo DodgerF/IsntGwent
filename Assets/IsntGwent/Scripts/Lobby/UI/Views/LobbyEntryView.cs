@@ -25,10 +25,19 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
             Text.text = lobbyData.Name;
             LockIcon.SetActive(lobbyData.IsPrivate);
 
-            gameObject.GetComponent<Button>().OnClickAsObservable()
+            var button =  gameObject.GetComponent<Button>();
+            button.OnClickAsObservable()
                 .Subscribe(_ =>
                 {
-                    _vm.SelecteLobby(_lobbyData);
+                    _vm.SelectLobby(_lobbyData);
+                })
+                .AddTo(this);
+            _vm.CanCreateOrJoinLobby
+                .Subscribe(value =>
+                {
+                    button.interactable = value;
+                    float alpha = button.interactable ? 1f : 0.5f;
+                    Text.alpha = alpha;
                 })
                 .AddTo(this);
         }
