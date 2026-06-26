@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using IsntGwent.Scripts.Cards.Definitions;
+﻿using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Lobby;
 using ModestTree;
@@ -24,20 +23,16 @@ namespace IsntGwent.Scripts.Cards.UI
         private void Start()
         {
             _deckSelectService.SelectedDeck
-                .Subscribe(deck =>
-                {
-                    StartCoroutine(ViewCards(deck));
-                })
+                .Subscribe(ViewCards)
                 .AddTo(this);
         }
 
-        private IEnumerator ViewCards(DeckDefinition deck)
+        private void ViewCards(DeckDefinition deck)
         {
             ClearRows();
             
-            yield return null;
             if (deck == null || deck.Cards.IsEmpty())
-                yield break;
+                return;
 
             foreach (var cardEntry in deck.Cards)
             {
@@ -46,7 +41,8 @@ namespace IsntGwent.Scripts.Cards.UI
                 for (var i = 0; i < cardEntry.Count; i++)
                 {
                     var cardView = _container.InstantiatePrefabForComponent<CardView>(cardViewPrefab);
-                    cardView.Setup(cardDefinition);
+                    cardView.Setup(CardFactory.Create(cardDefinition));
+                    cardView.mode = CardMode.OnBoard;
 
                     AddCardToRow(cardView, cardDefinition);
                 }

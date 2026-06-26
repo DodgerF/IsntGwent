@@ -1,4 +1,5 @@
 ﻿using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Services;
 using TMPro;
 using UniRx;
@@ -31,18 +32,18 @@ namespace IsntGwent.Scripts.Cards.UI
             Hide(); 
         } 
         
-        private void Show(CardDefinition card)  
+        private void Show(CardInstance card)  
         {  
             preview.SetActive(true);  
             Setup(card);
         }
         
-        public void Setup(CardDefinition card)
+        public void Setup(CardInstance card)
         {
-            var spritePath = "Sprites/Cards/" + card.ImageName;
+            var spritePath = "Sprites/Cards/" + card.Definition.ImageName;
             image.sprite = Resources.Load<Sprite>(spritePath);
 
-            if (card is UnitDefinition unit)
+            if (card.Definition is UnitDefinition unit)
             {
                 meleeIcon.SetActive(unit.Row == RowType.Melee);
                 rangedIcon.SetActive(unit.Row == RowType.Ranged);
@@ -57,8 +58,8 @@ namespace IsntGwent.Scripts.Cards.UI
                 rangedIcon.SetActive(false);
             }
             
-            description.text = card.Description;
-            descriptionBackground.SetActive(card.Description != null);
+            description.text = card.Definition.Description;
+            descriptionBackground.SetActive(card.Definition.Description != null);
         }
 	
         private void Hide()  

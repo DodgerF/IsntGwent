@@ -1,4 +1,7 @@
-﻿using IsntGwent.Scripts.Match;
+﻿using IsntGwent.Scripts.Cards.Services;
+using IsntGwent.Scripts.Match;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -7,6 +10,36 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
+            
+            Container
+                .BindInterfacesAndSelfTo<CardPreviewService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<CardSelectionService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<MatchState>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<GameControllerClient>()
+                .AsSingle()
+                .NonLazy();
+            
+            Container
+                .Bind<GraphicRaycaster>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+            Container
+                .Bind<EventSystem>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<InputRouter>()
+                .AsSingle()
+                .NonLazy();
+            
             Container
                 .BindInterfacesAndSelfTo<MatchClientHandler>()
                 .AsSingle();

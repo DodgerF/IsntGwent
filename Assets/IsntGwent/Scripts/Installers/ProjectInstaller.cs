@@ -1,6 +1,5 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
-using IsntGwent.Scripts.Match;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers

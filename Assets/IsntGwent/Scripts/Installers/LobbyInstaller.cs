@@ -2,7 +2,10 @@
 using IsntGwent.Scripts.Lobby;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.UI;
+using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Server;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -11,7 +14,23 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
-            Container.Bind<CardPreviewService>().AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<CardPreviewService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<GraphicRaycaster>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+            Container
+                .Bind<EventSystem>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<InputRouter>()
+                .AsSingle()
+                .NonLazy();
+            
             
             Container.Bind<LobbyStore>().AsSingle();
             Container.Bind<DeckSelectService>().AsSingle();
@@ -22,6 +41,7 @@ namespace IsntGwent.Scripts.Installers
             
             Container.BindInterfacesAndSelfTo<ServerHandler>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LobbyClientHandler>().AsSingle();
+            Container.BindInterfacesAndSelfTo<MathServerHandler>().AsSingle().NonLazy();
         }
     }
 }

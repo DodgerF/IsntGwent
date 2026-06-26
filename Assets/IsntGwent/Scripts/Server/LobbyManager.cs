@@ -76,33 +76,22 @@ namespace IsntGwent.Scripts.Server
             var room = _rooms[lobbyId];
             if (!room.IsFull)
                 return false;
-
+            
             var gc = _container.Instantiate<GameContext>();
             gc.SetPlayers(room.Players.First(), room.Players.Last());
             _games.Add(lobbyId, gc);
-            
             _hub.SyncLobbies.Remove(room.Data);
             
-            GameController.StartGame(gc); 
-            
-            foreach (var player in room.Players)
-            {
-                var playerContext = gc.GetPlayer(player.Connection);
-                string[] cardsInHand = new string[playerContext.Hand.Count];
-                int i = 0;
-                foreach (var cardInstance in playerContext.Hand)
-                {
-                    cardsInHand[i] = cardInstance.Definition.Id;
-                    i++;
-                }
-                player.Connection.Send(new GameStartedMessage
-                {
-                    CardsInHand = cardsInHand,
-                    IsMyTurn = gc.CurrentPlayer == playerContext,
-                });
-            }
+            GameControllerServer.StartGame(gc); 
 
             return true;
+        }
+        
+        public GameContext GetGameContext(NetworkConnectionToClient conn)
+        {
+            if (!_playerLobbyMap.TryGetValue(conn, out var lobbyId)) return null;
+            _games.TryGetValue(lobbyId, out var context);
+            return context;
         }
     }
 }

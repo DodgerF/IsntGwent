@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Match;
-using Mirror;
 
 namespace IsntGwent.Scripts.Lobby.Core
 {

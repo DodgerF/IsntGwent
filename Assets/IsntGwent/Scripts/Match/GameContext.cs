@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Decks.Definitions;
 using Mirror;
@@ -9,10 +12,33 @@ namespace IsntGwent.Scripts.Match
 {
     public class Player
     {
+        public int Hp = 2;
+        
         public readonly NetworkConnectionToClient Connection;
+
+        public bool IsPassed = false;
+        
         public readonly List<CardInstance> Hand = new();
         public readonly int MaxCardInHand = 10;
         public readonly List<CardInstance> Deck;
+        
+        public readonly List<UnitInstance> MeleeRow = new();
+        public readonly List<UnitInstance> RangedRow = new();
+        public readonly List<UnitInstance> Graveyard = new();
+        
+        public int MeleePower => MeleeRow.Sum(u => u.CurrentPower.Value);
+        public int RangedPower => RangedRow.Sum(u => u.CurrentPower.Value);
+        public int TotalPower => MeleePower + RangedPower;
+        
+        public List<UnitInstance> GetRow(RowType row)
+        {
+            return row switch
+            {
+                RowType.Melee => MeleeRow,
+                RowType.Ranged => RangedRow,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
 
         public Player(NetworkConnectionToClient connection, List<CardInstance> deck)
         {
@@ -57,6 +83,10 @@ namespace IsntGwent.Scripts.Match
             }
             
             return deck;
+        }
+        public Player GetOpponent(Player player)
+        {
+            return Player1 == player ? Player2 : Player1;
         }
     }
 }

@@ -6,11 +6,11 @@
   [
     {
       "cardId": "giant",
-      "count": 2
+      "count": 10
     },
     {
       "cardId": "fireball",
-      "count": 1
+      "count": 10
     }
   ]
 }

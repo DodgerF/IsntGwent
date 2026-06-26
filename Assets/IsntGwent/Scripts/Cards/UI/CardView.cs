@@ -1,57 +1,34 @@
 ﻿using IsntGwent.Scripts.Cards.Definitions;
-using IsntGwent.Scripts.Cards.Services;
+using IsntGwent.Scripts.Cards.Runtime;
 using TMPro;
-using UniRx;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Zenject;
 
 namespace IsntGwent.Scripts.Cards.UI
 {
-    public class CardView : MonoBehaviour,
-        IPointerDownHandler,
-        IPointerUpHandler 
+    public enum CardMode { InHand, OnBoard }
+    
+    public class CardView : MonoBehaviour
     {
         public Image cardImage;
         public TextMeshProUGUI powerText;
         public GameObject meleeIcon;
         public GameObject rangedIcon;
         
-        private bool _pressed = false;
-        private CardDefinition _definition;  
-        [Inject] private CardPreviewService _previewService;  
+        public CardInstance Instance { get; private set; }
         
-        private void OnLongPress()  
-        {  
-            _previewService.ShowCard.OnNext(_definition);  
-        }
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            _pressed = true; 
-            Observable.Timer(System.TimeSpan.FromSeconds(0.5f)) 
-                .Where(_ => _pressed) 
-                .Subscribe(_ =>
-                {
-                    OnLongPress();
-                    _pressed = false;
-                }) 
-                .AddTo(this); 
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            _pressed = false;
-            _previewService.HideCard.OnNext(Unit.Default);
-        }
+        public CardMode mode = CardMode.InHand;
         
-        public void Setup(CardDefinition card)
+        
+        public void Setup(CardInstance instance)
         {
-            _definition = card;
-            var spritePath = "Sprites/Cards/" + card.ImageName;
+            Instance = instance;
+            var cardDefinition = instance.Definition;
+            
+            var spritePath = "Sprites/Cards/" + cardDefinition.ImageName;
             cardImage.sprite = Resources.Load<Sprite>(spritePath);
 
-            if (card is UnitDefinition unit)
+            if (cardDefinition is UnitDefinition unit)
             {
                 powerText.text = unit.Power.ToString();
 
@@ -65,6 +42,10 @@ namespace IsntGwent.Scripts.Cards.UI
                 meleeIcon.SetActive(false);
                 rangedIcon.SetActive(false);
             }
+        }
+        public void SetSelected(bool selected)
+        {
+            gameObject.SetActive(!selected);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using IsntGwent.Scripts.Lobby.Core;
 using UniRx;
 
-namespace IsntGwent.Scripts.Lobby
+namespace IsntGwent.Scripts.Lobby.Network
 {
     public class LobbyStore
     {
