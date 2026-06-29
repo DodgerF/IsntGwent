@@ -5,21 +5,24 @@ using IsntGwent.Scripts.Match;
 
 namespace IsntGwent.Scripts.Cards.Effects
 {
-    public class DealDamageEffect : ICardEffect
+    public class DealDamageEffect : CardEffectBase
     {
-        public void Execute(
-            GameContext context, 
-            CardInstance source, 
-            List<UnitInstance> targets, 
-            EffectDefinition definition)
+        public override bool NeedsManualTargets(EffectDefinition def) => true;
+        public override int ManualTargetCount(EffectDefinition def) => 
+            ((DealDamageEffectDefinition)def).TargetCount;
+
+        public override void Execute(GameContext context, CardInstance source,
+            List<UnitInstance> targets, EffectDefinition definition)
         {
-            var damageDefinition =
-                (DealDamageEffectDefinition)definition;
-            
+            var def = (DealDamageEffectDefinition)definition;
             foreach (var target in targets)
-            {
-                target.GetDamage(damageDefinition.Amount);
-            }
+                target.GetDamage(def.Amount);
         }
+    }
+
+    public class DealDamageEffectDefinition : EffectDefinition
+    {
+        public int Amount;
+        public int TargetCount;
     }
 }

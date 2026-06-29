@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Server;
 using Mirror;
@@ -10,6 +12,7 @@ namespace IsntGwent.Scripts.Match
     public class MathServerHandler : IInitializable, IDisposable
     {
         [Inject] private readonly LobbyManager _lobbyManager;
+        [Inject] private readonly CardResolver _cardResolver;
         
         public void Initialize()
         {
@@ -30,7 +33,9 @@ namespace IsntGwent.Scripts.Match
             var card = player.Hand.FirstOrDefault(c => c.Id.ToString() == msg.CardInstanceId);
             if (card == null) return;
 
-            GameControllerServer.PlayCard(context, player, card, msg.Row);
+            var selectedIds = msg.TargetIds?.ToList() ?? new List<string>();
+
+            GameControllerServer.PlayCard(context, player, card, msg.Row, selectedIds, _cardResolver);
         }
         
         private void OnPass(NetworkConnectionToClient conn, PassMessage msg)

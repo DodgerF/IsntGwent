@@ -1,22 +1,20 @@
-{
-  "id": "fireball",
-  "name": "Fireball",
-  "imageName": "fireball",
+﻿{
+  "id": "plague",
+  "name": "Plague",
+  "imageName": "plague",
   "type": "Spell",
-  "description": "Deals 8 damage",
+  "description": "Deals 5 damage to the weakest units",
   "effects": [
     {
-      "effect": "ManualTargeting",
+      "effect": "WeakestTargeting",
       "trigger": "OnPlay",
-      "count": 1,
-      "allowPartial": false,
       "includeEnemies": true,
       "includeAllies": true
     },
     {
       "effect": "DealDamage",
       "trigger": "OnPlay",
-      "amount": 8
+      "amount": 5
     }
   ]
 }

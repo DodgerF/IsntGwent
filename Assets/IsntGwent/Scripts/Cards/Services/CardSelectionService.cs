@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Effects;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match;
@@ -13,12 +16,20 @@ namespace IsntGwent.Scripts.Cards.Services
         [Inject] private readonly InputRouter _inputRouter;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardPreviewService _previewService;
+        [Inject] private readonly CardResolver _cardResolver;
          
         public readonly Subject<CardDefinition> HighlightRows = new();
         public readonly Subject<Unit> ClearHighlights = new();
-        public readonly Subject<(CardInstance Card, RowView Row)> CardPlayRequested = new();
+        public readonly Subject<(CardInstance Card, RowView Row, List<string> TargetIds)> CardPlayRequested = new();
+        public readonly Subject<int> TargetSelectionStarted = new Subject<int>();
+        public readonly Subject<List<string>> HighlightTargets = new();
+        public readonly Subject<string> TargetSelected = new();
+        public readonly Subject<string> TargetDeselected = new();
         
-        private enum State { Idle, CardSelected, TargetSelection }
+        private List<string> _selectedTargets = new();
+        private int _requiredTargets;
+        
+        private enum State { Idle, CardSelected, TargetSelection, TargetThenRow }
         private State _state = State.Idle;
         private CardView _selectedCard;
         
@@ -37,6 +48,10 @@ namespace IsntGwent.Scripts.Cards.Services
             _inputRouter.EmptyPressed
                 .Subscribe(_ => OnEmptyClicked())
                 .AddTo(_disposables);
+            
+            _inputRouter.BoardCardPressed
+                .Subscribe(OnBoardCardClicked)
+                .AddTo(_disposables);
         }
 
         private void OnCardClicked(CardView card)
@@ -47,6 +62,8 @@ namespace IsntGwent.Scripts.Cards.Services
                     SelectCard(card);
                     break;
                 case State.CardSelected:
+                case State.TargetSelection:
+                case State.TargetThenRow:
                     CancelSelection();
                     SelectCard(card);
                     break;
@@ -56,7 +73,7 @@ namespace IsntGwent.Scripts.Cards.Services
         private void OnRowClicked(RowView row)
         {
             if (_state != State.CardSelected) return;
-            CardPlayRequested.OnNext((_selectedCard.Instance, row));
+            CardPlayRequested.OnNext((_selectedCard.Instance, row, new List<string>(_selectedTargets)));
             CancelSelection();
         }
 
@@ -66,6 +83,8 @@ namespace IsntGwent.Scripts.Cards.Services
             CancelSelection();
         }
 
+        private bool _allowPartial;
+        private List<string> _targetPool;
         private void SelectCard(CardView card)
         {
             if (card.mode == CardMode.OnBoard) return;
@@ -74,18 +93,102 @@ namespace IsntGwent.Scripts.Cards.Services
             _selectedCard = card;
             _selectedCard.SetSelected(true);
             _previewService.ShowCard.OnNext(card.Instance);
-            HighlightRows.OnNext(card.Instance.Definition);
-            _state = State.CardSelected;
+            
+            var needsManual = _cardResolver.NeedsManualTargets(card.Instance.Definition, out var count);
+            if (needsManual)
+            {
+                var targetingDef = card.Instance.Definition.Effects
+                    .OfType<ManualTargetingDefinition>().FirstOrDefault();
+                _allowPartial = targetingDef?.AllowPartial ?? false;
+                _targetPool = _cardResolver.GetTargetPool(
+                    card.Instance.Definition,
+                    _matchState.OwnMeleeRow.Concat(_matchState.OwnRangedRow).Cast<UnitInstance>(),
+                    _matchState.EnemyMeleeRow.Concat(_matchState.EnemyRangedRow).Cast<UnitInstance>()
+                );
+                if (_targetPool.Count == 0 && _allowPartial)
+                {
+                    if (card.Instance is UnitInstance)
+                    {
+                        HighlightRows.OnNext(card.Instance.Definition);
+                        _state = State.CardSelected;
+                        return;
+                    }
+                    
+                    CardPlayRequested.OnNext((card.Instance, null, new List<string>()));
+                    CancelSelection();
+                    return;
+                }
+                
+                _requiredTargets = count;
+                _selectedTargets = new List<string>();
+                
+                _state = card.Instance is UnitInstance ? State.TargetThenRow : State.TargetSelection;
+                
+                HighlightTargets.OnNext(_targetPool);
+                
+                TargetSelectionStarted.OnNext(count);
+                return;
+            }
+            
+            if (card.Instance is UnitInstance)
+            {
+                HighlightRows.OnNext(card.Instance.Definition);
+                _state = State.CardSelected;
+                return;
+            }
+            
+            CardPlayRequested.OnNext((card.Instance, null, new List<string>()));
+            CancelSelection();
         }
+        
+        private void OnBoardCardClicked(CardView target)
+        {
+            if (_state is not (State.TargetSelection or State.TargetThenRow)) return;
+            if (target.Instance is not UnitInstance unit) return;
+
+            var id = unit.Id.ToString();
+            if (_selectedTargets.Contains(id))
+            {
+                _selectedTargets.Remove(id);
+                TargetDeselected.OnNext(id);
+                return;
+            }
+
+            _selectedTargets.Add(id);
+            TargetSelected.OnNext(id);
+
+            
+            var requiredReached = _selectedTargets.Count >= _requiredTargets;
+            var poolExhausted = _allowPartial && _selectedTargets.Count >= _targetPool.Count;
+
+            if (requiredReached || poolExhausted)
+                ConfirmTargets();
+        }
+        
+        private void ConfirmTargets()
+        {
+            if (_state == State.TargetThenRow)
+            {
+                HighlightRows.OnNext(_selectedCard.Instance.Definition);
+                _state = State.CardSelected;
+            }
+            else
+            {
+                CardPlayRequested.OnNext((_selectedCard.Instance, null, new List<string>(_selectedTargets)));
+                CancelSelection();
+            }
+        }
+
 
         private void CancelSelection()
         {
+            if (_selectedCard != null)
+                _selectedCard.SetSelected(false);
             
-            _selectedCard.SetSelected(false);
             _previewService.HideCard.OnNext(Unit.Default);
-            
-                
             ClearHighlights.OnNext(Unit.Default);
+            HighlightTargets.OnNext(new List<string>());
+            _selectedTargets.Clear();
             _selectedCard = null;
             _state = State.Idle;
         }

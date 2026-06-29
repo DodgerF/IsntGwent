@@ -7,5 +7,6 @@ namespace IsntGwent.Scripts.Messages
     {
         public string CardInstanceId;
         public RowType Row;
+        public string[] TargetIds;
     }
 }

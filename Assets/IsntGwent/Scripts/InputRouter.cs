@@ -20,6 +20,7 @@ namespace IsntGwent.Scripts
         public readonly Subject<Unit> EmptyPressed = new();
         public readonly Subject<CardView> CardHovered = new();
         public readonly Subject<Unit> HoverEnded = new();
+        public readonly Subject<CardView> BoardCardPressed = new();
 
         private readonly List<RaycastResult> _results = new();
         private float _pressTime;
@@ -101,7 +102,10 @@ namespace IsntGwent.Scripts
             
             if (top.GetComponentInParent<CardView>() is { } card)
             {
-                CardPressed.OnNext(card);
+                if (card.mode == CardMode.OnBoard)
+                    BoardCardPressed.OnNext(card);
+                else
+                    CardPressed.OnNext(card);
                 return;
             }
             if (top.GetComponentInParent<RowView>() is { } row)

@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Cards.Services;
+﻿using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Cards.Services;
 using IsntGwent.Scripts.Lobby;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.UI;
@@ -14,6 +15,13 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
+            Container
+                .Bind<EffectRegistry>()
+                .AsSingle();
+            Container
+                .Bind<CardResolver>()
+                .AsSingle();
+            
             Container
                 .BindInterfacesAndSelfTo<CardPreviewService>()
                 .AsSingle()

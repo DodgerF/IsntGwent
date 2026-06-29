@@ -6,11 +6,19 @@
   [
     {
       "cardId": "giant",
-      "count": 10
+      "count": 4
+    },
+    {
+      "cardId": "soldier",
+      "count": 6
     },
     {
       "cardId": "fireball",
-      "count": 10
+      "count": 5
+    },
+    {
+      "cardId": "plague",
+      "count": 1
     }
   ]
 }

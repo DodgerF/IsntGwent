@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Effects;
 using Newtonsoft.Json;
 using UnityEngine;
 using Zenject;
@@ -45,10 +46,16 @@ namespace IsntGwent.Scripts.Cards
                     string effectType = effectJson["effect"]?.ToString();
                     if (effectType == null)  continue;
                     
-                    var effect = effectType switch
+                    EffectDefinition effect = effectType switch
                     {
+                        "ManualTargeting" => 
+                            effectJson.ToObject<ManualTargetingDefinition>(),
+                        "WeakestTargeting" => 
+                            effectJson.ToObject<WeakestTargetingDefinition>(),
                         "DealDamage" =>
                             effectJson.ToObject<DealDamageEffectDefinition>(),
+                        "DealDamageToWeakest" => 
+                            effectJson.ToObject<DealDamageToWeakestEffectDefinition>(),
                         
                         _ => throw new Exception("Unknown Effect: " + effectType)
                     };

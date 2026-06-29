@@ -6,6 +6,7 @@ using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Decks.Definitions;
 using Mirror;
+using UniRx;
 using Zenject;
 
 namespace IsntGwent.Scripts.Match
@@ -24,7 +25,7 @@ namespace IsntGwent.Scripts.Match
         
         public readonly List<UnitInstance> MeleeRow = new();
         public readonly List<UnitInstance> RangedRow = new();
-        public readonly List<UnitInstance> Graveyard = new();
+        public readonly List<CardInstance> Graveyard = new();
         
         public int MeleePower => MeleeRow.Sum(u => u.CurrentPower.Value);
         public int RangedPower => RangedRow.Sum(u => u.CurrentPower.Value);
@@ -47,12 +48,34 @@ namespace IsntGwent.Scripts.Match
         }
     }
     
-    public class GameContext
+    public class GameContext : IDisposable
     {
         [Inject] private readonly CardDatabase _cardDatabase;
         
+        private readonly CompositeDisposable _disposables = new();
+        private readonly List<UnitInstance> _changedUnits = new();
+        
         public Player Player1;
         public Player Player2;
+        
+        public void OnUnitAddedToRow(UnitInstance unit)
+        {
+            unit.CurrentPower
+                .Skip(1)
+                .Subscribe(_ =>
+                {
+                    if (!_changedUnits.Contains(unit))
+                        _changedUnits.Add(unit);
+                })
+                .AddTo(_disposables);
+        }
+        
+        public List<UnitInstance> FlushChangedUnits()
+        {
+            var result = new List<UnitInstance>(_changedUnits);
+            _changedUnits.Clear();
+            return result;
+        }
 
         public Player GetPlayer(NetworkConnectionToClient connection)
         {
@@ -87,6 +110,11 @@ namespace IsntGwent.Scripts.Match
         public Player GetOpponent(Player player)
         {
             return Player1 == player ? Player2 : Player1;
+        }
+
+        public void Dispose()
+        {
+            _disposables.Dispose();
         }
     }
 }

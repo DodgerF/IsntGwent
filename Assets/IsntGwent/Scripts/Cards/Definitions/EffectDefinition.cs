@@ -2,8 +2,7 @@
 {
     public abstract class EffectDefinition
     {
-        public string Trigger;
-        public TargetType TargetType;
+        public EffectTrigger Trigger;
     }
 
 }

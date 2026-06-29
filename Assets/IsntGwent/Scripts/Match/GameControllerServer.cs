@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Messages;
+using UniRx;
 
 namespace IsntGwent.Scripts.Match
 {
@@ -47,6 +49,7 @@ namespace IsntGwent.Scripts.Match
                 EnemyRangedPower = p1.RangedPower,
                 EnemyTotalPower = p1.TotalPower,
             });
+            SyncUnitStates(context);
         }
 
         public static void Send(Player player, GameContext context)
@@ -61,40 +64,20 @@ namespace IsntGwent.Scripts.Match
             });
         }
         
-        public static void PlayCard(GameContext context, Player player, CardInstance card, RowType row)
+        public static void PlayCard(GameContext context, Player player, CardInstance card,
+            RowType row, List<string> selectedIds, CardResolver cardResolver)
         {
             if (!player.Hand.Contains(card))
                 return;
             
-            if (card is not UnitInstance unit)
-                return;
-            
-            if (unit.UnitDefinition.Row != row)
+            if (!PlaceCard(context, player, card, row))
                 return;
             
             player.Hand.Remove(card);
-            player.GetRow(row).Add(unit);
+            SendCardPlayed(context, player, card, row);
+            player.Connection.Send(new CardRemovedFromHandMessage { CardInstanceId = card.Id.ToString() });
             
-            var opponent = context.GetOpponent(player);
-            
-            player.Connection.Send(new OwnCardPlayedMessage
-            {
-                CardInstanceId = unit.Id.ToString(),
-                Row = row
-            });
-            opponent.Connection.Send(new EnemyCardPlayedMessage
-            {
-                CardInstanceId = unit.Id.ToString(),
-                DefinitionId = unit.Definition.Id,
-                CurrentPower = unit.CurrentPower.Value,
-                Row = row,
-                CardAmount = player.Hand.Count,
-            });
-            player.Connection.Send(new CardRemovedFromHandMessage
-            {
-                CardInstanceId = unit.Id.ToString()
-            });
-            
+            cardResolver.PlayCard(context, player, card, selectedIds);
             
             SyncPower(context);
             if (player.Hand.Count == 0)
@@ -106,6 +89,59 @@ namespace IsntGwent.Scripts.Match
                 ChangeTurn(context);
             }
         }
+        
+        private static void SendCardPlayed(GameContext context, Player player, CardInstance card, RowType row)
+        {
+            var opponent = context.GetOpponent(player);
+
+            if (card is UnitInstance unit)
+            {
+                player.Connection.Send(new OwnCardPlayedMessage
+                {
+                    CardInstanceId = unit.Id.ToString(),
+                    Row = row
+                });
+                opponent.Connection.Send(new EnemyCardPlayedMessage
+                {
+                    CardInstanceId = unit.Id.ToString(),
+                    DefinitionId = unit.Definition.Id,
+                    CurrentPower = unit.CurrentPower.Value,
+                    CardAmount = player.Hand.Count,
+                    Row = row,
+                });
+            }
+            else
+            {
+                player.Connection.Send(new OwnCardPlayedMessage
+                {
+                    CardInstanceId = card.Id.ToString()
+                });
+                opponent.Connection.Send(new EnemyCardPlayedMessage
+                {
+                    CardInstanceId = card.Id.ToString(),
+                    DefinitionId = card.Definition.Id,
+                    CardAmount = player.Hand.Count,
+                });
+            }
+        }
+        
+        private static bool PlaceCard(GameContext context, Player player, CardInstance card, RowType row)
+        {
+            if (card is UnitInstance unit)
+            {
+                if (unit.UnitDefinition.Row != row) return false;
+                
+                player.GetRow(row).Add(unit);
+                context.OnUnitAddedToRow(unit);
+            }
+            else
+            {
+                player.Graveyard.Add(card);
+            }
+            
+            return true;
+        }
+        
         
         public static void PassTurn(GameContext context, Player player)
         {
@@ -164,8 +200,8 @@ namespace IsntGwent.Scripts.Match
                 return;
             }
             
-            MoveToGraveyard(p1);
-            MoveToGraveyard(p2);
+            MoveAllToGraveyard(p1);
+            MoveAllToGraveyard(p2);
             SyncPower(context);
             SyncBoard(context);
 
@@ -191,8 +227,44 @@ namespace IsntGwent.Scripts.Match
                 Result = isTie ? RoundResult.Tie : winner == p2 ? RoundResult.Win : RoundResult.Lose
             });
         }
+        
+        public static void SyncUnitStates(GameContext context)
+        {
+            var changed = context.FlushChangedUnits();
+            if (changed.Count == 0) return;
 
-        public static void MoveToGraveyard(Player player)
+            var data = changed.Select(u => new UnitStateChangedData
+            {
+                InstanceId = u.Id.ToString(),
+                CurrentPower = u.CurrentPower.Value,
+                IsDead = u.CurrentPower.Value <= 0
+            }).ToArray();
+
+            var msg = new UnitsStateChangedMessage { Units = data };
+            context.Player1.Connection.Send(msg);
+            context.Player2.Connection.Send(msg);
+            
+            foreach (var unit in changed.Where(u => u.CurrentPower.Value <= 0))
+            {
+                MoveToGraveyard(context, unit);
+                unit.OnDead.OnNext(Unit.Default);
+                unit.CurrentPower.Value = unit.UnitDefinition.Power;
+            }
+        }
+        
+        private static void MoveToGraveyard(GameContext context, UnitInstance unit)
+        {
+            foreach (var player in new[] { context.Player1, context.Player2 })
+            {
+                if (player.MeleeRow.Remove(unit) || player.RangedRow.Remove(unit))
+                {
+                    player.Graveyard.Add(unit);
+                    return;
+                }
+            }
+        }
+        
+        public static void MoveAllToGraveyard(Player player)
         {
             foreach (var unit in player.MeleeRow)
                 player.Graveyard.Add(unit);

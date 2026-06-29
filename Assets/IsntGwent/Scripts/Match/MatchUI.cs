@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Cards.Runtime;
+using IsntGwent.Scripts.Cards.Services;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Messages;
 using TMPro;
@@ -53,6 +55,7 @@ namespace IsntGwent.Scripts.Match
         [Inject] private readonly MatchViewModel _vm;
         [Inject] private readonly DiContainer _container;
         [Inject] private readonly MatchState _matchState;
+        [Inject] private readonly CardSelectionService _selectionService;
         
         private readonly Dictionary<Guid, GameObject> _cardViews = new();
         
@@ -184,6 +187,44 @@ namespace IsntGwent.Scripts.Match
                     // gameEndedText.text = _matchState.IsTie.Value ? "Ничья" 
                     //     : _matchState.AmIWinner.Value ? "Победа" 
                     //     : "Поражение";
+                })
+                .AddTo(this);
+            
+            _selectionService.HighlightTargets
+                .Subscribe(pool =>
+                {
+                    foreach (var kvp in _cardViews)
+                    {
+                        var view = kvp.Value.GetComponent<CardView>();
+                        var state = pool.Contains(kvp.Key.ToString())
+                            ? CardView.TargetHighlightState.Available
+                            : CardView.TargetHighlightState.None;
+                        view.SetTargetHighlight(state);
+                    }
+                })
+                .AddTo(this);
+
+            _selectionService.TargetSelected
+                .Subscribe(id =>
+                {
+                    var card = _cardViews.FirstOrDefault(kvp => kvp.Key.ToString() == id).Value;
+                    card?.GetComponent<CardView>().SetTargetHighlight(CardView.TargetHighlightState.Selected);
+                })
+                .AddTo(this);
+
+            _selectionService.TargetDeselected
+                .Subscribe(id =>
+                {
+                    var card = _cardViews.FirstOrDefault(kvp => kvp.Key.ToString() == id).Value;
+                    card?.GetComponent<CardView>().SetTargetHighlight(CardView.TargetHighlightState.Available);
+                })
+                .AddTo(this);
+
+            _selectionService.ClearHighlights
+                .Subscribe(_ =>
+                {
+                    foreach (var kvp in _cardViews)
+                        kvp.Value.GetComponent<CardView>().SetTargetHighlight(CardView.TargetHighlightState.None);
                 })
                 .AddTo(this);
             

@@ -43,7 +43,11 @@ namespace IsntGwent.Scripts.Match
             
             _selectionService.CardPlayRequested
                 .Where(_ => _matchState.IsMyTurn.Value)
-                .Subscribe(e => _handler.SendPlayCard(e.Card.Id.ToString(), e.Row.row))
+                .Subscribe(e => _handler.SendPlayCard(
+                    e.Card.Id.ToString(),
+                    e.Row?.row ?? RowType.None,
+                    e.TargetIds.ToArray()
+                ))
                 .AddTo(_disposables);
             
             _handler.OnPowerUpdated
@@ -73,8 +77,53 @@ namespace IsntGwent.Scripts.Match
             _handler.OnHpChanged
                 .Subscribe(OnHpChanged)
                 .AddTo(_disposables);
+            
+            _handler.OnUnitsStateChanged
+                .Subscribe(OnUnitsStateChanged)
+                .AddTo(_disposables);
         }
+        private void OnUnitsStateChanged(UnitsStateChangedMessage msg)
+        {
+            foreach (var data in msg.Units)
+            {
+                var unit = FindUnit(data.InstanceId);
+                if (unit == null) continue;
 
+                if (data.IsDead)
+                {
+                    if (_matchState.OwnMeleeRow.Contains(unit) ||
+                        _matchState.OwnRangedRow.Contains(unit) ||
+                        _matchState.Hand.Contains(unit))
+                    {
+                        _matchState.OwnGraveyard.Add(unit);
+                        
+                    }
+                    else
+                        _matchState.EnemyGraveyard.Add(unit);
+                    
+                    if (unit is UnitInstance u)
+                        u.CurrentPower.Value = u.UnitDefinition.Power;
+
+                    
+                }
+                else
+                {
+                    if (unit is UnitInstance u)
+                        u.CurrentPower.Value = data.CurrentPower;
+                }
+            }
+        }
+        
+        private CardInstance FindUnit(string instanceId)
+        {
+            var all = _matchState.OwnMeleeRow
+                .Concat(_matchState.OwnRangedRow)
+                .Concat(_matchState.EnemyMeleeRow)
+                .Concat(_matchState.EnemyRangedRow);
+
+            return all.FirstOrDefault(c => c.Id.ToString() == instanceId);
+        }
+        
         private void OnHpChanged(HpChangedMessage msg)
         {
             _matchState.MyHp.Value = msg.MyHp;
@@ -172,9 +221,18 @@ namespace IsntGwent.Scripts.Match
         {
             var card = _matchState.Hand.FirstOrDefault(c => c.Id.ToString() == msg.CardInstanceId);
             if (card == null) return;
+
+            if (card is UnitInstance)
+            {
+                var row = msg.Row == RowType.Melee ? _matchState.OwnMeleeRow : _matchState.OwnRangedRow;
+                row.Add(card);
+            }
+            else if (card is SpellInstance)
+            {
+                _matchState.OwnGraveyard.Add(card);
+            }
+
             
-            var row = msg.Row == RowType.Melee ? _matchState.OwnMeleeRow : _matchState.OwnRangedRow;
-            row.Add(card);
         }
 
         private void OnEnemyCardPlayed(EnemyCardPlayedMessage msg)
@@ -184,11 +242,16 @@ namespace IsntGwent.Scripts.Match
             instance.SetId(Guid.Parse(msg.CardInstanceId));
 
             if (instance is UnitInstance unit)
+            {
                 unit.CurrentPower.Value = msg.CurrentPower;
-
-            var row = msg.Row == RowType.Melee ? _matchState.EnemyMeleeRow : _matchState.EnemyRangedRow;
-            row.Add(instance);
-
+                var row = msg.Row == RowType.Melee ? _matchState.EnemyMeleeRow : _matchState.EnemyRangedRow;
+                row.Add(instance);
+            }
+            else if (instance is SpellInstance spell)
+            {
+                _matchState.EnemyGraveyard.Add(spell);
+            }
+            
             _matchState.EnemyCardAmount.Value = msg.CardAmount;
         }
 

@@ -7,6 +7,11 @@ namespace IsntGwent.Scripts.Cards.Effects
 {
     public interface ICardEffect
     {
+        bool NeedsManualTargets(EffectDefinition definition);
+        int ManualTargetCount(EffectDefinition definition);
+        List<UnitInstance> ResolveTargets(GameContext context, Player caster, 
+            EffectDefinition definition, List<UnitInstance> manualTargets);
+        
         void Execute(
         GameContext context,
         CardInstance source,

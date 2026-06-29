@@ -22,6 +22,7 @@ namespace IsntGwent.Scripts.Match
         public readonly Subject<RoundEndedMessage> OnRoundEnded = new();
         public readonly Subject<GameEndedMessage> OnGameEnded = new();
         public readonly Subject<HpChangedMessage> OnHpChanged = new();
+        public readonly Subject<UnitsStateChangedMessage> OnUnitsStateChanged = new();
         
         public void Initialize()
         {
@@ -39,7 +40,7 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.RegisterHandler<RoundEndedMessage>(msg => OnRoundEnded.OnNext(msg));
             NetworkClient.RegisterHandler<GameEndedMessage>(msg => OnGameEnded.OnNext(msg));
             NetworkClient.RegisterHandler<HpChangedMessage>(msg => OnHpChanged.OnNext(msg));
-            
+            NetworkClient.RegisterHandler<UnitsStateChangedMessage>(msg => OnUnitsStateChanged.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -51,12 +52,13 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.Send(new PassMessage());
         }
         
-        public void SendPlayCard(string cardInstanceId, RowType row)
+        public void SendPlayCard(string cardInstanceId, RowType row, string[] targetIds)
         {
             NetworkClient.Send(new PlayCardMessage
             {
-                CardInstanceId = cardInstanceId, 
+                CardInstanceId = cardInstanceId,
                 Row = row,
+                TargetIds = targetIds
             });
         }
 
@@ -74,6 +76,7 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.UnregisterHandler<RoundEndedMessage>();
             NetworkClient.UnregisterHandler<GameEndedMessage>();
             NetworkClient.UnregisterHandler<HpChangedMessage>();
+            NetworkClient.UnregisterHandler<UnitsStateChangedMessage>();
         }
     }
 }
