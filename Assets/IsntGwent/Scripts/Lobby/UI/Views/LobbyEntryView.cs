@@ -36,7 +36,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                 .Subscribe(value =>
                 {
                     button.interactable = value;
-                    float alpha = button.interactable ? 1f : 0.5f;
+                    float alpha = button.interactable ? 1f : 0.3f;
                     Text.alpha = alpha;
                 })
                 .AddTo(this);

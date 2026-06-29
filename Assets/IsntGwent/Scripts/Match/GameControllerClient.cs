@@ -26,7 +26,11 @@ namespace IsntGwent.Scripts.Match
                 .AddTo(_disposables);
 
             _handler.OnTurnChanged
-                .Subscribe(msg => _matchState.IsMyTurn.Value = msg.IsMyTurn)
+                .Subscribe(msg =>
+                {
+                    _matchState.IsMyTurn.Value = msg.IsMyTurn;
+                    _matchState.TurnChanged.OnNext(Unit.Default);
+                })
                 .AddTo(_disposables);
             
             _handler.OnCardRemovedFromHand
@@ -103,8 +107,6 @@ namespace IsntGwent.Scripts.Match
                     
                     if (unit is UnitInstance u)
                         u.CurrentPower.Value = u.UnitDefinition.Power;
-
-                    
                 }
                 else
                 {
@@ -134,6 +136,7 @@ namespace IsntGwent.Scripts.Match
         {
             _matchState.IsMyTurn.Value = msg.IsMyTurn;
             _matchState.LastRoundResult.Value = msg.Result;
+            _matchState.TurnChanged.OnNext(Unit.Default);
 
             _matchState.OwnMeleeRow.Clear();
             _matchState.OwnRangedRow.Clear();
@@ -143,9 +146,9 @@ namespace IsntGwent.Scripts.Match
 
         private void OnGameEnded(GameEndedMessage msg)
         {
-            _matchState.AmIWinner.Value = msg.AmIWinner;
             _matchState.IsTie.Value = msg.IsTie;
-            _matchState.IsMyTurn.Value = false;
+            _matchState.AmIWinner.Value = msg.AmIWinner;
+            
             _matchState.IsGameEnded.Value = true;
         }
         
@@ -196,6 +199,7 @@ namespace IsntGwent.Scripts.Match
         private void OnGameStarted(GameStartedMessage msg)
         {
             _matchState.IsMyTurn.Value = msg.IsMyTurn;
+            _matchState.TurnChanged.OnNext(Unit.Default);
 
             _matchState.Hand.Clear();
             foreach (var cardData in msg.CardsInHand)

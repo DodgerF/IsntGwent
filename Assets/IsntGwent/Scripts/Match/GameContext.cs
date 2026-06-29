@@ -58,6 +58,8 @@ namespace IsntGwent.Scripts.Match
         public Player Player1;
         public Player Player2;
         
+        public readonly Subject<Unit> GameEnded = new();
+        
         public void OnUnitAddedToRow(UnitInstance unit)
         {
             unit.CurrentPower

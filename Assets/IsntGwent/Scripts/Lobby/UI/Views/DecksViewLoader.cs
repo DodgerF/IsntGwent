@@ -1,5 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
@@ -16,12 +17,31 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Start()
         {
+            _deckDatabase.OnLoaded
+                .Subscribe(value =>
+                {
+                    if (value && _cardDatabase.OnLoaded.Value)
+                        Populate();
+                })
+                .AddTo(this);
+            _cardDatabase.OnLoaded
+                .Subscribe(value =>
+                {
+                    if (value && _deckDatabase.OnLoaded.Value)
+                        Populate();
+                })
+                .AddTo(this);
+        }
+        
+        private void Populate()
+        {
+            Debug.Log("populating decks");
             foreach (var deckDefinition in _deckDatabase.GetAll())
             {
                 var instance = _container.InstantiatePrefabForComponent<DeckSelectionView>(deckViewPrefab, parent);
                 var firstCardId = deckDefinition.Cards[0].CardId;
                 var spritePath = "Sprites/Cards/" + _cardDatabase.Get(firstCardId).ImageName;
-                
+
                 instance.Setup(Resources.Load<Sprite>(spritePath), deckDefinition);
             }
         }

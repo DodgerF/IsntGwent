@@ -7,6 +7,8 @@ namespace IsntGwent.Scripts.Match
     public class MatchState
     {
         public readonly ReactiveProperty<bool> IsMyTurn = new(false);
+        public readonly Subject<Unit> TurnChanged = new();
+        public readonly Subject<Unit> GameStarted = new();
         public readonly ReactiveCollection<CardInstance> Hand = new();
         public readonly ReactiveProperty<int> EnemyCardAmount = new(0);
         

@@ -1,5 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
+using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -12,11 +13,17 @@ namespace IsntGwent.Scripts.Installers
                 .BindInterfacesAndSelfTo<SceneService>()
                 .AsSingle()
                 .NonLazy();
-            
-            Container.BindInterfacesAndSelfTo<CardDatabase>()
+
+            Container
+                .Bind<CoroutineRunner>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<CardDatabase>()
                 .AsSingle()
                 .NonLazy();
-            Container.BindInterfacesAndSelfTo<DeckDatabase>()
+            Container
+                .BindInterfacesAndSelfTo<DeckDatabase>()
                 .AsSingle() 
                 .NonLazy();
         }

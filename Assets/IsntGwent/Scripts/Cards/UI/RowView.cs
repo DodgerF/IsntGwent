@@ -14,8 +14,8 @@ namespace IsntGwent.Scripts.Cards.UI
         
         public RowType row;
         private Image _image;
-        private readonly Color _baseColor = new (0, 0, 0,0.5f);
-        private readonly Color _selectedColor = new (0.6f, 0.75f, 0.95f, 0.5f);
+        private readonly Color _baseColor = new (0.3f, 0.3f, 0.3f,0.3f);
+        private readonly Color _selectedColor = new (0.6f, 0.75f, 0.95f, 0.3f);
         
         public float cardSpacing = 105f;
         public float maxWidth = 1000f;

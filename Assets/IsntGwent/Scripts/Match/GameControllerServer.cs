@@ -146,18 +146,18 @@ namespace IsntGwent.Scripts.Match
         public static void PassTurn(GameContext context, Player player)
         {
             player.IsPassed = true;
-            player.Connection.Send(new TurnChangedMessage
-            {
-                IsMyTurn = false
-            });
-
             var opponent = context.GetOpponent(player);
-
             if (opponent.IsPassed)
             {
                 EndRound(context);
                 return;
             }
+            player.Connection.Send(new TurnChangedMessage
+            {
+                IsMyTurn = false
+            });
+            
+            opponent.Connection.Send(new EnemyPassedMessage());
 
             context.CurrentPlayer = opponent;
             opponent.Connection.Send(new TurnChangedMessage { IsMyTurn = true });
@@ -217,14 +217,21 @@ namespace IsntGwent.Scripts.Match
             
             p1.Connection.Send(new RoundEndedMessage
             {
-                IsMyTurn = context.CurrentPlayer == p1,
                 Result = isTie ? RoundResult.Tie : winner == p1 ? RoundResult.Win : RoundResult.Lose
+            });
+            p1.Connection.Send(new TurnChangedMessage
+            {
+                IsMyTurn = context.CurrentPlayer == p1,
             });
 
             p2.Connection.Send(new RoundEndedMessage
             {
-                IsMyTurn = context.CurrentPlayer == p2,
+                
                 Result = isTie ? RoundResult.Tie : winner == p2 ? RoundResult.Win : RoundResult.Lose
+            });
+            p2.Connection.Send(new TurnChangedMessage
+            {
+                IsMyTurn = context.CurrentPlayer == p2,
             });
         }
         
@@ -287,6 +294,7 @@ namespace IsntGwent.Scripts.Match
                 winner.Connection.Send(new GameEndedMessage { AmIWinner = true });
                 loser.Connection.Send(new GameEndedMessage { AmIWinner = false });
             }
+            context.GameEnded.OnNext(Unit.Default);
         }
 
         public static void ChangeTurn(GameContext context)

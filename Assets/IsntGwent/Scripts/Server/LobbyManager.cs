@@ -6,12 +6,13 @@ using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Messages;
 using Mirror;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Server
 {
-    public class LobbyManager
+    public class LobbyManager : IDisposable
     {
         [Inject] private readonly LobbyNetworkHub _hub;
         [Inject] private readonly DiContainer _container;
@@ -19,6 +20,8 @@ namespace IsntGwent.Scripts.Server
         private readonly Dictionary<string, LobbyRoom> _rooms = new();
         private readonly Dictionary<NetworkConnectionToClient, string> _playerLobbyMap = new();
         private readonly Dictionary<string, GameContext> _games = new();
+        
+        private readonly CompositeDisposable _disposables = new();
         
         public LobbyError TryCreateLobby(NetworkConnectionToClient conn, CreateLobbyMessage msg)
         {
@@ -81,6 +84,13 @@ namespace IsntGwent.Scripts.Server
             gc.SetPlayers(room.Players.First(), room.Players.Last());
             _games.Add(lobbyId, gc);
             _hub.SyncLobbies.Remove(room.Data);
+
+            gc.GameEnded
+                .Subscribe(_ =>
+                {
+                    _games.Remove(lobbyId);
+                })
+                .AddTo(_disposables);
             
             GameControllerServer.StartGame(gc); 
 
@@ -92,6 +102,11 @@ namespace IsntGwent.Scripts.Server
             if (!_playerLobbyMap.TryGetValue(conn, out var lobbyId)) return null;
             _games.TryGetValue(lobbyId, out var context);
             return context;
+        }
+
+        public void Dispose()
+        {
+            _disposables.Dispose();
         }
     }
 }

@@ -41,11 +41,6 @@ namespace IsntGwent.Scripts.Match
 
         public RowView hand;
         
-        public GameObject roundEndedPanel;
-        public TextMeshProUGUI roundResultText;
-        public GameObject gameEndedPanel;
-        public TextMeshProUGUI gameEndedText;
-        
         public GraveyardView ownGraveyard;
         public GraveyardView enemyGraveyard;
 
@@ -150,43 +145,6 @@ namespace IsntGwent.Scripts.Match
                     }
         
                     enemyGraveyard.AddCard(e.Value, go);
-                })
-                .AddTo(this);
-            
-            _matchState.LastRoundResult
-                .Subscribe(result =>
-                {
-                    var text = result switch
-                    {
-                        RoundResult.Win => "Раунд выигран",
-                        RoundResult.Lose => "Раунд проигран",
-                        RoundResult.Tie => "Ничья в раунде",
-                        _ => ""
-                    };
-                    Debug.Log(text);
-                    // roundEndedPanel.SetActive(true);
-                    // roundResultText.text = result switch
-                    // {
-                    //     RoundResult.Win => "Раунд выигран",
-                    //     RoundResult.Lose => "Раунд проигран",
-                    //     RoundResult.Tie => "Ничья в раунде",
-                    //     _ => ""
-                    // };
-                })
-                .AddTo(this);
-            
-            _matchState.IsGameEnded
-                .Where(v => v)
-                .Subscribe(_ =>
-                {
-                    var text = _matchState.IsTie.Value ? "Ничья" : (_matchState.AmIWinner.Value
-                        ? "Победа"
-                        : "Поражение");
-                    Debug.Log(text);
-                    // gameEndedPanel.SetActive(true);
-                    // gameEndedText.text = _matchState.IsTie.Value ? "Ничья" 
-                    //     : _matchState.AmIWinner.Value ? "Победа" 
-                    //     : "Поражение";
                 })
                 .AddTo(this);
             

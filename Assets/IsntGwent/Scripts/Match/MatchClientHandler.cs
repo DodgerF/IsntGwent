@@ -23,6 +23,7 @@ namespace IsntGwent.Scripts.Match
         public readonly Subject<GameEndedMessage> OnGameEnded = new();
         public readonly Subject<HpChangedMessage> OnHpChanged = new();
         public readonly Subject<UnitsStateChangedMessage> OnUnitsStateChanged = new();
+        public readonly Subject<EnemyPassedMessage> OnEnemyPassed = new();
         
         public void Initialize()
         {
@@ -41,6 +42,7 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.RegisterHandler<GameEndedMessage>(msg => OnGameEnded.OnNext(msg));
             NetworkClient.RegisterHandler<HpChangedMessage>(msg => OnHpChanged.OnNext(msg));
             NetworkClient.RegisterHandler<UnitsStateChangedMessage>(msg => OnUnitsStateChanged.OnNext(msg));
+            NetworkClient.RegisterHandler<EnemyPassedMessage>(msg => OnEnemyPassed.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -77,6 +79,7 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.UnregisterHandler<GameEndedMessage>();
             NetworkClient.UnregisterHandler<HpChangedMessage>();
             NetworkClient.UnregisterHandler<UnitsStateChangedMessage>();
+            NetworkClient.UnregisterHandler<EnemyPassedMessage>();
         }
     }
 }
