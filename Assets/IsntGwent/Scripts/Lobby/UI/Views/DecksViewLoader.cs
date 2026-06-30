@@ -17,19 +17,10 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Start()
         {
-            _deckDatabase.OnLoaded
-                .Subscribe(value =>
-                {
-                    if (value && _cardDatabase.OnLoaded.Value)
-                        Populate();
-                })
-                .AddTo(this);
-            _cardDatabase.OnLoaded
-                .Subscribe(value =>
-                {
-                    if (value && _deckDatabase.OnLoaded.Value)
-                        Populate();
-                })
+            Observable.CombineLatest(_deckDatabase.OnLoaded, _cardDatabase.OnLoaded)
+                .Where(values => values[0] && values[1])
+                .Take(1)
+                .Subscribe(_ => Populate())
                 .AddTo(this);
         }
         

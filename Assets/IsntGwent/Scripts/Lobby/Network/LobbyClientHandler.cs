@@ -43,7 +43,8 @@ namespace IsntGwent.Scripts.Lobby.Network
 
         private void OnJoinLobbyResult(JoinLobbyResultMessage msg)
         {
-            OnJoinedLobby.OnNext(Unit.Default);
+            if (msg.IsSuccess)
+                OnJoinedLobby.OnNext(Unit.Default);
         }
 
         private void OnCreateLobbyResult(CreateLobbyResultMessage msg)

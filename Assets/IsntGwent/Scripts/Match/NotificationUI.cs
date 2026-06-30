@@ -46,9 +46,12 @@ namespace IsntGwent.Scripts.Match
                 .Where(v => v)
                 .Subscribe(_ =>
                 {
-                    ShowNotification(_matchState.IsTie.Value ? "Friendship won"
-                        : _matchState.AmIWinner.Value ? "You won!"
-                        : "Defeat");
+                    if (_matchState.MyHp.Value == 0 && _matchState.EnemyHp.Value != 0)
+                        ShowNotification("Defeat");
+                    else if (_matchState.MyHp.Value != 0 && _matchState.EnemyHp.Value == 0)
+                        ShowNotification("You won!");
+                    else if (_matchState.MyHp.Value == 0 && _matchState.EnemyHp.Value == 0)
+                        ShowNotification("Friendship won");
                 })
                 .AddTo(this);
             _matchState.IsMyTurn

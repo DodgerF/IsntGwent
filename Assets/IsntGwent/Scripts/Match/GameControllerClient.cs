@@ -95,18 +95,22 @@ namespace IsntGwent.Scripts.Match
 
                 if (data.IsDead)
                 {
-                    if (_matchState.OwnMeleeRow.Contains(unit) ||
-                        _matchState.OwnRangedRow.Contains(unit) ||
-                        _matchState.Hand.Contains(unit))
-                    {
-                        _matchState.OwnGraveyard.Add(unit);
-                        
-                    }
-                    else
-                        _matchState.EnemyGraveyard.Add(unit);
+                    var wasOwn = _matchState.OwnMeleeRow.Contains(unit) ||
+                                 _matchState.OwnRangedRow.Contains(unit) ||
+                                 _matchState.Hand.Contains(unit);
                     
+                    _matchState.OwnMeleeRow.Remove(unit);
+                    _matchState.OwnRangedRow.Remove(unit);
+                    _matchState.EnemyMeleeRow.Remove(unit);
+                    _matchState.EnemyRangedRow.Remove(unit);
+
                     if (unit is UnitInstance u)
                         u.CurrentPower.Value = u.UnitDefinition.Power;
+
+                    if (wasOwn)
+                        _matchState.OwnGraveyard.Add(unit);
+                    else
+                        _matchState.EnemyGraveyard.Add(unit);
                 }
                 else
                 {

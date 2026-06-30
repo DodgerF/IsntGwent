@@ -7,6 +7,7 @@ using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match;
 using UniRx;
+using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Cards.Services
@@ -21,7 +22,6 @@ namespace IsntGwent.Scripts.Cards.Services
         public readonly Subject<CardDefinition> HighlightRows = new();
         public readonly Subject<Unit> ClearHighlights = new();
         public readonly Subject<(CardInstance Card, RowView Row, List<string> TargetIds)> CardPlayRequested = new();
-        public readonly Subject<int> TargetSelectionStarted = new Subject<int>();
         public readonly Subject<List<string>> HighlightTargets = new();
         public readonly Subject<string> TargetSelected = new();
         public readonly Subject<string> TargetDeselected = new();
@@ -87,6 +87,7 @@ namespace IsntGwent.Scripts.Cards.Services
         private List<string> _targetPool;
         private void SelectCard(CardView card)
         {
+            if (!_matchState.Hand.Contains(card.Instance)) return;
             if (card.mode == CardMode.OnBoard) return;
             if (!_matchState.IsMyTurn.Value) return;
             
@@ -100,6 +101,11 @@ namespace IsntGwent.Scripts.Cards.Services
                 var targetingDef = card.Instance.Definition.Effects
                     .OfType<ManualTargetingDefinition>().FirstOrDefault();
                 _allowPartial = targetingDef?.AllowPartial ?? false;
+                foreach (var own in _matchState.OwnMeleeRow)
+                {
+                    Debug.Log(own.Definition.Id);
+                }
+                
                 _targetPool = _cardResolver.GetTargetPool(
                     card.Instance.Definition,
                     _matchState.OwnMeleeRow.Concat(_matchState.OwnRangedRow).Cast<UnitInstance>(),
@@ -125,8 +131,6 @@ namespace IsntGwent.Scripts.Cards.Services
                 _state = card.Instance is UnitInstance ? State.TargetThenRow : State.TargetSelection;
                 
                 HighlightTargets.OnNext(_targetPool);
-                
-                TargetSelectionStarted.OnNext(count);
                 return;
             }
             
@@ -145,6 +149,11 @@ namespace IsntGwent.Scripts.Cards.Services
         {
             if (_state is not (State.TargetSelection or State.TargetThenRow)) return;
             if (target.Instance is not UnitInstance unit) return;
+            if (!_targetPool.Contains(target.Instance.Id.ToString()))
+            {
+                CancelSelection();
+                return;
+            }
 
             var id = unit.Id.ToString();
             if (_selectedTargets.Contains(id))

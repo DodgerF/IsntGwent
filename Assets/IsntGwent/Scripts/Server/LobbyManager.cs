@@ -55,7 +55,7 @@ namespace IsntGwent.Scripts.Server
             
             if (room.IsFull)
                 return LobbyError.LobbyFull;
-
+            
             if (room.Data.IsPrivate && message.Password != room.Password)
             {
                 Debug.Log("invalid password");
