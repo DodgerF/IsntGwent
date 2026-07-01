@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using IsntGwent.Scripts.Match;
+using Mirror;
 
 namespace IsntGwent.Scripts.Lobby.Core
 {
@@ -24,6 +25,17 @@ namespace IsntGwent.Scripts.Lobby.Core
             Data = data;
             Password = password;
             _players = new HashSet<PlayerLobby>();
+        }
+        
+        public void RemovePlayer(NetworkConnectionToClient conn)
+        {
+            foreach (var playerLobby in _players)
+            {
+                if (playerLobby.Connection != conn) continue;
+                _players.Remove(playerLobby);
+                return;
+            }
+            
         }
         
     }

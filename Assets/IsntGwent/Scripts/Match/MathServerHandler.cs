@@ -20,6 +20,12 @@ namespace IsntGwent.Scripts.Match
             
             NetworkServer.RegisterHandler<PlayCardMessage>(OnPlayCard);
             NetworkServer.RegisterHandler<PassMessage>(OnPass);
+            NetworkServer.RegisterHandler<LeaveMessage>(OnLeave);
+        }
+
+        private void OnLeave(NetworkConnectionToClient conn, LeaveMessage msg)
+        {
+            _lobbyManager.LeaveLobby(conn);
         }
         
         private void OnPlayCard(NetworkConnectionToClient conn, PlayCardMessage msg)
@@ -56,6 +62,7 @@ namespace IsntGwent.Scripts.Match
         {
             NetworkServer.UnregisterHandler<PlayCardMessage>();
             NetworkServer.UnregisterHandler<PassMessage>();
+            NetworkServer.UnregisterHandler<LeaveMessage>();
         }
     }
 }

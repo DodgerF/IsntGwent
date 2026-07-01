@@ -26,7 +26,16 @@ namespace IsntGwent.Scripts.Match
             background.gameObject.SetActive(false);
             title.gameObject.SetActive(false);
             enemyPassed.SetActive(false);
-            
+            _matchState.IsGameEnded
+                .Where(v=>v)
+                .Subscribe(_ =>
+                {
+                    _notifications.Clear();
+                    background.gameObject.SetActive(false);
+                    title.gameObject.SetActive(false);
+                    enemyPassed.SetActive(false);
+                })
+                .AddTo(this);
             _matchState.LastRoundResult
                 .Skip(1)
                 .Subscribe(result =>
@@ -42,18 +51,7 @@ namespace IsntGwent.Scripts.Match
                 })
                 .AddTo(this);
             
-            _matchState.IsGameEnded
-                .Where(v => v)
-                .Subscribe(_ =>
-                {
-                    if (_matchState.MyHp.Value == 0 && _matchState.EnemyHp.Value != 0)
-                        ShowNotification("Defeat");
-                    else if (_matchState.MyHp.Value != 0 && _matchState.EnemyHp.Value == 0)
-                        ShowNotification("You won!");
-                    else if (_matchState.MyHp.Value == 0 && _matchState.EnemyHp.Value == 0)
-                        ShowNotification("Friendship won");
-                })
-                .AddTo(this);
+           
             _matchState.IsMyTurn
                 .First()
                 .Subscribe(isMyTurn =>

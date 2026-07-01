@@ -15,6 +15,7 @@ namespace IsntGwent.Scripts
         [Inject] private readonly GraphicRaycaster _raycaster;
         [Inject] private readonly EventSystem _eventSystem;
         
+        public readonly Subject<GameObject> Pressed = new();
         public readonly Subject<CardView> CardPressed = new();
         public readonly Subject<RowView> RowPressed = new();
         public readonly Subject<Unit> EmptyPressed = new();
@@ -94,11 +95,13 @@ namespace IsntGwent.Scripts
             
             if (_results.Count == 0)
             {
+                Pressed.OnNext(null);
                 EmptyPressed.OnNext(Unit.Default);
                 return;
             }
             
             var top = _results[0].gameObject;
+            Pressed.OnNext(top);
             
             if (top.GetComponentInParent<CardView>() is { } card)
             {

@@ -16,6 +16,7 @@ namespace IsntGwent.Scripts.Match
         [Inject] private readonly CardSelectionService _selectionService;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardDatabase _cardDatabase;
+        [Inject] private readonly SceneService _sceneService;
         
         private readonly CompositeDisposable _disposables = new();
 
@@ -84,6 +85,32 @@ namespace IsntGwent.Scripts.Match
             
             _handler.OnUnitsStateChanged
                 .Subscribe(OnUnitsStateChanged)
+                .AddTo(_disposables);
+            
+            _handler.OnEnemyDisconnected
+                .Subscribe(_ =>
+                {
+                    _matchState.IsEnemyLeft.Value = true;
+                    _matchState.IsGameEnded.Value = true;
+                })
+                .AddTo(_disposables);
+            _handler.OnGiveUp
+                .Subscribe(msg =>
+                {
+                    if (msg.IsMyLose)
+                    {
+                        _matchState.AmIGiveUp.Value = true;
+                    }
+                    else
+                    {
+                        _matchState.IsEnemyGiveUp.Value = true;
+                    }
+
+                    _matchState.IsGameEnded.Value = true;
+                })
+                .AddTo(_disposables);
+            _handler.OnReturnedToMenu
+                .Subscribe(_ => _sceneService.LoadMenu())
                 .AddTo(_disposables);
         }
         private void OnUnitsStateChanged(UnitsStateChangedMessage msg)

@@ -5,6 +5,7 @@ using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Messages;
 using UniRx;
+using UnityEngine;
 
 namespace IsntGwent.Scripts.Match
 {
@@ -235,6 +236,43 @@ namespace IsntGwent.Scripts.Match
             });
         }
         
+        public static void EndGameBySurrender(GameContext context, Player winner)
+        {
+            if (context.GameEnded.Value) return;
+            
+            if (winner.Connection != null && winner.Connection.isReady)
+            {
+                winner.Connection.Send(new GiveUpMessage
+                {
+                    IsMyLose = false,
+                });
+            }
+            
+            var opponent = context.GetOpponent(winner);
+            if (opponent.Connection != null && opponent.Connection.isReady)
+            {
+                opponent.Connection.Send(new GiveUpMessage
+                {
+                    IsMyLose = true,
+                });
+            }
+
+            context.GameEnded.Value = true;
+        }
+        
+        public static void EndGameByDisconnect(GameContext context, Player winner)
+        {
+            Debug.Log("EndGameByDisconnect");
+            if (context.GameEnded.Value) return;
+            
+            if (winner.Connection != null && winner.Connection.isReady)
+            {
+                winner.Connection.Send(new EnemyDisconnectedMessage());
+            }
+
+            context.GameEnded.Value = true;
+        }
+        
         public static void SyncUnitStates(GameContext context)
         {
             var changed = context.FlushChangedUnits();
@@ -294,7 +332,7 @@ namespace IsntGwent.Scripts.Match
                 winner.Connection.Send(new GameEndedMessage { AmIWinner = true });
                 loser.Connection.Send(new GameEndedMessage { AmIWinner = false });
             }
-            context.GameEnded.OnNext(Unit.Default);
+            context.GameEnded.Value = true;
         }
 
         public static void ChangeTurn(GameContext context)

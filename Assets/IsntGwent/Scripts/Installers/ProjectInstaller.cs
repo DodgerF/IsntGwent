@@ -1,6 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
-using UnityEngine;
+using IsntGwent.Scripts.Lobby.Network;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -9,11 +9,12 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
+            Container.Bind<LobbyStore>().AsSingle();
+            
             Container
                 .BindInterfacesAndSelfTo<SceneService>()
                 .AsSingle()
                 .NonLazy();
-
             Container
                 .Bind<CoroutineRunner>()
                 .FromNewComponentOnNewGameObject()

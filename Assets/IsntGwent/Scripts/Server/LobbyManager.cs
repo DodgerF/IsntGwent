@@ -5,6 +5,7 @@ using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Messages;
+using IsntGwent.Scripts.Network;
 using Mirror;
 using UniRx;
 using UnityEngine;
@@ -12,7 +13,7 @@ using Zenject;
 
 namespace IsntGwent.Scripts.Server
 {
-    public class LobbyManager : IDisposable
+    public class LobbyManager : IInitializable, IDisposable
     {
         [Inject] private readonly LobbyNetworkHub _hub;
         [Inject] private readonly DiContainer _container;
@@ -22,6 +23,18 @@ namespace IsntGwent.Scripts.Server
         private readonly Dictionary<string, GameContext> _games = new();
         
         private readonly CompositeDisposable _disposables = new();
+        
+        public void Initialize()
+        {
+            if (!NetworkServer.active) return;
+            
+            MyNetManager.ServerDisconnected
+                .Subscribe(conn =>
+                {
+                    OnDisconnect(conn);
+                })
+                .AddTo(_disposables);
+        }
         
         public LobbyError TryCreateLobby(NetworkConnectionToClient conn, CreateLobbyMessage msg)
         {
@@ -86,6 +99,7 @@ namespace IsntGwent.Scripts.Server
             _hub.SyncLobbies.Remove(room.Data);
 
             gc.GameEnded
+                .Where(v=> v)
                 .Subscribe(_ =>
                 {
                     _games.Remove(lobbyId);
@@ -95,6 +109,48 @@ namespace IsntGwent.Scripts.Server
             GameControllerServer.StartGame(gc); 
 
             return true;
+        }
+
+        public void OnDisconnect(NetworkConnectionToClient conn)
+        {
+            if (!_playerLobbyMap.TryGetValue(conn, out var lobbyId)) return;
+            _playerLobbyMap.Remove(conn);
+            
+            if (_games.TryGetValue(lobbyId, out var context))
+            {
+                var leavingPlayer = context.GetPlayer(conn);
+                if (leavingPlayer != null)
+                {
+                    var winner = context.GetOpponent(leavingPlayer);
+                    GameControllerServer.EndGameByDisconnect(context, winner);
+                }
+            }
+            
+            if (!_rooms.TryGetValue(lobbyId, out var room)) return;
+
+            room.RemovePlayer(conn);
+
+            if (room.Players.Count == 0)
+            {
+                _rooms.Remove(lobbyId);
+                _hub.SyncLobbies.Remove(room.Data);
+            }
+        }
+        
+        public void LeaveLobby(NetworkConnectionToClient conn)
+        {
+            if (!_playerLobbyMap.TryGetValue(conn, out var lobbyId)) return;
+            _playerLobbyMap.Remove(conn);
+            
+            if (!_rooms.TryGetValue(lobbyId, out var room)) return;
+            room.RemovePlayer(conn);
+
+            if (room.Players.Count == 0)
+            {
+                _rooms.Remove(lobbyId);
+                _hub.SyncLobbies.Remove(room.Data);
+            }
+            conn.Send(new ReturnedToMenuMessage());
         }
         
         public GameContext GetGameContext(NetworkConnectionToClient conn)

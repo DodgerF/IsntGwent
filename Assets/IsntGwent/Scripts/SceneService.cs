@@ -8,5 +8,10 @@ namespace IsntGwent.Scripts
         {
             SceneManager.LoadScene("GameScene");
         }
+
+        public void LoadMenu()
+        {
+            SceneManager.LoadScene("Menu");
+        }
     }
 }

@@ -19,6 +19,9 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Start()
         {
+            foreach (var lobby in _vm.Lobbies)
+                CreateEntry(lobby);
+            
             _vm.Lobbies.ObserveAdd()
                 .Subscribe(addEvent => CreateEntry(addEvent.Value))
                 .AddTo(this);
@@ -69,6 +72,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
             instance.Setup(data);
             
             _lobbyEntries.Add(data.LobbyId, instance.gameObject);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parent as RectTransform);
         }
     }
 }

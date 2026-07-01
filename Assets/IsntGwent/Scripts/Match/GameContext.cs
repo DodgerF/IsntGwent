@@ -58,7 +58,7 @@ namespace IsntGwent.Scripts.Match
         public Player Player1;
         public Player Player2;
         
-        public readonly Subject<Unit> GameEnded = new();
+        public readonly ReactiveProperty<bool> GameEnded = new();
         
         public void OnUnitAddedToRow(UnitInstance unit)
         {
@@ -81,7 +81,9 @@ namespace IsntGwent.Scripts.Match
 
         public Player GetPlayer(NetworkConnectionToClient connection)
         {
-            return Player1.Connection == connection ? Player1 : Player2;
+            if (Player1.Connection == connection) return Player1;
+            if (Player2.Connection == connection) return Player2;
+            return null;
         }
         
         public Player CurrentPlayer;

@@ -10,19 +10,21 @@ namespace IsntGwent.Scripts.Lobby.Network
     {
         public readonly SyncList<LobbyData> SyncLobbies = new();
         [Inject] private LobbyStore _store;
-        
+
         public override void OnStartClient()
         {
             SyncLobbies.Callback += OnSyncListChanged;
-            
-            if (_store != null && _store.Lobbies != null)
-            {
-                _store.Lobbies.Clear();
-                foreach (var lobbyData in SyncLobbies)
-                {
-                    _store.Lobbies.Add(lobbyData);
-                }
-            }
+            SyncLobbies_Refresh();
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void SyncLobbies_Refresh()
+        {
+            if (_store?.Lobbies == null) return;
+    
+            _store.Lobbies.Clear();
+            foreach (var lobbyData in SyncLobbies)
+                _store.Lobbies.Add(lobbyData);
         }
 
         public override void OnStopClient()

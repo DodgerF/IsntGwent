@@ -33,6 +33,9 @@ namespace IsntGwent.Scripts.Match
         
         public readonly ReactiveProperty<RoundResult> LastRoundResult = new(RoundResult.None);
         public readonly ReactiveProperty<bool> IsGameEnded = new(false);
+        public readonly ReactiveProperty<bool> AmIGiveUp = new(false);
+        public readonly ReactiveProperty<bool> IsEnemyGiveUp = new(false);
+        public readonly ReactiveProperty<bool> IsEnemyLeft = new(false);
         public readonly ReactiveProperty<bool> AmIWinner = new(false);
         public readonly ReactiveProperty<bool> IsTie = new(false);
         

@@ -26,7 +26,6 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
         
         private void Populate()
         {
-            Debug.Log("populating decks");
             foreach (var deckDefinition in _deckDatabase.GetAll())
             {
                 var instance = _container.InstantiatePrefabForComponent<DeckSelectionView>(deckViewPrefab, parent);

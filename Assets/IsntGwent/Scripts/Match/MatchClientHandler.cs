@@ -24,6 +24,9 @@ namespace IsntGwent.Scripts.Match
         public readonly Subject<HpChangedMessage> OnHpChanged = new();
         public readonly Subject<UnitsStateChangedMessage> OnUnitsStateChanged = new();
         public readonly Subject<EnemyPassedMessage> OnEnemyPassed = new();
+        public readonly Subject<EnemyDisconnectedMessage> OnEnemyDisconnected = new();
+        public readonly Subject<GiveUpMessage> OnGiveUp = new();
+        public readonly Subject<ReturnedToMenuMessage> OnReturnedToMenu = new();
         
         public void Initialize()
         {
@@ -43,6 +46,9 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.RegisterHandler<HpChangedMessage>(msg => OnHpChanged.OnNext(msg));
             NetworkClient.RegisterHandler<UnitsStateChangedMessage>(msg => OnUnitsStateChanged.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyPassedMessage>(msg => OnEnemyPassed.OnNext(msg));
+            NetworkClient.RegisterHandler<EnemyDisconnectedMessage>(msg => OnEnemyDisconnected.OnNext(msg));
+            NetworkClient.RegisterHandler<GiveUpMessage>(msg => OnGiveUp.OnNext(msg));
+            NetworkClient.RegisterHandler<ReturnedToMenuMessage>(msg => OnReturnedToMenu.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -64,6 +70,11 @@ namespace IsntGwent.Scripts.Match
             });
         }
 
+        public void SendLeave()
+        {
+            NetworkClient.Send(new LeaveMessage());
+        }
+
         public void Dispose()
         {
             NetworkClient.UnregisterHandler<GameStartedMessage>();
@@ -80,6 +91,9 @@ namespace IsntGwent.Scripts.Match
             NetworkClient.UnregisterHandler<HpChangedMessage>();
             NetworkClient.UnregisterHandler<UnitsStateChangedMessage>();
             NetworkClient.UnregisterHandler<EnemyPassedMessage>();
+            NetworkClient.UnregisterHandler<EnemyDisconnectedMessage>();
+            NetworkClient.UnregisterHandler<GiveUpMessage>();
+            NetworkClient.UnregisterHandler<ReturnedToMenuMessage>();
         }
     }
 }

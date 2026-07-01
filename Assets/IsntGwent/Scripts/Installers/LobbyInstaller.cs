@@ -39,11 +39,9 @@ namespace IsntGwent.Scripts.Installers
                 .AsSingle()
                 .NonLazy();
             
-            
-            Container.Bind<LobbyStore>().AsSingle();
-            Container.Bind<DeckSelectService>().AsSingle();
             Container.Bind<LobbyNetworkHub>().FromComponentInHierarchy().AsSingle();
-            Container.Bind<LobbyManager>().AsSingle();
+            Container.Bind<DeckSelectService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<LobbyManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbySceneController>().AsSingle().NonLazy();
             

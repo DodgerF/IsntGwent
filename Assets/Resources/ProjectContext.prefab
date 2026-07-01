@@ -74,3 +74,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2d5b80f2d6046d9926e0881f91858bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.ProjectInstaller
+  hubPrefab: {fileID: 5827062971870793650, guid: 97ce9c7adf457ee48a7e68a4373b716f, type: 3}
