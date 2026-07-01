@@ -10,6 +10,7 @@ namespace IsntGwent.Scripts.Network
         
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
+            Debug.Log("OnServerDisconnect: " + conn.connectionId);
             ServerDisconnected.OnNext(conn);
             base.OnServerDisconnect(conn);
         }

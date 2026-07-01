@@ -48,7 +48,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Reset()
         {
-            NameInput.text = "Test";
+            NameInput.text = "Lobby name";
             PasswordInput.text = "";
                     
             _vm.IsCreateLobbyWindowOpen.Value = false;
