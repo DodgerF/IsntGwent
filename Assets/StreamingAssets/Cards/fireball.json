@@ -1,0 +1,22 @@
+{
+  "id": "fireball",
+  "name": "Fireball",
+  "imageName": "fireball",
+  "type": "Spell",
+  "description": "Deals 8 damage",
+  "effects": [
+    {
+      "effect": "ManualTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": false,
+      "includeEnemies": true,
+      "includeAllies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 8
+    }
+  ]
+}
