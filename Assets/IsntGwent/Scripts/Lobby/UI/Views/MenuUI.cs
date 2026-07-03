@@ -1,0 +1,78 @@
+﻿using System.Collections.Generic;
+using IsntGwent.Scripts.Lobby.Core;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UI;
+using Zenject;
+
+namespace IsntGwent.Scripts.Lobby.UI.Views
+{
+    public class MenuUI : MonoBehaviour
+    {
+        [Inject] private LobbyViewModel _vm;
+        [Inject] private DiContainer _container;
+        [SerializeField] private Button createButton;
+        [SerializeField] private Transform parent;
+        [SerializeField] private LobbyEntryView prefab;
+        
+        private readonly Dictionary<string, GameObject> _lobbyEntries = new();
+
+        private void Start()
+        {
+            foreach (var lobby in _vm.Lobbies)
+                CreateEntry(lobby);
+            
+            _vm.Lobbies.ObserveAdd()
+                .Subscribe(addEvent => CreateEntry(addEvent.Value))
+                .AddTo(this);
+            _vm.Lobbies.ObserveRemove()
+                .Subscribe(removeEvent => RemoveEntry(removeEvent.Value))
+                .AddTo(this);
+            _vm.CanCreateOrJoinLobby
+                .Subscribe(canCreate =>  
+                {  
+                    createButton.interactable = canCreate;
+                })  
+                .AddTo(this);
+            
+            foreach (var lobby in _vm.Lobbies)
+            {
+                CreateEntry(lobby);
+            }
+            
+            createButton.OnClickAsObservable()
+                .Subscribe(_ =>
+                {
+                    _vm.IsCreateLobbyWindowOpen.Value = true;
+                    //createButton.gameObject.SetActive(false);
+                })
+                .AddTo(this);
+            
+            // _vm.IsCreateLobbyWindowOpen
+            //     .Subscribe(isOpen =>
+            //     {
+            //         if (!isOpen) createButton.gameObject.SetActive(true);
+            //     })
+            //     .AddTo(this);
+        }
+
+        private void RemoveEntry(LobbyData data)
+        {
+            if (_lobbyEntries.Remove(data.LobbyId, out var entry))
+            {
+                Destroy(entry);
+            }
+        }
+
+        private void CreateEntry(LobbyData data)
+        {
+            if (_lobbyEntries.ContainsKey(data.LobbyId)) return;
+            
+            var instance = _container.InstantiatePrefabForComponent<LobbyEntryView>(prefab, parent);
+            instance.Setup(data);
+            
+            _lobbyEntries.Add(data.LobbyId, instance.gameObject);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parent as RectTransform);
+        }
+    }
+}
