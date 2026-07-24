@@ -10,7 +10,15 @@
     },
     {
       "cardId": "soldier",
-      "count": 6
+      "count": 4
+    },
+    {
+      "cardId": "avenger",
+      "count": 3
+    },
+    {
+      "cardId": "sniper",
+      "count": 3
     },
     {
       "cardId": "fireball",

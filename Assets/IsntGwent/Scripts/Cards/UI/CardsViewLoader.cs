@@ -1,6 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.Definitions;
-using IsntGwent.Scripts.Lobby;
+using IsntGwent.Scripts.Lobby.Client;
 using ModestTree;
 using UniRx;
 using UnityEngine;

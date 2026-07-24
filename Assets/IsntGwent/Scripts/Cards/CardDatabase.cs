@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using IsntGwent.Scripts.Cards.Definitions;
-using IsntGwent.Scripts.Cards.Effects;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Cards.Server.Effects;
 using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;

@@ -1,4 +1,5 @@
 ﻿using IsntGwent.Scripts.Lobby.Core;
+using IsntGwent.Scripts.Lobby.Client;
 using Mirror;
 using UnityEngine;
 using Zenject;
@@ -30,6 +31,7 @@ namespace IsntGwent.Scripts.Lobby.Network
         public override void OnStopClient()
         {
             SyncLobbies.Callback -= OnSyncListChanged;
+            _store?.Lobbies.Clear();
         }
 
         private void OnSyncListChanged(SyncList<LobbyData>.Operation op, int index, LobbyData oldData, LobbyData newData)

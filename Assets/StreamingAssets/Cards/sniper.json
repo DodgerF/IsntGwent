@@ -1,0 +1,22 @@
+{
+  "id": "sniper",
+  "name": "Sniper",
+  "imageName": "giant",
+  "type": "Unit",
+  "row": "Ranged",
+  "power": 2,
+  "description": "At the start of your turn deals 1 damage to the weakest enemy",
+  "effects": [
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnTurnStart",
+      "includeEnemies": true,
+      "includeAllies": false
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnTurnStart",
+      "amount": 1
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using IsntGwent.Scripts.Match;
+using IsntGwent.Scripts.Match.Client;
 using Mirror;
 
 namespace IsntGwent.Scripts.Lobby.Core

@@ -1,7 +1,8 @@
-﻿using IsntGwent.Scripts.Cards;
-using IsntGwent.Scripts.Cards.Services;
-using IsntGwent.Scripts.Match;
+﻿using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Match.Client;
 using UnityEngine.EventSystems;
+using IsntGwent.Scripts.Core;
 using UnityEngine.UI;
 using Zenject;
 
@@ -23,6 +24,13 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             Container
                 .BindInterfacesAndSelfTo<CardSelectionService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<CardViewRegistry>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<TargetHighlightPresenter>()
                 .AsSingle()
                 .NonLazy();
             Container
@@ -49,10 +57,6 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .BindInterfacesAndSelfTo<MatchClientHandler>()
                 .AsSingle();
-            Container
-                .BindInterfacesAndSelfTo<MatchViewModel>()
-                .AsSingle()
-                .NonLazy();
         }
     }
 }

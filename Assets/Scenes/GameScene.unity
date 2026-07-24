@@ -424,9 +424,9 @@ RectTransform:
   - {fileID: 1072346244}
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -109.17828, y: 172.0048}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 837, y: 172.0048}
   m_SizeDelta: {x: 173.33496, y: 105}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &45261772
@@ -794,6 +794,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 88502502}
   m_CullTransparentMesh: 1
+--- !u!1 &186606515
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 186606516}
+  - component: {fileID: 186606517}
+  m_Layer: 5
+  m_Name: SafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &186606516
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186606515}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1449574682}
+  - {fileID: 326441747}
+  m_Father: {fileID: 215221998}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &186606517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186606515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c3179d95220a2245ab507dac54bb275, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.UI.SafeAreaFitter
 --- !u!1 &214508834
 GameObject:
   m_ObjectHideFlags: 0
@@ -806,7 +856,7 @@ GameObject:
   - component: {fileID: 214508837}
   - component: {fileID: 214508836}
   m_Layer: 5
-  m_Name: Knob1
+  m_Name: OwnRangedPower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -924,7 +974,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 2160, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -966,9 +1016,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1610523355}
-  - {fileID: 1449574682}
-  - {fileID: 326441747}
+  - {fileID: 186606516}
   - {fileID: 743849269}
+  - {fileID: 495577541}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -988,28 +1038,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e52200824bd471590618ed4cbbc20f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.MatchUI
-  cardPrefab: {fileID: 8909658270527188559, guid: 079f98928ec550147a38da4868189cb0, type: 3}
   waitingImage: {fileID: 326441746}
   ui: {fileID: 1449574681}
-  passButton: {fileID: 257064407}
-  enemyCardCounter: {fileID: 1702996414}
-  ownCardCounter: {fileID: 1059419574}
-  ownMeleePowerText: {fileID: 1639268433}
-  ownRangedPowerText: {fileID: 1777342478}
-  ownTotalPowerText: {fileID: 1456283481}
-  enemyMeleePowerText: {fileID: 1939728699}
-  enemyRangedPowerText: {fileID: 402233941}
-  enemyTotalPowerText: {fileID: 266348622}
-  turnTracker: {fileID: 257064403}
-  ownMeleeRow: {fileID: 1814114835}
-  ownRangedRow: {fileID: 1348832013}
-  enemyMeleeRow: {fileID: 687458552}
-  enemyRangedRow: {fileID: 378243838}
-  hand: {fileID: 1342623280}
-  ownGraveyard: {fileID: 524550467}
-  enemyGraveyard: {fileID: 1553412386}
-  ownHp: {fileID: 307234029}
-  enemyHp: {fileID: 1265546446}
 --- !u!1 &257064403
 GameObject:
   m_ObjectHideFlags: 0
@@ -1143,7 +1173,7 @@ GameObject:
   - component: {fileID: 266348623}
   - component: {fileID: 266348622}
   m_Layer: 5
-  m_Name: EnemyPower
+  m_Name: EnemyPowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1553,14 +1583,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 326441746}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1626021794}
   - {fileID: 1975801742}
-  m_Father: {fileID: 215221998}
+  m_Father: {fileID: 186606516}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1658,6 +1688,7 @@ MonoBehaviour:
   row: 0
   cardSpacing: 105
   maxWidth: 1000
+  edgeMargin: 120
 --- !u!1 &390992221
 GameObject:
   m_ObjectHideFlags: 0
@@ -1807,7 +1838,7 @@ GameObject:
   - component: {fileID: 402233942}
   - component: {fileID: 402233941}
   m_Layer: 5
-  m_Name: EnemyRangedPower
+  m_Name: EnemyRangedPowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1944,7 +1975,7 @@ GameObject:
   - component: {fileID: 408255308}
   - component: {fileID: 408255307}
   m_Layer: 5
-  m_Name: Knob2
+  m_Name: OwnPower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2008,6 +2039,140 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 408255305}
   m_CullTransparentMesh: 1
+--- !u!1 &495577540
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 495577541}
+  - component: {fileID: 495577545}
+  - component: {fileID: 495577544}
+  - component: {fileID: 495577543}
+  - component: {fileID: 495577542}
+  - component: {fileID: 495577547}
+  - component: {fileID: 495577546}
+  m_Layer: 5
+  m_Name: MatchPresenters
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &495577541
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 215221998}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &495577542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0627ece4ff633e4fbcbc64bf8e7824a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.PowerPanelUI
+  ownMeleePowerText: {fileID: 1639268433}
+  ownRangedPowerText: {fileID: 1777342478}
+  ownTotalPowerText: {fileID: 1456283481}
+  enemyMeleePowerText: {fileID: 1939728699}
+  enemyRangedPowerText: {fileID: 402233941}
+  enemyTotalPowerText: {fileID: 266348622}
+  ownCardCounter: {fileID: 1059419574}
+  enemyCardCounter: {fileID: 1702996414}
+--- !u!114 &495577543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faae0cf585f210945822fb48fc536b88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.GraveyardPresenter
+  ownGraveyard: {fileID: 524550467}
+  enemyGraveyard: {fileID: 1553412386}
+--- !u!114 &495577544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9b7ba779178a1a45840b9973f695557, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.BoardPresenter
+  cardPrefab: {fileID: 8909658270527188559, guid: 079f98928ec550147a38da4868189cb0, type: 3}
+  ownMeleeRow: {fileID: 1814114835}
+  ownRangedRow: {fileID: 1348832013}
+  enemyMeleeRow: {fileID: 687458552}
+  enemyRangedRow: {fileID: 378243838}
+--- !u!114 &495577545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b4c6fcfead30554fb97b9c6f5ec5a5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.HandPresenter
+  hand: {fileID: 1342623280}
+  cardPrefab: {fileID: 8909658270527188559, guid: 079f98928ec550147a38da4868189cb0, type: 3}
+--- !u!114 &495577546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42e552b96f2c0004c81a1814eb42be11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.TurnControlUI
+  turnTracker: {fileID: 257064403}
+  passButton: {fileID: 257064407}
+--- !u!114 &495577547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72b1cf008f1f7bd4da0b1e223ff2d575, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.HpPanelUI
+  ownHp: {fileID: 307234029}
+  enemyHp: {fileID: 1265546446}
 --- !u!1 &524550465
 GameObject:
   m_ObjectHideFlags: 0
@@ -2039,9 +2204,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 662.67017, y: -445.09857}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 662.67017, y: 124.90143}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &524550467
@@ -2699,6 +2864,7 @@ MonoBehaviour:
   row: 0
   cardSpacing: 105
   maxWidth: 1000
+  edgeMargin: 120
 --- !u!1 &707845996
 GameObject:
   m_ObjectHideFlags: 0
@@ -2813,7 +2979,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 743849268}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3477,7 +3643,7 @@ GameObject:
   - component: {fileID: 1059419575}
   - component: {fileID: 1059419574}
   m_Layer: 5
-  m_Name: OwnCardCounter
+  m_Name: OwnCardCounterText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3826,7 +3992,7 @@ GameObject:
   - component: {fileID: 1250292514}
   - component: {fileID: 1250292513}
   m_Layer: 5
-  m_Name: Knob3
+  m_Name: OwnCardCounter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3847,9 +4013,9 @@ RectTransform:
   - {fileID: 1059419573}
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -857, y: -415}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -857, y: 155}
   m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1250292513
@@ -3973,9 +4139,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -97.89825, y: -421}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -97.89825, y: 149}
   m_SizeDelta: {x: 1230, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1342623280
@@ -3993,6 +4159,7 @@ MonoBehaviour:
   row: 0
   cardSpacing: 105
   maxWidth: 1000
+  edgeMargin: 120
 --- !u!114 &1342623281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4197,6 +4364,7 @@ MonoBehaviour:
   row: 2
   cardSpacing: 105
   maxWidth: 1000
+  edgeMargin: 120
 --- !u!1 &1449574681
 GameObject:
   m_ObjectHideFlags: 0
@@ -4220,7 +4388,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1449574681}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4252,7 +4420,7 @@ RectTransform:
   - {fileID: 1573692641}
   - {fileID: 707846000}
   - {fileID: 45261771}
-  m_Father: {fileID: 215221998}
+  m_Father: {fileID: 186606516}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -4271,7 +4439,7 @@ GameObject:
   - component: {fileID: 1456283482}
   - component: {fileID: 1456283481}
   m_Layer: 5
-  m_Name: OwnPower
+  m_Name: OwnPowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4564,9 +4732,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 662.67017, y: 422.90137}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 662.67017, y: -147.09863}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1553412386
@@ -4860,7 +5028,7 @@ GameObject:
   - component: {fileID: 1639268434}
   - component: {fileID: 1639268433}
   m_Layer: 5
-  m_Name: OwnMeleePower
+  m_Name: OwnMeleePowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4997,7 +5165,7 @@ GameObject:
   - component: {fileID: 1691697282}
   - component: {fileID: 1691697281}
   m_Layer: 5
-  m_Name: EnemyKnob
+  m_Name: EnemyMeleePower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5073,7 +5241,7 @@ GameObject:
   - component: {fileID: 1702996415}
   - component: {fileID: 1702996414}
   m_Layer: 5
-  m_Name: EnemyCardCounter
+  m_Name: EnemyCardCounterText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5347,7 +5515,7 @@ GameObject:
   - component: {fileID: 1764831922}
   - component: {fileID: 1764831921}
   m_Layer: 5
-  m_Name: Knob
+  m_Name: OwnMeleePower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5370,7 +5538,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -756, y: 14.8}
+  m_AnchoredPosition: {x: -756, y: 14.799988}
   m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1764831921
@@ -5423,7 +5591,7 @@ GameObject:
   - component: {fileID: 1777342479}
   - component: {fileID: 1777342478}
   m_Layer: 5
-  m_Name: OwnRangedPower
+  m_Name: OwnRangedPowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5776,6 +5944,7 @@ MonoBehaviour:
   row: 1
   cardSpacing: 105
   maxWidth: 1000
+  edgeMargin: 120
 --- !u!1 &1939728697
 GameObject:
   m_ObjectHideFlags: 0
@@ -5788,7 +5957,7 @@ GameObject:
   - component: {fileID: 1939728700}
   - component: {fileID: 1939728699}
   m_Layer: 5
-  m_Name: EnemyMeleePower
+  m_Name: EnemyMeleePowerText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6059,7 +6228,7 @@ GameObject:
   - component: {fileID: 2068987396}
   - component: {fileID: 2068987395}
   m_Layer: 5
-  m_Name: EnemyKnob3
+  m_Name: EnemyCardCounter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6080,9 +6249,9 @@ RectTransform:
   - {fileID: 1702996413}
   m_Father: {fileID: 1449574682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -857, y: 465}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -857, y: -105}
   m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2068987395
@@ -6135,7 +6304,7 @@ GameObject:
   - component: {fileID: 2100366494}
   - component: {fileID: 2100366493}
   m_Layer: 5
-  m_Name: EnemyKnob1
+  m_Name: EnemyRangedPower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6211,7 +6380,7 @@ GameObject:
   - component: {fileID: 2136805456}
   - component: {fileID: 2136805455}
   m_Layer: 5
-  m_Name: EnemyKnob2
+  m_Name: EnemyPower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

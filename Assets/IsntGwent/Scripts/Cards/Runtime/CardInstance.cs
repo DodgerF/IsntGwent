@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Cards.Definitions;
-using IsntGwent.Scripts.Cards.Effects;
+using IsntGwent.Scripts.Cards.Server.Effects;
 using Mirror;
 
 namespace IsntGwent.Scripts.Cards.Runtime

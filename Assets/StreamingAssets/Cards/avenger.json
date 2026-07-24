@@ -1,0 +1,22 @@
+{
+  "id": "avenger",
+  "name": "Avenger",
+  "imageName": "soldier",
+  "type": "Unit",
+  "row": "Melee",
+  "power": 4,
+  "description": "On death deals 4 damage to the weakest enemy",
+  "effects": [
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnDeath",
+      "includeEnemies": true,
+      "includeAllies": false
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnDeath",
+      "amount": 4
+    }
+  ]
+}

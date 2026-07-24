@@ -1,5 +1,5 @@
 ﻿using IsntGwent.Scripts.Cards.Definitions;
-using IsntGwent.Scripts.Cards.Services;
+using IsntGwent.Scripts.Cards.Client;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +19,14 @@ namespace IsntGwent.Scripts.Cards.UI
         
         public float cardSpacing = 105f;
         public float maxWidth = 1000f;
+        [SerializeField] private float edgeMargin = 120f;
+
+        private RectTransform _rt;
+
+        private void Awake()
+        {
+            _rt = (RectTransform)transform;
+        }
 
         private void Start()
         {
@@ -47,7 +55,7 @@ namespace IsntGwent.Scripts.Cards.UI
         
         public void DetachCard(GameObject card)
         {
-            card.transform.SetParent(null);
+            card.transform.SetParent(null, false);
             RefreshLayout();
         }
 
@@ -57,12 +65,21 @@ namespace IsntGwent.Scripts.Cards.UI
             if (count == 0)
                 return;
 
+            if (_rt == null)
+                _rt = (RectTransform)transform;
+
+            float available = _rt.rect.width - edgeMargin;
+            if (available <= 0f)
+                available = maxWidth;
+
+            float limit = maxWidth > 0f ? Mathf.Min(available, maxWidth) : available;
+
             float spacing = cardSpacing;
             float requiredWidth = (count - 1) * spacing;
 
-            if (requiredWidth > maxWidth)
+            if (count > 1 && requiredWidth > limit)
             {
-                spacing = maxWidth / (count - 1);
+                spacing = limit / (count - 1);
             }
 
             float startX = -((count - 1) * spacing) / 2f;
@@ -78,15 +95,28 @@ namespace IsntGwent.Scripts.Cards.UI
             }
         }
 
+        private void OnRectTransformDimensionsChange()
+        {
+            if (isActiveAndEnabled)
+                RefreshLayout();
+        }
+
         public void AddCard(GameObject card)
         {
+            var previousRow = card.transform.parent != null
+                ? card.transform.parent.GetComponent<RowView>()
+                : null;
+
             card.transform.SetParent(transform, false);
             RefreshLayout();
+
+            if (previousRow != null && previousRow != this)
+                previousRow.RefreshLayout();
         }
 
         public void RemoveCard(GameObject card)
         {
-            card.transform.SetParent(null);
+            card.transform.SetParent(null, false);
             Destroy(card);
             RefreshLayout();
         }

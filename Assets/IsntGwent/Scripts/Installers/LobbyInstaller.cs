@@ -1,10 +1,11 @@
-﻿using IsntGwent.Scripts.Cards;
-using IsntGwent.Scripts.Cards.Services;
-using IsntGwent.Scripts.Lobby;
+﻿using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.UI;
-using IsntGwent.Scripts.Match;
-using IsntGwent.Scripts.Server;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Match.Server;
+using IsntGwent.Scripts.Lobby.Server;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Zenject;
@@ -21,7 +22,10 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .Bind<CardResolver>()
                 .AsSingle();
-            
+            Container
+                .Bind<TriggeredEffectDispatcher>()
+                .AsSingle();
+
             Container
                 .BindInterfacesAndSelfTo<CardPreviewService>()
                 .AsSingle()
@@ -47,7 +51,16 @@ namespace IsntGwent.Scripts.Installers
             
             Container.BindInterfacesAndSelfTo<ServerHandler>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LobbyClientHandler>().AsSingle();
-            Container.BindInterfacesAndSelfTo<MathServerHandler>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<MatchServerHandler>().AsSingle().NonLazy();
+            Container.Bind<MatchServerNotifier>().AsSingle();
+
+            Container.Bind<DeckService>().AsSingle();
+            Container.Bind<BoardSyncService>().AsSingle();
+            Container.Bind<RoundService>().AsSingle();
+            Container.Bind<TurnService>().AsSingle();
+            Container.Bind<CardPlayService>().AsSingle();
+
+            Container.BindInterfacesAndSelfTo<GameControllerServer>().AsSingle().NonLazy();
         }
     }
 }

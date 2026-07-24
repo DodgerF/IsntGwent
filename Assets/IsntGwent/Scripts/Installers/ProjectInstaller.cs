@@ -1,6 +1,8 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
-using IsntGwent.Scripts.Lobby.Network;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Lobby.Client;
+using IsntGwent.Scripts.Network;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -13,6 +15,10 @@ namespace IsntGwent.Scripts.Installers
             
             Container
                 .BindInterfacesAndSelfTo<SceneService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<ConnectionService>()
                 .AsSingle()
                 .NonLazy();
             Container

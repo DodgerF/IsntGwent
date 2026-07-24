@@ -44,16 +44,9 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                 .Subscribe(_ =>
                 {
                     _vm.IsCreateLobbyWindowOpen.Value = true;
-                    //createButton.gameObject.SetActive(false);
                 })
                 .AddTo(this);
             
-            // _vm.IsCreateLobbyWindowOpen
-            //     .Subscribe(isOpen =>
-            //     {
-            //         if (!isOpen) createButton.gameObject.SetActive(true);
-            //     })
-            //     .AddTo(this);
         }
 
         private void RemoveEntry(LobbyData data)

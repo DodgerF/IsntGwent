@@ -1,6 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
-using IsntGwent.Scripts.Cards.Services;
+using IsntGwent.Scripts.Cards.Client;
 using TMPro;
 using UniRx;
 using UnityEngine;

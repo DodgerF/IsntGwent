@@ -1,6 +1,7 @@
 ﻿using System;
 using IsntGwent.Scripts.Lobby.Core;
-using IsntGwent.Scripts.Lobby.Network;
+using IsntGwent.Scripts.Lobby.Client;
+using IsntGwent.Scripts.Network;
 using UniRx;
 using Zenject;
 
@@ -11,29 +12,62 @@ namespace IsntGwent.Scripts.Lobby.UI
         [Inject] private LobbyStore _lobbyStore;
         [Inject] private LobbyClientHandler _handler;
         [Inject] private DeckSelectService _deckSelect;
+        [Inject] private ConnectionService _connection;
         public readonly ReactiveProperty<bool> IsCreateLobbyWindowOpen = new(false);
         public readonly ReactiveProperty<bool> IsPasswordWindowOpen = new(false);
         public readonly ReactiveProperty<bool> CanCreateOrJoinLobby = new(false);
         private LobbyData? _selectedLobby;
         public IReadOnlyReactiveCollection<LobbyData> Lobbies => _lobbyStore.Lobbies;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
-        
+
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+        private readonly ReactiveProperty<bool> _isRequestPending = new(false);
+        private readonly SerialDisposable _requestTimeout = new();
+
         public void Initialize()
         {
+            _requestTimeout.AddTo(_disposables);
+
             _deckSelect.SelectedDeck
-                .Subscribe(deck => CanCreateOrJoinLobby.Value = deck != null)
+                .CombineLatest(_connection.IsConnected, _isRequestPending,
+                    (deck, isConnected, isPending) => deck != null && isConnected && !isPending)
+                .Subscribe(canCreateOrJoin => CanCreateOrJoinLobby.Value = canCreateOrJoin)
+                .AddTo(_disposables);
+
+            _handler.OnJoinedLobby
+                .Subscribe(_ => ClearPending())
+                .AddTo(_disposables);
+
+            _handler.OnError
+                .Subscribe(_ => ClearPending())
                 .AddTo(_disposables);
         }
-        
+
         public void CreateLobby(string name, string password)
         {
             _handler.SendCreateLobby(name, password, _deckSelect.SelectedDeck.Value);
+            BeginPending();
         }
 
         public void JoinLobby(string lobbyId, string password)
         {
             _selectedLobby = null;
             _handler.SendJoinToLobby(lobbyId, password, _deckSelect.SelectedDeck.Value);
+            BeginPending();
+        }
+
+        private void BeginPending()
+        {
+            _isRequestPending.Value = true;
+            _requestTimeout.Disposable = Observable
+                .Timer(RequestTimeout)
+                .Subscribe(_ => _isRequestPending.Value = false);
+        }
+
+        private void ClearPending()
+        {
+            _requestTimeout.Disposable = null;
+            _isRequestPending.Value = false;
         }
 
         public void SelectLobby(LobbyData lobby)
