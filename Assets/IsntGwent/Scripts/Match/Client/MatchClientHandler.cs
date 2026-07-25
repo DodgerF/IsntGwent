@@ -23,6 +23,7 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<GameEndedMessage> OnGameEnded = new();
         public readonly Subject<HpChangedMessage> OnHpChanged = new();
         public readonly Subject<UnitsStateChangedMessage> OnUnitsStateChanged = new();
+        public readonly Subject<DamageDealtMessage> OnDamageDealt = new();
         public readonly Subject<EnemyPassedMessage> OnEnemyPassed = new();
         public readonly Subject<EnemyDisconnectedMessage> OnEnemyDisconnected = new();
         public readonly Subject<GiveUpMessage> OnGiveUp = new();
@@ -44,6 +45,7 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<GameEndedMessage>(msg => OnGameEnded.OnNext(msg));
             NetworkClient.RegisterHandler<HpChangedMessage>(msg => OnHpChanged.OnNext(msg));
             NetworkClient.RegisterHandler<UnitsStateChangedMessage>(msg => OnUnitsStateChanged.OnNext(msg));
+            NetworkClient.RegisterHandler<DamageDealtMessage>(msg => OnDamageDealt.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyPassedMessage>(msg => OnEnemyPassed.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyDisconnectedMessage>(msg => OnEnemyDisconnected.OnNext(msg));
             NetworkClient.RegisterHandler<GiveUpMessage>(msg => OnGiveUp.OnNext(msg));
@@ -88,6 +90,7 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.UnregisterHandler<GameEndedMessage>();
             NetworkClient.UnregisterHandler<HpChangedMessage>();
             NetworkClient.UnregisterHandler<UnitsStateChangedMessage>();
+            NetworkClient.UnregisterHandler<DamageDealtMessage>();
             NetworkClient.UnregisterHandler<EnemyPassedMessage>();
             NetworkClient.UnregisterHandler<EnemyDisconnectedMessage>();
             NetworkClient.UnregisterHandler<GiveUpMessage>();

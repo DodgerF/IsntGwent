@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using DG.Tweening;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace IsntGwent.Scripts.Match.UI
         {
             _cards.Add(instance);
             GameObject cardGo;
-    
+
             if (existingGo != null)
             {
                 cardGo = existingGo;
@@ -35,21 +36,46 @@ namespace IsntGwent.Scripts.Match.UI
                 ? cardGo.transform.parent.GetComponent<RowView>()
                 : null;
 
-            cardGo.transform.SetParent(transform, false);
-            cardGo.transform.localPosition = Vector3.zero;
-            cardGo.transform.localRotation = Quaternion.identity;
-            cardGo.transform.localScale = Vector3.one;
+            var cardTransform = cardGo.transform;
+            cardTransform.DOKill();
+
+            var start = cardTransform.position;
+
+            cardTransform.SetParent(transform, false);
+            cardTransform.localRotation = Quaternion.identity;
+
+            if (Application.isPlaying)
+                cardTransform.position = start;
 
             previousRow?.RefreshLayout();
 
             cardGo.GetComponent<CardView>()
                 ?.SetTargetHighlight(CardView.TargetHighlightState.None);
 
-            if (_topCardGo != null)
-                _topCardGo.SetActive(false);
-
+            var previousTop = _topCardGo;
             _topCardGo = cardGo;
             _topCardGo.SetActive(true);
+
+            if (!Application.isPlaying)
+            {
+                cardTransform.localPosition = Vector3.zero;
+                cardTransform.localScale = Vector3.one;
+                HidePrevious(previousTop, cardGo);
+                return;
+            }
+
+            DOTween.Sequence()
+                .Append(cardTransform
+                    .DOLocalMove(Vector3.zero, CardAnimConfig.GraveyardFlightDuration)
+                    .SetEase(CardAnimConfig.FlightEase))
+                .Join(cardTransform.DOScale(Vector3.one, CardAnimConfig.GraveyardFlightDuration))
+                .OnComplete(() => HidePrevious(previousTop, cardGo));
+        }
+
+        private static void HidePrevious(GameObject previousTop, GameObject current)
+        {
+            if (previousTop != null && previousTop != current)
+                previousTop.SetActive(false);
         }
     }
 }

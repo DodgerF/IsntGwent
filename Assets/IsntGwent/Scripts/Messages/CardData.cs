@@ -9,8 +9,9 @@ namespace IsntGwent.Scripts.Messages
         public string InstanceId;
         public string DefinitionId;
         public CardType Type;
+        public int CurrentPower;
     }
-    
+
     public static class CardDataFactory
     {
         public static CardData Create(CardInstance card) => new CardData
@@ -18,6 +19,7 @@ namespace IsntGwent.Scripts.Messages
             InstanceId = card.Id.ToString(),
             DefinitionId = card.Definition.Id,
             Type = card.Definition.Type,
+            CurrentPower = card is UnitInstance unit ? unit.CurrentPower.Value : 0,
         };
     }
 }

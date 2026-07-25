@@ -49,12 +49,27 @@ namespace IsntGwent.Scripts.Match.Server
         }
     }
     
+    public class DamageRecord
+    {
+        public readonly CardInstance Source;
+        public readonly UnitInstance Target;
+        public readonly int Amount;
+
+        public DamageRecord(CardInstance source, UnitInstance target, int amount)
+        {
+            Source = source;
+            Target = target;
+            Amount = amount;
+        }
+    }
+
     public class GameContext : IDisposable
     {
         [Inject] private readonly CardDatabase _cardDatabase;
-        
+
         private readonly CompositeDisposable _disposables = new();
         private readonly List<UnitInstance> _changedUnits = new();
+        private readonly List<DamageRecord> _damageRecords = new();
         private readonly Dictionary<UnitInstance, IDisposable> _unitSubscriptions = new();
 
         public Player Player1;
@@ -93,6 +108,20 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var result = new List<UnitInstance>(_changedUnits);
             _changedUnits.Clear();
+            return result;
+        }
+
+        public void RecordDamage(CardInstance source, UnitInstance target, int amount)
+        {
+            if (target == null || amount <= 0) return;
+
+            _damageRecords.Add(new DamageRecord(source, target, amount));
+        }
+
+        public List<DamageRecord> FlushDamageRecords()
+        {
+            var result = new List<DamageRecord>(_damageRecords);
+            _damageRecords.Clear();
             return result;
         }
 

@@ -26,7 +26,11 @@ namespace IsntGwent.Scripts.Match.Server
         {
             for (var i = 0; i < MaxDeathCascadeIterations; i++)
             {
+                var damage = context.FlushDamageRecords();
                 var changed = context.FlushChangedUnits();
+
+                _notifier.NotifyDamageDealt(context, damage);
+
                 if (changed.Count == 0) return;
 
                 _notifier.NotifyUnitStates(context, changed);
@@ -67,12 +71,14 @@ namespace IsntGwent.Scripts.Match.Server
             foreach (var unit in player.MeleeRow)
             {
                 context.OnUnitRemovedFromRow(unit);
+                unit.CurrentPower.Value = unit.UnitDefinition.Power;
                 player.Graveyard.Add(unit);
             }
 
             foreach (var unit in player.RangedRow)
             {
                 context.OnUnitRemovedFromRow(unit);
+                unit.CurrentPower.Value = unit.UnitDefinition.Power;
                 player.Graveyard.Add(unit);
             }
 

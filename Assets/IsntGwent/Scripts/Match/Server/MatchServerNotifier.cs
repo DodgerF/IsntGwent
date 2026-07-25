@@ -170,6 +170,22 @@ namespace IsntGwent.Scripts.Match.Server
             context.Player2.Connection.Send(msg);
         }
 
+        public void NotifyDamageDealt(GameContext context, IReadOnlyList<DamageRecord> records)
+        {
+            if (records.Count == 0) return;
+
+            var hits = records.Select(r => new DamageInstance
+            {
+                SourceInstanceId = r.Source != null ? r.Source.Id.ToString() : string.Empty,
+                TargetInstanceId = r.Target.Id.ToString(),
+                Amount = r.Amount
+            }).ToArray();
+
+            var msg = new DamageDealtMessage { Hits = hits };
+            context.Player1.Connection.Send(msg);
+            context.Player2.Connection.Send(msg);
+        }
+
         public void NotifyCardDrawn(Player player, CardInstance card)
         {
             player.Connection.Send(new CardDrawnMessage { Card = CardDataFactory.Create(card) });

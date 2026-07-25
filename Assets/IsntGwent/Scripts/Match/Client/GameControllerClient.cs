@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
 using UniRx;
@@ -17,13 +20,33 @@ namespace IsntGwent.Scripts.Match.Client
         [Inject] private readonly MatchClientHandler _handler;
         [Inject] private readonly CardSelectionService _selectionService;
         [Inject] private readonly MatchState _matchState;
-        [Inject] private readonly CardDatabase _cardDatabase;
+        [Inject] private readonly CardInstanceRegistry _instances;
         [Inject] private readonly ConnectionService _connectionService;
-        
+        [Inject] private readonly AnimationCoordinator _coordinator;
+        [Inject] private readonly CardPreviewService _previewService;
+
         private static readonly TimeSpan PendingTimeout = TimeSpan.FromSeconds(5);
 
         private readonly CompositeDisposable _disposables = new();
         private readonly SerialDisposable _pendingTimeout = new();
+        private readonly List<PendingHit> _pendingHits = new();
+
+        private int _playSequence;
+        private int _hitBatch;
+
+        private readonly struct PendingHit
+        {
+            public readonly DamageInstance Hit;
+            public readonly int PlaySequence;
+            public readonly int Batch;
+
+            public PendingHit(DamageInstance hit, int playSequence, int batch)
+            {
+                Hit = hit;
+                PlaySequence = playSequence;
+                Batch = batch;
+            }
+        }
 
         public void Initialize()
         {
@@ -34,12 +57,12 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
 
             _handler.OnTurnChanged
-                .Subscribe(msg =>
+                .Subscribe(msg => _coordinator.Enqueue(() =>
                 {
                     ClearPending();
                     _matchState.IsMyTurn.Value = msg.IsMyTurn;
                     _matchState.TurnChanged.OnNext(Unit.Default);
-                })
+                }))
                 .AddTo(_disposables);
             
             _handler.OnCardRemovedFromHand
@@ -77,40 +100,54 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
             
             _handler.OnPowerUpdated
-                .Subscribe(OnPowerUpdated)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnPowerUpdated(msg)))
                 .AddTo(_disposables);
-            
+
             _handler.OnCardDrawn
-                .Subscribe(OnCardDrawn)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnCardDrawn(msg)))
                 .AddTo(_disposables);
 
             _handler.OnEnemyCardDrawn
-                .Subscribe(msg => _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount)
+                .Subscribe(msg => _coordinator.Enqueue(
+                    () => _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount))
                 .AddTo(_disposables);
-            
+
             _handler.OnBoardSync
-                .Subscribe(OnBoardSync)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnBoardSync(msg)))
                 .AddTo(_disposables);
-            
+
             _handler.OnRoundEnded
-                .Subscribe(OnRoundEnded)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnRoundEnded(msg)))
                 .AddTo(_disposables);
 
             _handler.OnGameEnded
-                .Subscribe(OnGameEnded)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnGameEnded(msg)))
                 .AddTo(_disposables);
-            
+
             _handler.OnHpChanged
-                .Subscribe(OnHpChanged)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnHpChanged(msg)))
                 .AddTo(_disposables);
-            
+
             _handler.OnUnitsStateChanged
-                .Subscribe(OnUnitsStateChanged)
+                .Subscribe(msg => _coordinator.EnqueueRoutine(() => UnitsStateChangedBeat(msg)))
                 .AddTo(_disposables);
-            
+
+            _handler.OnDamageDealt
+                .Subscribe(msg =>
+                {
+                    var batch = ++_hitBatch;
+
+                    foreach (var hit in msg.Hits)
+                        _pendingHits.Add(new PendingHit(hit, _playSequence, batch));
+
+                    _coordinator.EnqueueRoutine(() => FlushPendingHits(batch));
+                })
+                .AddTo(_disposables);
+
             _handler.OnEnemyDisconnected
                 .Subscribe(_ =>
                 {
+                    ClearAnimations();
                     _matchState.IsEnemyLeft.Value = true;
                     _matchState.IsGameEnded.Value = true;
                 })
@@ -118,6 +155,8 @@ namespace IsntGwent.Scripts.Match.Client
             _handler.OnGiveUp
                 .Subscribe(msg =>
                 {
+                    ClearAnimations();
+
                     if (msg.IsMyLose)
                     {
                         _matchState.AmIGiveUp.Value = true;
@@ -136,6 +175,7 @@ namespace IsntGwent.Scripts.Match.Client
                 .First()
                 .Subscribe(_ =>
                 {
+                    ClearAnimations();
                     ClearPending();
                     _matchState.IsConnectionLost.Value = true;
                     _matchState.IsWaitingImageActive.Value = false;
@@ -161,50 +201,55 @@ namespace IsntGwent.Scripts.Match.Client
             _matchState.IsActionPending.Value = false;
         }
 
-        private void OnUnitsStateChanged(UnitsStateChangedMessage msg)
+        private void ClearAnimations()
         {
+            _coordinator.Clear();
+            _pendingHits.Clear();
+        }
+
+        private IEnumerator UnitsStateChangedBeat(UnitsStateChangedMessage msg)
+        {
+            var buried = new List<UnitInstance>();
+
             foreach (var data in msg.Units)
             {
-                var unit = FindUnit(data.InstanceId);
+                var unit = _instances.Get(data.InstanceId) as UnitInstance;
                 if (unit == null) continue;
 
-                if (data.IsDead)
-                {
-                    var wasOwn = _matchState.OwnMeleeRow.Contains(unit) ||
-                                 _matchState.OwnRangedRow.Contains(unit) ||
-                                 _matchState.Hand.Contains(unit);
-                    
-                    _matchState.OwnMeleeRow.Remove(unit);
-                    _matchState.OwnRangedRow.Remove(unit);
-                    _matchState.EnemyMeleeRow.Remove(unit);
-                    _matchState.EnemyRangedRow.Remove(unit);
+                unit.CurrentPower.Value = data.CurrentPower;
 
-                    if (unit is UnitInstance u)
-                        u.CurrentPower.Value = u.UnitDefinition.Power;
+                if (!data.IsDead) continue;
 
-                    if (wasOwn)
-                        _matchState.OwnGraveyard.Add(unit);
-                    else
-                        _matchState.EnemyGraveyard.Add(unit);
-                }
+                var wasOwn = _matchState.OwnMeleeRow.Contains(unit) ||
+                             _matchState.OwnRangedRow.Contains(unit) ||
+                             _matchState.Hand.Contains(unit);
+
+                _matchState.OwnMeleeRow.Remove(unit);
+                _matchState.OwnRangedRow.Remove(unit);
+                _matchState.EnemyMeleeRow.Remove(unit);
+                _matchState.EnemyRangedRow.Remove(unit);
+
+                if (wasOwn)
+                    _matchState.OwnGraveyard.Add(unit);
                 else
-                {
-                    if (unit is UnitInstance u)
-                        u.CurrentPower.Value = data.CurrentPower;
-                }
-            }
-        }
-        
-        private CardInstance FindUnit(string instanceId)
-        {
-            var all = _matchState.OwnMeleeRow
-                .Concat(_matchState.OwnRangedRow)
-                .Concat(_matchState.EnemyMeleeRow)
-                .Concat(_matchState.EnemyRangedRow);
+                    _matchState.EnemyGraveyard.Add(unit);
 
-            return all.FirstOrDefault(c => c.Id.ToString() == instanceId);
+                buried.Add(unit);
+            }
+
+            if (buried.Count == 0)
+            {
+                yield return new WaitForSeconds(CardAnimConfig.PowerPopDuration);
+                yield break;
+            }
+
+            yield return new WaitForSeconds(CardAnimConfig.GraveyardFlightDuration);
+
+            foreach (var unit in buried)
+                unit.CurrentPower.Value = unit.UnitDefinition.Power;
         }
-        
+
+
         private void OnHpChanged(HpChangedMessage msg)
         {
             _matchState.MyHp.Value = msg.MyHp;
@@ -249,19 +294,20 @@ namespace IsntGwent.Scripts.Match.Client
             collection.Clear();
             foreach (var cardData in data)
             {
-                var definition = _cardDatabase.Get(cardData.DefinitionId);
-                var instance = CardFactory.Create(definition);
-                instance.SetId(Guid.Parse(cardData.InstanceId));
-                
+                var instance = _instances.GetOrCreate(cardData.DefinitionId, cardData.InstanceId);
+                if (instance == null) continue;
+
+                if (instance is UnitInstance unit)
+                    unit.CurrentPower.Value = cardData.CurrentPower;
+
                 collection.Add(instance);
             }
         }
-        
+
         private void OnCardDrawn(CardDrawnMessage msg)
         {
-            var definition = _cardDatabase.Get(msg.Card.DefinitionId);
-            var instance = CardFactory.Create(definition);
-            instance.SetId(Guid.Parse(msg.Card.InstanceId));
+            var instance = _instances.GetOrCreate(msg.Card.DefinitionId, msg.Card.InstanceId);
+            if (instance == null) return;
 
             _matchState.Hand.Add(instance);
         }
@@ -286,9 +332,8 @@ namespace IsntGwent.Scripts.Match.Client
             _matchState.Hand.Clear();
             foreach (var cardData in msg.CardsInHand)
             {
-                var definition = _cardDatabase.Get(cardData.DefinitionId);
-                var instance = CardFactory.Create(definition);
-                instance.SetId(Guid.Parse(cardData.InstanceId));
+                var instance = _instances.GetOrCreate(cardData.DefinitionId, cardData.InstanceId);
+                if (instance == null) continue;
 
                 _matchState.Hand.Add(instance);
             }
@@ -305,43 +350,119 @@ namespace IsntGwent.Scripts.Match.Client
 
         private void OnOwnCardPlayed(OwnCardPlayedMessage msg)
         {
-            var card = _matchState.Hand.FirstOrDefault(c => c.Id.ToString() == msg.CardInstanceId);
+            var card = _instances.Get(msg.CardInstanceId);
             if (card == null) return;
 
-            if (card is UnitInstance)
-            {
-                var row = msg.Row == RowType.Melee ? _matchState.OwnMeleeRow : _matchState.OwnRangedRow;
-                row.Add(card);
-            }
-            else if (card is SpellInstance)
-            {
-                _matchState.OwnGraveyard.Add(card);
-            }
+            var sequence = ++_playSequence;
 
-            
+            _coordinator.EnqueueRoutine(() => PlayCardBeat(card, sequence, isEnemy: false, () =>
+            {
+                if (card is UnitInstance)
+                {
+                    var row = msg.Row == RowType.Melee
+                        ? _matchState.OwnMeleeRow
+                        : _matchState.OwnRangedRow;
+                    row.Add(card);
+                }
+                else if (card is SpellInstance)
+                {
+                    _matchState.OwnGraveyard.Add(card);
+                }
+            }));
         }
 
         private void OnEnemyCardPlayed(EnemyCardPlayedMessage msg)
         {
-            var definition = _cardDatabase.Get(msg.DefinitionId);
-            var instance = CardFactory.Create(definition);
-            instance.SetId(Guid.Parse(msg.CardInstanceId));
+            var instance = _instances.GetOrCreate(msg.DefinitionId, msg.CardInstanceId);
+            if (instance == null) return;
 
             if (instance is UnitInstance unit)
-            {
                 unit.CurrentPower.Value = msg.CurrentPower;
-                var row = msg.Row == RowType.Melee ? _matchState.EnemyMeleeRow : _matchState.EnemyRangedRow;
-                row.Add(instance);
-            }
-            else if (instance is SpellInstance spell)
+
+            var sequence = ++_playSequence;
+
+            _coordinator.EnqueueRoutine(() => PlayCardBeat(instance, sequence, isEnemy: true, () =>
             {
-                _matchState.EnemyGraveyard.Add(spell);
-            }
-            
-            _matchState.EnemyCardAmount.Value = msg.CardAmount;
+                if (instance is UnitInstance)
+                {
+                    var row = msg.Row == RowType.Melee
+                        ? _matchState.EnemyMeleeRow
+                        : _matchState.EnemyRangedRow;
+                    row.Add(instance);
+                }
+                else if (instance is SpellInstance spell)
+                {
+                    _matchState.EnemyGraveyard.Add(spell);
+                }
+
+                _matchState.EnemyCardAmount.Value = msg.CardAmount;
+            }));
         }
 
-        
+        private IEnumerator PlayCardBeat(CardInstance card, int sequence, bool isEnemy, Action place)
+        {
+            if (isEnemy)
+            {
+                _previewService.ShowCard.OnNext(card);
+                yield return new WaitForSeconds(CardAnimConfig.EnemyPreviewDuration);
+                _previewService.HideCard.OnNext(Unit.Default);
+            }
+
+            _matchState.CardStaged.OnNext(card);
+
+            if (card is UnitInstance)
+            {
+                place();
+                yield return new WaitForSeconds(CardAnimConfig.PlayFlightDuration);
+                yield return PlayHits(card.Id, sequence);
+            }
+            else
+            {
+                yield return PlayHits(card.Id, sequence);
+                place();
+                yield return new WaitForSeconds(CardAnimConfig.PlayFlightDuration);
+            }
+        }
+
+        private IEnumerator PlayHits(Guid sourceId, int sequence)
+        {
+            var hits = ConsumePendingHits(sourceId, sequence);
+            if (hits.Length == 0) yield break;
+
+            _matchState.DamageDealt.OnNext(hits);
+            yield return new WaitForSeconds(CardAnimConfig.ProjectileDuration);
+        }
+
+        private IEnumerator FlushPendingHits(int batch)
+        {
+            var hits = _pendingHits
+                .Where(h => h.Batch == batch)
+                .Select(h => h.Hit)
+                .ToArray();
+
+            if (hits.Length == 0) yield break;
+
+            _pendingHits.RemoveAll(h => h.Batch == batch);
+
+            _matchState.DamageDealt.OnNext(hits);
+
+            yield return new WaitForSeconds(CardAnimConfig.ProjectileDuration);
+        }
+
+        private DamageInstance[] ConsumePendingHits(Guid sourceId, int sequence)
+        {
+            var id = sourceId.ToString();
+
+            bool Matches(PendingHit h) => h.PlaySequence == sequence && h.Hit.SourceInstanceId == id;
+
+            var hits = _pendingHits.Where(Matches).Select(h => h.Hit).ToArray();
+            if (hits.Length > 0)
+                _pendingHits.RemoveAll(Matches);
+
+            return hits;
+        }
+
+
         public void Dispose()
         {
             _disposables.Dispose();

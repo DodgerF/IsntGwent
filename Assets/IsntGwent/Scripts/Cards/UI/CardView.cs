@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
+﻿using DG.Tweening;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using TMPro;
 using UniRx;
@@ -37,6 +38,11 @@ namespace IsntGwent.Scripts.Cards.UI
                     unitInstance.CurrentPower
                         .Subscribe(power => powerText.text = power.ToString())
                         .AddTo(this);
+
+                    unitInstance.CurrentPower
+                        .Skip(1)
+                        .Subscribe(_ => PowerPop())
+                        .AddTo(this);
                 }
 
                 meleeIcon.SetActive(unit.Row == RowType.Melee);
@@ -69,6 +75,31 @@ namespace IsntGwent.Scripts.Cards.UI
         public void SetSelected(bool selected)
         {
             gameObject.SetActive(!selected);
+        }
+
+        public void HitReact()
+        {
+            if (!Application.isPlaying || cardImage == null) return;
+
+            var shaken = cardImage.transform;
+            shaken.DOKill(true);
+            shaken.DOShakePosition(
+                CardAnimConfig.HitReactDuration,
+                CardAnimConfig.HitShakeStrength);
+        }
+
+        private void PowerPop()
+        {
+            if (!Application.isPlaying || powerText == null) return;
+
+            var popped = powerText.transform;
+            popped.DOKill(true);
+            popped.localScale = Vector3.one;
+            popped.DOPunchScale(
+                Vector3.one * (CardAnimConfig.PowerPopScale - 1f),
+                CardAnimConfig.PowerPopDuration,
+                1,
+                0.5f);
         }
     }
 }

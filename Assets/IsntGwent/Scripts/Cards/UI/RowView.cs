@@ -1,4 +1,6 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
+using System.Collections.Generic;
+using DG.Tweening;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Client;
 using UniRx;
 using UnityEngine;
@@ -11,28 +13,36 @@ namespace IsntGwent.Scripts.Cards.UI
     public class RowView : MonoBehaviour
     {
         [InjectOptional] private CardSelectionService _selectionService;
-        
+
         public RowType row;
         private Image _image;
         private readonly Color _baseColor = new (0.3f, 0.3f, 0.3f,0.3f);
         private readonly Color _selectedColor = new (0.6f, 0.75f, 0.95f, 0.3f);
-        
+
         public float cardSpacing = 105f;
         public float maxWidth = 1000f;
         [SerializeField] private float edgeMargin = 120f;
 
         private RectTransform _rt;
 
+        private readonly List<Transform> _cards = new();
+
+        private Transform _flightChild;
+        private float _flightDuration;
+
         private void Awake()
         {
             _rt = (RectTransform)transform;
+
+            foreach (Transform child in transform)
+                _cards.Add(child);
         }
 
         private void Start()
         {
             _image = GetComponent<Image>();
             _image.color = _baseColor;
-            
+
             _selectionService?.HighlightRows
                 .Subscribe(card =>
                 {
@@ -42,7 +52,7 @@ namespace IsntGwent.Scripts.Cards.UI
                         SetHighlight(false);
                 })
                 .AddTo(this);
-            
+
             _selectionService?.ClearHighlights
                 .Subscribe(_ => SetHighlight(false))
                 .AddTo(this);
@@ -52,16 +62,20 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             _image.color = active ? _selectedColor : _baseColor;
         }
-        
+
         public void DetachCard(GameObject card)
         {
+            card.transform.DOKill();
+            _cards.Remove(card.transform);
             card.transform.SetParent(null, false);
             RefreshLayout();
         }
 
         public void RefreshLayout()
         {
-            int count = transform.childCount;
+            _cards.RemoveAll(c => c == null || c.parent != transform);
+
+            int count = _cards.Count;
             if (count == 0)
                 return;
 
@@ -86,13 +100,30 @@ namespace IsntGwent.Scripts.Cards.UI
 
             for (int i = 0; i < count; i++)
             {
-                var child = transform.GetChild(i);
+                var child = _cards[i];
+                bool isFlight = child == _flightChild;
 
-                var pos = child.localPosition;
-                pos.x = startX + i * spacing;
+                var target = new Vector3(startX + i * spacing, 0f, 0f);
 
-                child.localPosition = pos;
+                MoveTo(
+                    child,
+                    target,
+                    isFlight ? _flightDuration : CardAnimConfig.RowLayoutDuration,
+                    isFlight ? CardAnimConfig.FlightEase : CardAnimConfig.RowLayoutEase);
             }
+        }
+
+        private static void MoveTo(Transform child, Vector3 target, float duration, Ease ease)
+        {
+            child.DOKill();
+
+            if (!Application.isPlaying || duration <= 0f)
+            {
+                child.localPosition = target;
+                return;
+            }
+
+            child.DOLocalMove(target, duration).SetEase(ease);
         }
 
         private void OnRectTransformDimensionsChange()
@@ -103,12 +134,37 @@ namespace IsntGwent.Scripts.Cards.UI
 
         public void AddCard(GameObject card)
         {
-            var previousRow = card.transform.parent != null
-                ? card.transform.parent.GetComponent<RowView>()
+            var cardTransform = card.transform;
+            var previousParent = cardTransform.parent;
+
+            var previousRow = previousParent != null
+                ? previousParent.GetComponent<RowView>()
                 : null;
 
-            card.transform.SetParent(transform, false);
+            cardTransform.DOKill();
+
+            bool hasFlight = Application.isPlaying && previousParent != null;
+            var start = cardTransform.position;
+
+            previousRow?._cards.Remove(cardTransform);
+            cardTransform.SetParent(transform, false);
+
+            if (!_cards.Contains(cardTransform))
+                _cards.Add(cardTransform);
+
+            if (hasFlight)
+            {
+                cardTransform.position = start;
+
+                _flightChild = cardTransform;
+                _flightDuration = previousRow == this
+                    ? CardAnimConfig.RowLayoutDuration
+                    : CardAnimConfig.PlayFlightDuration;
+            }
+
             RefreshLayout();
+
+            _flightChild = null;
 
             if (previousRow != null && previousRow != this)
                 previousRow.RefreshLayout();
@@ -116,6 +172,8 @@ namespace IsntGwent.Scripts.Cards.UI
 
         public void RemoveCard(GameObject card)
         {
+            card.transform.DOKill();
+            _cards.Remove(card.transform);
             card.transform.SetParent(null, false);
             Destroy(card);
             RefreshLayout();
@@ -125,8 +183,11 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             foreach (Transform child in transform)
             {
+                child.DOKill();
                 Destroy(child.gameObject);
             }
+
+            _cards.Clear();
         }
     }
 

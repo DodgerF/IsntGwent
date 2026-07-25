@@ -8,7 +8,7 @@ namespace IsntGwent.Scripts.Core
     public class MenuSettings : MonoBehaviour
     {
         [Inject] private readonly InputRouter _input;
-        [Inject] private readonly MatchState _matchState;
+        [InjectOptional] private readonly MatchState _matchState;
         private void Start()
         {
             gameObject.SetActive(false);
@@ -22,7 +22,7 @@ namespace IsntGwent.Scripts.Core
                 })
                 .AddTo(this);
 
-            _matchState.IsGameEnded
+            _matchState?.IsGameEnded
                 .Where(v => v)
                 .Subscribe(_ => gameObject.SetActive(false))
                 .AddTo(this);

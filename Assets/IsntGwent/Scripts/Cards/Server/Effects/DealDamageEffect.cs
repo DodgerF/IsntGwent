@@ -9,7 +9,10 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             var definition = (DealDamageEffectDefinition)context.Definition;
 
             foreach (var target in context.Targets)
+            {
+                context.Game.RecordDamage(context.Source, target, definition.Amount);
                 target.GetDamage(definition.Amount);
+            }
         }
     }
 

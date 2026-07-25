@@ -2054,6 +2054,8 @@ GameObject:
   - component: {fileID: 495577542}
   - component: {fileID: 495577547}
   - component: {fileID: 495577546}
+  - component: {fileID: 495577549}
+  - component: {fileID: 495577548}
   m_Layer: 5
   m_Name: MatchPresenters
   m_TagString: Untagged
@@ -2173,6 +2175,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.HpPanelUI
   ownHp: {fileID: 307234029}
   enemyHp: {fileID: 1265546446}
+--- !u!114 &495577548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1da9c9d7810f624991b897e4531161b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.CardPlayPresenter
+  cardPrefab: {fileID: 8909658270527188559, guid: 079f98928ec550147a38da4868189cb0, type: 3}
+  previewAnchor: {fileID: 941341863}
+--- !u!114 &495577549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495577540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c060d89f8a0ad75409f47103ee074de0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Match.UI.CombatVfxPresenter
+  projectilePrefab: {fileID: 4358325503645704482, guid: 42491042ab63c2341bbaf13fe4b5ee5f, type: 3}
 --- !u!1 &524550465
 GameObject:
   m_ObjectHideFlags: 0

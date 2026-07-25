@@ -30,11 +30,17 @@ namespace IsntGwent.Scripts.Installers
                 .Bind<CardViewRegistry>()
                 .AsSingle();
             Container
+                .Bind<CardInstanceRegistry>()
+                .AsSingle();
+            Container
                 .BindInterfacesAndSelfTo<TargetHighlightPresenter>()
                 .AsSingle()
                 .NonLazy();
             Container
                 .Bind<MatchState>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<AnimationCoordinator>()
                 .AsSingle();
             Container
                 .BindInterfacesAndSelfTo<GameControllerClient>()

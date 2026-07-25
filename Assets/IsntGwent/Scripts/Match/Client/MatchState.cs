@@ -14,6 +14,9 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly ReactiveProperty<bool> IsActionPending = new(false);
         public readonly Subject<Unit> PassRequested = new();
 
+        public readonly Subject<DamageInstance[]> DamageDealt = new();
+        public readonly Subject<CardInstance> CardStaged = new();
+
         public readonly ReactiveCollection<CardInstance> Hand = new();
         public readonly ReactiveProperty<int> EnemyCardAmount = new(0);
         

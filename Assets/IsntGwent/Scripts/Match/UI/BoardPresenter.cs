@@ -50,11 +50,17 @@ namespace IsntGwent.Scripts.Match.UI
                 .ObserveAdd()
                 .Subscribe(e =>
                 {
-                    var view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab);
-                    view.Setup(e.Value);
+                    var view = _registry.Get(e.Value.Id);
+
+                    if (view == null)
+                    {
+                        view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab);
+                        view.Setup(e.Value);
+                        view.transform.position = row.transform.position;
+                        _registry.Register(view);
+                    }
+
                     view.mode = CardMode.OnBoard;
-                    view.transform.position = Vector3.zero;
-                    _registry.Register(view);
                     row.AddCard(view.gameObject);
                 })
                 .AddTo(this);
