@@ -19,7 +19,6 @@ namespace IsntGwent.Scripts.Network
             if (IsServerLaunch())
             {
                 NetworkManager.singleton.StartServer();
-                NetworkManager.singleton.ServerChangeScene("Menu");
                 return;
             }
             

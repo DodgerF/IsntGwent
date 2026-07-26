@@ -11,7 +11,8 @@ namespace IsntGwent.Scripts.Cards.Server
     public class TriggeredEffectDispatcher
     {
         [Inject] private readonly CardResolver _cardResolver;
-        
+        [Inject] private readonly BoardSyncService _boardSync;
+
         public void Attach(GameContext context)
         {
             context.AddDisposable(
@@ -61,6 +62,7 @@ namespace IsntGwent.Scripts.Cards.Server
                 foreach (var unit in units)
                 {
                     if (unit == skip) continue;
+                    if (!player.MeleeRow.Contains(unit) && !player.RangedRow.Contains(unit)) continue;
 
                     RunCard(context, player, unit, trigger.Value, gameEvent);
                 }
@@ -73,6 +75,7 @@ namespace IsntGwent.Scripts.Cards.Server
             if (!HasTrigger(card, trigger)) return;
 
             _cardResolver.RunEffects(context, owner, card, trigger, gameEvent, null);
+            _boardSync.Sync(context);
         }
 
         private static bool HasTrigger(CardInstance card, EffectTrigger trigger)

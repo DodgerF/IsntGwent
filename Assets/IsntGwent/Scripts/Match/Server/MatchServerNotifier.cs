@@ -109,7 +109,7 @@ namespace IsntGwent.Scripts.Match.Server
             p2.Connection.Send(new HpChangedMessage { MyHp = p2.Hp, EnemyHp = p1.Hp });
         }
 
-        public void NotifyRoundEnded(GameContext context, bool isTie, Player winner)
+        public void NotifyRoundResult(GameContext context, bool isTie, Player winner)
         {
             var p1 = context.Player1;
             var p2 = context.Player2;
@@ -118,13 +118,11 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 Result = isTie ? RoundResult.Tie : winner == p1 ? RoundResult.Win : RoundResult.Lose
             });
-            p1.Connection.Send(new TurnChangedMessage { IsMyTurn = context.CurrentPlayer == p1 });
 
             p2.Connection.Send(new RoundEndedMessage
             {
                 Result = isTie ? RoundResult.Tie : winner == p2 ? RoundResult.Win : RoundResult.Lose
             });
-            p2.Connection.Send(new TurnChangedMessage { IsMyTurn = context.CurrentPlayer == p2 });
         }
 
         public void NotifyGameEnded(GameContext context, bool isTie, Player winner, Player loser)

@@ -95,6 +95,7 @@ namespace IsntGwent.Scripts.Match.Client
                 .Subscribe(_ =>
                 {
                     _handler.SendPass();
+                    _matchState.PassSent.OnNext(Unit.Default);
                     BeginPending();
                 })
                 .AddTo(_disposables);
@@ -104,20 +105,24 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
 
             _handler.OnCardDrawn
-                .Subscribe(msg => _coordinator.Enqueue(() => OnCardDrawn(msg)))
+                .Subscribe(msg => _coordinator.Enqueue(
+                    () => OnCardDrawn(msg), CardAnimConfig.DrawBeatDuration))
                 .AddTo(_disposables);
 
             _handler.OnEnemyCardDrawn
                 .Subscribe(msg => _coordinator.Enqueue(
-                    () => _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount))
+                    () => _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount,
+                    CardAnimConfig.DrawBeatDuration))
                 .AddTo(_disposables);
 
             _handler.OnBoardSync
-                .Subscribe(msg => _coordinator.Enqueue(() => OnBoardSync(msg)))
+                .Subscribe(msg => _coordinator.Enqueue(
+                    () => OnBoardSync(msg), CardAnimConfig.RoundClearBeatDuration))
                 .AddTo(_disposables);
 
             _handler.OnRoundEnded
-                .Subscribe(msg => _coordinator.Enqueue(() => OnRoundEnded(msg)))
+                .Subscribe(msg => _coordinator.Enqueue(
+                    () => OnRoundEnded(msg), CardAnimConfig.RoundResultBeatDuration))
                 .AddTo(_disposables);
 
             _handler.OnGameEnded
@@ -125,7 +130,8 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
 
             _handler.OnHpChanged
-                .Subscribe(msg => _coordinator.Enqueue(() => OnHpChanged(msg)))
+                .Subscribe(msg => _coordinator.Enqueue(
+                    () => OnHpChanged(msg), CardAnimConfig.HpBeatDuration))
                 .AddTo(_disposables);
 
             _handler.OnUnitsStateChanged
@@ -243,6 +249,8 @@ namespace IsntGwent.Scripts.Match.Client
                 yield break;
             }
 
+            _matchState.UnitsDied.OnNext(buried.Count);
+
             yield return new WaitForSeconds(CardAnimConfig.GraveyardFlightDuration);
 
             foreach (var unit in buried)
@@ -252,21 +260,21 @@ namespace IsntGwent.Scripts.Match.Client
 
         private void OnHpChanged(HpChangedMessage msg)
         {
+            var lost = 0;
+            if (msg.MyHp < _matchState.MyHp.Value) lost++;
+            if (msg.EnemyHp < _matchState.EnemyHp.Value) lost++;
+
             _matchState.MyHp.Value = msg.MyHp;
             _matchState.EnemyHp.Value = msg.EnemyHp;
+
+            if (lost > 0)
+                _matchState.HpLost.OnNext(lost);
         }
-        
+
         private void OnRoundEnded(RoundEndedMessage msg)
         {
             ClearPending();
-            _matchState.IsMyTurn.Value = msg.IsMyTurn;
             _matchState.LastRoundResult.Value = msg.Result;
-            _matchState.TurnChanged.OnNext(Unit.Default);
-
-            _matchState.OwnMeleeRow.Clear();
-            _matchState.OwnRangedRow.Clear();
-            _matchState.EnemyMeleeRow.Clear();
-            _matchState.EnemyRangedRow.Clear();
         }
 
         private void OnGameEnded(GameEndedMessage msg)
@@ -310,6 +318,7 @@ namespace IsntGwent.Scripts.Match.Client
             if (instance == null) return;
 
             _matchState.Hand.Add(instance);
+            _matchState.CardDrawn.OnNext(Unit.Default);
         }
         
         private void OnPowerUpdated(PowerUpdatedMessage msg)
@@ -455,9 +464,14 @@ namespace IsntGwent.Scripts.Match.Client
 
             bool Matches(PendingHit h) => h.PlaySequence == sequence && h.Hit.SourceInstanceId == id;
 
-            var hits = _pendingHits.Where(Matches).Select(h => h.Hit).ToArray();
-            if (hits.Length > 0)
-                _pendingHits.RemoveAll(Matches);
+            if (!_pendingHits.Any(Matches)) return Array.Empty<DamageInstance>();
+
+            var batch = _pendingHits.Where(Matches).Min(h => h.Batch);
+
+            bool MatchesBatch(PendingHit h) => Matches(h) && h.Batch == batch;
+
+            var hits = _pendingHits.Where(MatchesBatch).Select(h => h.Hit).ToArray();
+            _pendingHits.RemoveAll(MatchesBatch);
 
             return hits;
         }

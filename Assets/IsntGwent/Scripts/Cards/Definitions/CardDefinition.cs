@@ -11,6 +11,7 @@ namespace IsntGwent.Scripts.Cards.Definitions
         public CardType Type;
         public string Description;
         public string ImageName;
+        public string SoundId;
         
         [JsonIgnore]
         public List<EffectDefinition> Effects = new();

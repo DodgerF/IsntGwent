@@ -12,6 +12,7 @@ namespace IsntGwent.Scripts.Lobby.Client
     {
         public readonly Subject<LobbyError> OnError = new();
         public readonly Subject<Unit> OnJoinedLobby = new();
+        public readonly Subject<Unit> OnLobbyCreated = new();
         
         public void Initialize()
         {
@@ -53,9 +54,14 @@ namespace IsntGwent.Scripts.Lobby.Client
         private void OnCreateLobbyResult(CreateLobbyResultMessage msg)
         {
             if (msg.IsSuccess)
+            {
+                OnLobbyCreated.OnNext(Unit.Default);
                 OnJoinedLobby.OnNext(Unit.Default);
+            }
             else
+            {
                 OnError.OnNext(msg.Error);
+            }
         }
 
         public void Dispose()

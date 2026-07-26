@@ -6,9 +6,17 @@ namespace IsntGwent.Scripts.Network
 {
     public class MyNetManager : NetworkManager
     {
+        private const string MenuScene = "Menu";
+
         public static Subject<NetworkConnectionToClient> ServerDisconnected = new();
         public static Subject<Unit> ClientConnected = new();
         public static Subject<Unit> ClientDisconnected = new();
+
+        public override void Awake()
+        {
+            onlineScene = MenuScene;
+            base.Awake();
+        }
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
@@ -23,9 +31,27 @@ namespace IsntGwent.Scripts.Network
         }
         public override void OnClientConnect()
         {
-            NetworkClient.Ready();
-            NetworkClient.AddPlayer();
             ClientConnected.OnNext(Unit.Default);
+
+            if (clientLoadedScene) return;
+
+            BecomeReady();
+        }
+
+        public override void OnClientSceneChanged()
+        {
+            BecomeReady();
+        }
+
+        private static void BecomeReady()
+        {
+            if (!NetworkClient.connection.isAuthenticated) return;
+
+            if (!NetworkClient.ready)
+                NetworkClient.Ready();
+
+            if (NetworkClient.localPlayer == null)
+                NetworkClient.AddPlayer();
         }
 
         public override void OnClientDisconnect()

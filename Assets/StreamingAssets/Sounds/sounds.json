@@ -1,0 +1,23 @@
+{
+  "entries": [
+    { "id": "ui_click",         "category": "Ui",     "clips": ["click"] },
+    { "id": "ui_hover",         "category": "Ui",     "clips": ["card_play"], "volume": 0.6 },
+    { "id": "ui_button_hover",  "category": "Ui",     "clips": ["ui_hover"], "volume": 0.6 },
+    { "id": "card_play",        "category": "Sfx",    "clips": ["card_play"] },
+    { "id": "card_draw",        "category": "Sfx",    "clips": ["card_draw"] },
+    { "id": "hit",              "category": "Sfx",    "clips": ["hit"], "pitchMin": 0.95, "pitchMax": 1.05 },
+    { "id": "unit_death",       "category": "Sfx",    "clips": ["Bloody punch"] },
+    { "id": "turn",             "category": "Sfx",    "clips": ["turn"], "volume": 4 },
+    { "id": "pass",             "category": "Sfx",    "clips": ["pass"] },
+    { "id": "hp_loss",          "category": "Sfx",    "clips": ["hp_loss"] },
+    { "id": "round_end",        "category": "Sfx",    "clips": ["round_end"] },
+    { "id": "win",              "category": "Sfx",    "clips": ["win"] },
+    { "id": "lose",             "category": "Sfx",    "clips": ["lose"] },
+    { "id": "tie",              "category": "Sfx",    "clips": ["tie"] },
+    { "id": "music_menu",       "category": "Music",  "clips": ["Black Frost Deck"], "loop": true, "volume": 0.7 },
+    { "id": "music_waiting",    "category": "Music",  "clips": ["Amber Match Table"], "loop": true, "volume": 0.7 },
+    { "id": "music_match",      "category": "Music",  "clips": ["Forged steppe run"], "loop": true, "volume": 0.7 },
+    { "id": "sting_lobby_created", "category": "Music", "clips": [""], "volume": 0.8 },
+    { "id": "sting_match_start",   "category": "Music", "clips": [""], "volume": 0.8 }
+  ]
+}

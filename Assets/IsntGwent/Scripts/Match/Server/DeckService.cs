@@ -39,6 +39,7 @@ namespace IsntGwent.Scripts.Match.Server
             var before = player.Hand.Count;
             DrawCards(player, amount);
             var drawn = player.Hand.Count - before;
+            if (drawn == 0) return;
 
             for (var i = player.Hand.Count - drawn; i < player.Hand.Count; i++)
             {

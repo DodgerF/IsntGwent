@@ -616,6 +616,7 @@ GameObject:
   - component: {fileID: 499847142}
   - component: {fileID: 499847141}
   - component: {fileID: 499847140}
+  - component: {fileID: 499847143}
   m_Layer: 5
   m_Name: ServerButton
   m_TagString: Untagged
@@ -737,6 +738,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 499847138}
   m_CullTransparentMesh: 1
+--- !u!114 &499847143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499847138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
+  soundId: ui_click
 --- !u!1 &780847073
 GameObject:
   m_ObjectHideFlags: 0

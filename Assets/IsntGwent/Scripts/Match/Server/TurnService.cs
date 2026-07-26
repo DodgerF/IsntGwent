@@ -14,6 +14,7 @@ namespace IsntGwent.Scripts.Match.Server
             var opponent = context.GetOpponent(player);
 
             context.Publish(new TurnEnded(player));
+            _notifier.NotifyTurnChanged(player, false);
 
             if (opponent.IsPassed)
             {
@@ -21,7 +22,6 @@ namespace IsntGwent.Scripts.Match.Server
                 return;
             }
 
-            _notifier.NotifyTurnChanged(player, false);
             _notifier.NotifyEnemyPassed(opponent);
 
             context.CurrentPlayer = opponent;

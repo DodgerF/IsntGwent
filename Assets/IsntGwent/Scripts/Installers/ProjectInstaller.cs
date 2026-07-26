@@ -1,6 +1,7 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Network;
 using Zenject;
@@ -31,7 +32,23 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             Container
                 .BindInterfacesAndSelfTo<DeckDatabase>()
-                .AsSingle() 
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<AudioPlayer>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<SoundDatabase>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<SettingsService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<AudioService>()
+                .AsSingle()
                 .NonLazy();
         }
     }

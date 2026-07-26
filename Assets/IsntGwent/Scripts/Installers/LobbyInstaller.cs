@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Cards.Server;
+﻿using IsntGwent.Scripts.Audio;
+using IsntGwent.Scripts.Cards.Server;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Network;
@@ -48,6 +49,7 @@ namespace IsntGwent.Scripts.Installers
             Container.BindInterfacesAndSelfTo<LobbyManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbySceneController>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<LobbyAudioBinder>().AsSingle().NonLazy();
             
             Container.BindInterfacesAndSelfTo<ServerHandler>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LobbyClientHandler>().AsSingle();

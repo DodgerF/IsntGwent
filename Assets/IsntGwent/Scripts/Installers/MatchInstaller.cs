@@ -3,6 +3,7 @@ using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Match.Client;
 using UnityEngine.EventSystems;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Audio;
 using UnityEngine.UI;
 using Zenject;
 
@@ -63,6 +64,11 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .BindInterfacesAndSelfTo<MatchClientHandler>()
                 .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<MatchAudioBinder>()
+                .AsSingle()
+                .NonLazy();
         }
     }
 }

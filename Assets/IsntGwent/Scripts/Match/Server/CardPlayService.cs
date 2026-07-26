@@ -30,8 +30,9 @@ namespace IsntGwent.Scripts.Match.Server
             _notifier.NotifyCardRemovedFromHand(player, card);
 
             _cardResolver.PlayCard(context, player, card, selectedIds);
-            context.Publish(new CardPlayed(player, card, row));
+            _boardSync.Sync(context);
 
+            context.Publish(new CardPlayed(player, card, row));
             _boardSync.Sync(context);
             if (player.Hand.Count == 0)
             {

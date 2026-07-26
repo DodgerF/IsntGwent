@@ -17,6 +17,11 @@ namespace IsntGwent.Scripts.Match.Server
             var winner = isTie ? null : p1.TotalPower > p2.TotalPower ? p1 : p2;
             var loser = winner != null ? context.GetOpponent(winner) : null;
 
+            context.Publish(new RoundEnded(winner, isTie));
+            _boardSync.Sync(context);
+
+            _notifier.NotifyRoundResult(context, isTie, winner);
+
             if (isTie)
             {
                 p1.Hp--;
@@ -37,9 +42,6 @@ namespace IsntGwent.Scripts.Match.Server
                 return;
             }
 
-            context.Publish(new RoundEnded(winner, isTie));
-            _boardSync.Sync(context);
-
             BoardSyncService.MoveAllToGraveyard(context, p1);
             BoardSyncService.MoveAllToGraveyard(context, p2);
             _boardSync.Sync(context);
@@ -55,7 +57,8 @@ namespace IsntGwent.Scripts.Match.Server
                 ? context.GetOpponent(context.CurrentPlayer)
                 : winner;
 
-            _notifier.NotifyRoundEnded(context, isTie, winner);
+            _notifier.NotifyTurnChanged(p1, context.CurrentPlayer == p1);
+            _notifier.NotifyTurnChanged(p2, context.CurrentPlayer == p2);
         }
 
         public void SendGameEnded(GameContext context, bool isTie, Player winner, Player loser)
