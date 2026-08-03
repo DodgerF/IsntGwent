@@ -15,9 +15,17 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<Unit> PassRequested = new();
         public readonly Subject<Unit> PassSent = new();
 
+        public readonly ReactiveProperty<bool> IsRedrawPhase = new(false);
+        public readonly ReactiveProperty<int> RedrawsLeft = new(0);
+        public readonly ReactiveProperty<bool> IsRedrawReady = new(false);
+        public readonly Subject<CardInstance> RedrawRequested = new();
+        public readonly Subject<Unit> RedrawReadyRequested = new();
+        public readonly Subject<CardInstance> CardRedrawn = new();
+
         public readonly Subject<DamageInstance[]> DamageDealt = new();
         public readonly Subject<CardInstance> CardStaged = new();
         public readonly Subject<Unit> CardDrawn = new();
+        public readonly Subject<Unit> EnemyCardDrawn = new();
         public readonly Subject<int> UnitsDied = new();
         public readonly Subject<int> HpLost = new();
 

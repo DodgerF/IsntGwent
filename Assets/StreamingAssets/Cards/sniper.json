@@ -10,6 +10,7 @@
     {
       "effect": "WeakestTargeting",
       "trigger": "OnTurnStart",
+      "count": 1,
       "includeEnemies": true,
       "includeAllies": false
     },

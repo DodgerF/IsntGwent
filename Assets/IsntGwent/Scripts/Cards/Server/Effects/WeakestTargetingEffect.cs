@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
+using UnityEngine;
 
 namespace IsntGwent.Scripts.Cards.Server.Effects
 {
@@ -17,11 +18,27 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             if (pool.Count == 0) return new List<UnitInstance>();
 
             var min = pool.Min(u => u.CurrentPower.Value);
-            return pool.Where(u => u.CurrentPower.Value == min).ToList();
+            var weakest = pool.Where(u => u.CurrentPower.Value == min).ToList();
+
+            var count = ((WeakestTargetingDefinition)context.Definition).Count;
+            if (count <= 0 || count >= weakest.Count) return weakest;
+
+            var result = new List<UnitInstance>();
+
+            while (result.Count < count)
+            {
+                var index = Random.Range(0, weakest.Count);
+
+                result.Add(weakest[index]);
+                weakest.RemoveAt(index);
+            }
+
+            return result;
         }
     }
 
     public class WeakestTargetingDefinition : TargetingEffectDefinition
     {
+        public int Count;
     }
 }

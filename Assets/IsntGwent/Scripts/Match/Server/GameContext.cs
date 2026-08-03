@@ -19,7 +19,11 @@ namespace IsntGwent.Scripts.Match.Server
         public readonly NetworkConnectionToClient Connection;
 
         public bool IsPassed = false;
-        
+
+        public int RedrawsLeft;
+        public bool IsRedrawReady;
+        public readonly List<CardInstance> RedrawPile = new();
+
         public readonly List<CardInstance> Hand = new();
         public readonly int MaxCardInHand = 10;
         public readonly List<CardInstance> Deck;
@@ -74,6 +78,9 @@ namespace IsntGwent.Scripts.Match.Server
 
         public Player Player1;
         public Player Player2;
+
+        public int RoundNumber = 1;
+        public bool IsRedrawPhase;
 
         public readonly ReactiveProperty<bool> GameEnded = new();
 

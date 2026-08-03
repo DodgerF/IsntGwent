@@ -20,7 +20,6 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 CardsInHand = player.Hand.Select(CardDataFactory.Create).ToArray(),
                 EnemyCardAmount = context.GetOpponent(player).Hand.Count,
-                IsMyTurn = context.CurrentPlayer == player,
             });
         }
 
@@ -192,6 +191,36 @@ namespace IsntGwent.Scripts.Match.Server
         public void NotifyEnemyCardDrawn(Player opponent, int enemyCardAmount)
         {
             opponent.Connection.Send(new EnemyCardDrawnMessage { EnemyCardAmount = enemyCardAmount });
+        }
+
+        public void NotifyRedrawStarted(GameContext context, int amount)
+        {
+            var msg = new RedrawStartedMessage
+            {
+                RedrawsLeft = amount,
+                RoundNumber = context.RoundNumber
+            };
+
+            context.Player1.Connection.Send(msg);
+            context.Player2.Connection.Send(msg);
+        }
+
+        public void NotifyCardRedrawn(Player player, CardInstance removed, CardInstance drawn, int redrawsLeft)
+        {
+            player.Connection.Send(new CardRedrawnMessage
+            {
+                RemovedInstanceId = removed.Id.ToString(),
+                NewCard = CardDataFactory.Create(drawn),
+                RedrawsLeft = redrawsLeft
+            });
+        }
+
+        public void NotifyRedrawEnded(GameContext context)
+        {
+            var msg = new RedrawEndedMessage();
+
+            context.Player1.Connection.Send(msg);
+            context.Player2.Connection.Send(msg);
         }
 
         public void NotifyBoardSync(GameContext context)

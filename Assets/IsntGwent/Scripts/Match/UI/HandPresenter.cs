@@ -11,6 +11,8 @@ namespace IsntGwent.Scripts.Match.UI
     {
         public RowView hand;
         public GameObject cardPrefab;
+        public RectTransform deckAnchor;
+        public RedrawPresenter redraw;
 
         [Inject] private readonly DiContainer _container;
         [Inject] private readonly MatchState _matchState;
@@ -22,10 +24,14 @@ namespace IsntGwent.Scripts.Match.UI
                 .ObserveAdd()
                 .Subscribe(e =>
                 {
-                    var view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab, hand.transform);
+                    var parent = deckAnchor != null ? deckAnchor : hand.transform;
+
+                    var view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab, parent);
                     view.Setup(e.Value);
                     _registry.Register(view);
-                    hand.AddCard(view.gameObject);
+
+                    var target = redraw != null && redraw.IsPhaseActive ? redraw.NextRow() : hand;
+                    target.AddCard(view.gameObject);
                 })
                 .AddTo(this);
         }

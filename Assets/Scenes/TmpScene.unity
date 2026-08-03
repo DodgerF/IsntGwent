@@ -266,7 +266,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mirror.Transports::Mirror.TelepathyTransport
-  port: 25821
+  port: 80
   NoDelay: 1
   SendTimeout: 5000
   ReceiveTimeout: 30000
@@ -751,6 +751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
   soundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!1 &780847073
 GameObject:
   m_ObjectHideFlags: 0

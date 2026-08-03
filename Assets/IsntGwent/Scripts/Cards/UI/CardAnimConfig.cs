@@ -12,6 +12,8 @@ namespace IsntGwent.Scripts.Cards.UI
         public const float PowerPopDuration = 0.2f;
         public const float EnemyPreviewDuration = 1f;
         public const float DrawBeatDuration = 0.18f;
+        public const float RedrawDiscardDuration = 0.3f;
+        public const float EnemyDrawFlightDuration = 0.4f;
         public const float RoundResultBeatDuration = 1.2f;
         public const float HpBeatDuration = 0.6f;
         public const float RoundClearBeatDuration = GraveyardFlightDuration;

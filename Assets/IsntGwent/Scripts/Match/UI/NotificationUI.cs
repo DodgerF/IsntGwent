@@ -21,6 +21,7 @@ namespace IsntGwent.Scripts.Match.UI
         
         private readonly Queue<string> _notifications = new();
         private bool _isShowing;
+        private bool _announceRoundStart;
 
         private void Start()
         {
@@ -53,24 +54,27 @@ namespace IsntGwent.Scripts.Match.UI
                 .AddTo(this);
             
            
-            _matchState.IsMyTurn
-                .First()
-                .Subscribe(isMyTurn =>
-                {
-                    if (_matchState.IsGameEnded.Value) return;
-
-                    ShowNotification(isMyTurn
-                        ? "You go first!"
-                        : "Opponent goes first!");
-                })
+            _matchState.IsRedrawPhase
+                .Where(active => active)
+                .Subscribe(_ => _announceRoundStart = true)
                 .AddTo(this);
-            _matchState.IsMyTurn
-                .Skip(1)
+
+            _matchState.TurnChanged
                 .Where(_ => !_matchState.IsGameEnded.Value)
-                .Where(isMyTurn => isMyTurn)
                 .Subscribe(_ =>
                 {
-                    ShowNotification("Your turn!");
+                    if (_announceRoundStart)
+                    {
+                        _announceRoundStart = false;
+
+                        ShowNotification(_matchState.IsMyTurn.Value
+                            ? "You go first!"
+                            : "Opponent goes first!");
+                        return;
+                    }
+
+                    if (_matchState.IsMyTurn.Value)
+                        ShowNotification("Your turn!");
                 })
                 .AddTo(this);
             

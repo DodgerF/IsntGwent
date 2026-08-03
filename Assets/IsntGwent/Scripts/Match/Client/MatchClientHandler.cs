@@ -27,6 +27,9 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<EnemyPassedMessage> OnEnemyPassed = new();
         public readonly Subject<EnemyDisconnectedMessage> OnEnemyDisconnected = new();
         public readonly Subject<GiveUpMessage> OnGiveUp = new();
+        public readonly Subject<RedrawStartedMessage> OnRedrawStarted = new();
+        public readonly Subject<CardRedrawnMessage> OnCardRedrawn = new();
+        public readonly Subject<RedrawEndedMessage> OnRedrawEnded = new();
 
         public void Initialize()
         {
@@ -49,6 +52,9 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<EnemyPassedMessage>(msg => OnEnemyPassed.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyDisconnectedMessage>(msg => OnEnemyDisconnected.OnNext(msg));
             NetworkClient.RegisterHandler<GiveUpMessage>(msg => OnGiveUp.OnNext(msg));
+            NetworkClient.RegisterHandler<RedrawStartedMessage>(msg => OnRedrawStarted.OnNext(msg));
+            NetworkClient.RegisterHandler<CardRedrawnMessage>(msg => OnCardRedrawn.OnNext(msg));
+            NetworkClient.RegisterHandler<RedrawEndedMessage>(msg => OnRedrawEnded.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -75,6 +81,16 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.Send(new LeaveMessage());
         }
 
+        public void SendRedrawCard(string cardInstanceId)
+        {
+            NetworkClient.Send(new RedrawCardMessage { CardInstanceId = cardInstanceId });
+        }
+
+        public void SendRedrawReady()
+        {
+            NetworkClient.Send(new RedrawReadyMessage());
+        }
+
         public void Dispose()
         {
             NetworkClient.UnregisterHandler<GameStartedMessage>();
@@ -94,6 +110,9 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.UnregisterHandler<EnemyPassedMessage>();
             NetworkClient.UnregisterHandler<EnemyDisconnectedMessage>();
             NetworkClient.UnregisterHandler<GiveUpMessage>();
+            NetworkClient.UnregisterHandler<RedrawStartedMessage>();
+            NetworkClient.UnregisterHandler<CardRedrawnMessage>();
+            NetworkClient.UnregisterHandler<RedrawEndedMessage>();
         }
     }
 }

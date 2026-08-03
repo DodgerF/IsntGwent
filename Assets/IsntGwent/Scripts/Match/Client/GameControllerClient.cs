@@ -111,8 +111,47 @@ namespace IsntGwent.Scripts.Match.Client
 
             _handler.OnEnemyCardDrawn
                 .Subscribe(msg => _coordinator.Enqueue(
-                    () => _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount,
-                    CardAnimConfig.DrawBeatDuration))
+                    () =>
+                    {
+                        _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount;
+                        _matchState.EnemyCardDrawn.OnNext(Unit.Default);
+                    },
+                    CardAnimConfig.EnemyDrawFlightDuration))
+                .AddTo(_disposables);
+
+            _handler.OnRedrawStarted
+                .Subscribe(msg => _coordinator.Enqueue(() => OnRedrawStarted(msg)))
+                .AddTo(_disposables);
+
+            _handler.OnCardRedrawn
+                .Subscribe(msg => _coordinator.EnqueueRoutine(() => CardRedrawnBeat(msg)))
+                .AddTo(_disposables);
+
+            _handler.OnRedrawEnded
+                .Subscribe(_ => _coordinator.Enqueue(
+                    OnRedrawEnded, CardAnimConfig.PlayFlightDuration))
+                .AddTo(_disposables);
+
+            _matchState.RedrawRequested
+                .Where(_ => _matchState.IsRedrawPhase.Value)
+                .Where(_ => !_matchState.IsRedrawReady.Value)
+                .Where(_ => !_matchState.IsActionPending.Value)
+                .Where(_ => _matchState.RedrawsLeft.Value > 0)
+                .Subscribe(card =>
+                {
+                    _handler.SendRedrawCard(card.Id.ToString());
+                    BeginPending();
+                })
+                .AddTo(_disposables);
+
+            _matchState.RedrawReadyRequested
+                .Where(_ => _matchState.IsRedrawPhase.Value)
+                .Where(_ => !_matchState.IsRedrawReady.Value)
+                .Subscribe(_ =>
+                {
+                    _handler.SendRedrawReady();
+                    _matchState.IsRedrawReady.Value = true;
+                })
                 .AddTo(_disposables);
 
             _handler.OnBoardSync
@@ -312,6 +351,51 @@ namespace IsntGwent.Scripts.Match.Client
             }
         }
 
+        private void OnRedrawStarted(RedrawStartedMessage msg)
+        {
+            ClearPending();
+            _matchState.IsRedrawReady.Value = false;
+            _matchState.RedrawsLeft.Value = msg.RedrawsLeft;
+            _matchState.IsRedrawPhase.Value = true;
+        }
+
+        private void OnRedrawEnded()
+        {
+            _matchState.IsRedrawReady.Value = false;
+            _matchState.RedrawsLeft.Value = 0;
+            _matchState.IsRedrawPhase.Value = false;
+        }
+
+        private IEnumerator CardRedrawnBeat(CardRedrawnMessage msg)
+        {
+            ClearPending();
+
+            var removed = _instances.Get(msg.RemovedInstanceId);
+
+            if (removed != null)
+            {
+                _matchState.Hand.Remove(removed);
+                _matchState.CardRedrawn.OnNext(removed);
+
+                yield return new WaitForSeconds(CardAnimConfig.RedrawDiscardDuration);
+            }
+
+            _matchState.RedrawsLeft.Value = msg.RedrawsLeft;
+
+            var drawn = _instances.GetOrCreate(msg.NewCard.DefinitionId, msg.NewCard.InstanceId);
+
+            if (drawn != null)
+            {
+                _matchState.Hand.Add(drawn);
+                _matchState.CardDrawn.OnNext(Unit.Default);
+
+                yield return new WaitForSeconds(CardAnimConfig.DrawBeatDuration);
+            }
+
+            if (msg.RedrawsLeft <= 0)
+                _matchState.RedrawReadyRequested.OnNext(Unit.Default);
+        }
+
         private void OnCardDrawn(CardDrawnMessage msg)
         {
             var instance = _instances.GetOrCreate(msg.Card.DefinitionId, msg.Card.InstanceId);
@@ -335,19 +419,40 @@ namespace IsntGwent.Scripts.Match.Client
         private void OnGameStarted(GameStartedMessage msg)
         {
             _matchState.IsWaitingImageActive.Value = false;
-            _matchState.IsMyTurn.Value = msg.IsMyTurn;
-            _matchState.TurnChanged.OnNext(Unit.Default);
 
             _matchState.Hand.Clear();
-            foreach (var cardData in msg.CardsInHand)
+            _matchState.EnemyCardAmount.Value = 0;
+
+            var dealt = Mathf.Max(msg.CardsInHand.Length, msg.EnemyCardAmount);
+
+            for (var i = 0; i < dealt; i++)
+            {
+                var cardData = i < msg.CardsInHand.Length ? msg.CardsInHand[i] : default;
+                var hasOwnCard = i < msg.CardsInHand.Length;
+                var enemyAmount = Mathf.Min(i + 1, msg.EnemyCardAmount);
+
+                _coordinator.Enqueue(() => DealBeat(cardData, hasOwnCard, enemyAmount),
+                    CardAnimConfig.DrawBeatDuration);
+            }
+        }
+
+        private void DealBeat(CardData cardData, bool hasOwnCard, int enemyAmount)
+        {
+            if (hasOwnCard)
             {
                 var instance = _instances.GetOrCreate(cardData.DefinitionId, cardData.InstanceId);
-                if (instance == null) continue;
 
-                _matchState.Hand.Add(instance);
+                if (instance != null)
+                {
+                    _matchState.Hand.Add(instance);
+                    _matchState.CardDrawn.OnNext(Unit.Default);
+                }
             }
 
-            _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount;
+            if (enemyAmount <= _matchState.EnemyCardAmount.Value) return;
+
+            _matchState.EnemyCardAmount.Value = enemyAmount;
+            _matchState.EnemyCardDrawn.OnNext(Unit.Default);
         }
         
         private void OnCardRemovedFromHand(CardRemovedFromHandMessage msg)

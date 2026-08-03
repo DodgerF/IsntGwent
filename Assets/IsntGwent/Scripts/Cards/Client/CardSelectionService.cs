@@ -96,6 +96,7 @@ namespace IsntGwent.Scripts.Cards.Client
         private List<string> _targetPool;
         private void SelectCard(CardView card)
         {
+            if (_matchState.IsRedrawPhase.Value) return;
             if (!_matchState.Hand.Contains(card.Instance)) return;
             if (card.mode == CardMode.OnBoard) return;
             if (!_matchState.IsMyTurn.Value) return;

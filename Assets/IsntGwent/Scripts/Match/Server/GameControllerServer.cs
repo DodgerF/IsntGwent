@@ -18,6 +18,7 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly LobbyManager _lobbyManager;
         [Inject] private readonly CardPlayService _cardPlayService;
         [Inject] private readonly TurnService _turnService;
+        [Inject] private readonly RedrawService _redrawService;
         [Inject] private readonly TriggeredEffectDispatcher _dispatcher;
 
         private readonly CompositeDisposable _disposables = new();
@@ -34,6 +35,18 @@ namespace IsntGwent.Scripts.Match.Server
 
             _handler.OnLeave
                 .Subscribe(OnLeave)
+                .AddTo(_disposables);
+
+            _handler.OnRedrawCard
+                .Subscribe(t => OnRedrawCard(t.conn, t.msg))
+                .AddTo(_disposables);
+
+            _handler.OnRedrawReady
+                .Subscribe(OnRedrawReady)
+                .AddTo(_disposables);
+
+            _redrawService.PhaseEnded
+                .Subscribe(OnRedrawPhaseEnded)
                 .AddTo(_disposables);
         }
         
@@ -52,6 +65,7 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsRedrawPhase) return;
 
             var player = context.GetPlayer(conn);
             if (context.CurrentPlayer != player) return;
@@ -68,12 +82,44 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsRedrawPhase) return;
 
             var player = context.GetPlayer(conn);
             if (context.CurrentPlayer != player) return;
             if (player.IsPassed) return;
 
             _turnService.PassTurn(context, player);
+        }
+
+        private void OnRedrawCard(NetworkConnectionToClient conn, RedrawCardMessage msg)
+        {
+            var context = _lobbyManager.GetGameContext(conn);
+            if (context == null) return;
+
+            var player = context.GetPlayer(conn);
+            if (player == null) return;
+
+            _redrawService.Redraw(context, player, msg.CardInstanceId);
+        }
+
+        private void OnRedrawReady(NetworkConnectionToClient conn)
+        {
+            var context = _lobbyManager.GetGameContext(conn);
+            if (context == null) return;
+
+            var player = context.GetPlayer(conn);
+            if (player == null) return;
+
+            _redrawService.SetReady(context, player);
+        }
+
+        private void OnRedrawPhaseEnded(GameContext context)
+        {
+            _notifier.NotifyTurnChanged(context.Player1, context.CurrentPlayer == context.Player1);
+            _notifier.NotifyTurnChanged(context.Player2, context.CurrentPlayer == context.Player2);
+
+            if (context.RoundNumber == 1)
+                context.Publish(new TurnStarted(context.CurrentPlayer));
         }
 
         public void StartGame(GameContext context)
@@ -91,7 +137,7 @@ namespace IsntGwent.Scripts.Match.Server
 
             _notifier.NotifyGameStarted(context);
 
-            context.Publish(new TurnStarted(context.CurrentPlayer));
+            _redrawService.BeginPhase(context);
         }
 
         public void EndGameBySurrender(GameContext context, Player winner, bool notifyLoser = true)

@@ -30,6 +30,8 @@ namespace IsntGwent.Scripts.Cards.UI
         private Transform _flightChild;
         private float _flightDuration;
 
+        public int CardCount => _cards.Count;
+
         private void Awake()
         {
             _rt = (RectTransform)transform;

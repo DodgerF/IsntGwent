@@ -58,6 +58,7 @@ namespace IsntGwent.Scripts.Installers
 
             Container.Bind<DeckService>().AsSingle();
             Container.Bind<BoardSyncService>().AsSingle();
+            Container.Bind<RedrawService>().AsSingle();
             Container.Bind<RoundService>().AsSingle();
             Container.Bind<TurnService>().AsSingle();
             Container.Bind<CardPlayService>().AsSingle();

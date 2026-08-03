@@ -7,6 +7,7 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly MatchServerNotifier _notifier;
         [Inject] private readonly BoardSyncService _boardSync;
         [Inject] private readonly DeckService _deckService;
+        [Inject] private readonly RedrawService _redrawService;
 
         public void EndRound(GameContext context)
         {
@@ -57,8 +58,9 @@ namespace IsntGwent.Scripts.Match.Server
                 ? context.GetOpponent(context.CurrentPlayer)
                 : winner;
 
-            _notifier.NotifyTurnChanged(p1, context.CurrentPlayer == p1);
-            _notifier.NotifyTurnChanged(p2, context.CurrentPlayer == p2);
+            context.RoundNumber++;
+
+            _redrawService.BeginPhase(context);
         }
 
         public void SendGameEnded(GameContext context, bool isTie, Player winner, Player loser)
