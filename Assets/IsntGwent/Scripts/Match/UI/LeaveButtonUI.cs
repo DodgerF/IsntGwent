@@ -12,6 +12,7 @@ namespace IsntGwent.Scripts.Match.UI
         [Inject] private readonly MatchClientHandler _handler;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly ConnectionService _connectionService;
+        [Inject] private readonly MatchReconnectService _reconnectService;
         private Button _button;
 
         private void Awake()
@@ -31,9 +32,10 @@ namespace IsntGwent.Scripts.Match.UI
 
         private void OnClick()
         {
-            if (!_matchState.IsConnectionLost.Value)
+            if (!_matchState.IsConnectionLost.Value && !_reconnectService.IsReconnecting.Value)
                 _handler.SendLeave();
 
+            _reconnectService.EndMatch();
             _connectionService.ReturnToMenu();
         }
     }

@@ -57,6 +57,9 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly ReactiveProperty<bool> IsEnemyGiveUp = new(false);
         public readonly ReactiveProperty<bool> IsEnemyLeft = new(false);
         public readonly ReactiveProperty<bool> IsConnectionLost = new(false);
+        public readonly ReactiveProperty<bool> IsOpponentReconnecting = new(false);
+        public readonly ReactiveProperty<bool> IsSelfReconnecting = new(false);
+        public readonly ReactiveProperty<bool> IsMatchPaused = new(false);
         public readonly ReactiveProperty<bool> AmIWinner = new(false);
         public readonly ReactiveProperty<bool> IsTie = new(false);
         

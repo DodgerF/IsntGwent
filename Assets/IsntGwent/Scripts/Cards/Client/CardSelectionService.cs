@@ -9,7 +9,6 @@ using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match.Client;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Cards.Client
@@ -22,6 +21,7 @@ namespace IsntGwent.Scripts.Cards.Client
         [Inject] private readonly CardResolver _cardResolver;
          
         public readonly Subject<CardDefinition> HighlightRows = new();
+        public readonly Subject<Unit> HighlightBoard = new();
         public readonly Subject<Unit> ClearHighlights = new();
         public readonly Subject<(CardInstance Card, RowView Row, List<string> TargetIds)> CardPlayRequested = new();
         public readonly Subject<List<string>> HighlightTargets = new();
@@ -31,7 +31,7 @@ namespace IsntGwent.Scripts.Cards.Client
         private List<string> _selectedTargets = new();
         private int _requiredTargets;
         
-        private enum State { Idle, CardSelected, TargetSelection, TargetThenRow }
+        private enum State { Idle, CardSelected, TargetSelection, TargetThenRow, ConfirmPending }
         private State _state = State.Idle;
         private CardView _selectedCard;
         
@@ -66,6 +66,7 @@ namespace IsntGwent.Scripts.Cards.Client
                 case State.CardSelected:
                 case State.TargetSelection:
                 case State.TargetThenRow:
+                case State.ConfirmPending:
                     CancelSelection();
                     SelectCard(card);
                     break;
@@ -74,8 +75,15 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private void OnRowClicked(RowView row)
         {
+            if (_state == State.ConfirmPending)
+            {
+                if (row.IsBoardRow)
+                    ConfirmPlay();
+                return;
+            }
+
             if (_state != State.CardSelected) return;
-            
+
             if (_selectedCard.Instance is UnitInstance unit && unit.UnitDefinition.Row != row.row)
             {
                 CancelSelection();
@@ -101,6 +109,7 @@ namespace IsntGwent.Scripts.Cards.Client
             if (card.mode == CardMode.OnBoard) return;
             if (!_matchState.IsMyTurn.Value) return;
             if (_matchState.IsActionPending.Value) return;
+            if (_matchState.IsMatchPaused.Value) return;
             
             _selectedCard = card;
             _selectedCard.SetSelected(true);
@@ -112,11 +121,7 @@ namespace IsntGwent.Scripts.Cards.Client
                 var targetingDef = card.Instance.Definition.Effects
                     .OfType<ManualTargetingDefinition>().FirstOrDefault();
                 _allowPartial = targetingDef?.AllowPartial ?? false;
-                foreach (var own in _matchState.OwnMeleeRow)
-                {
-                    Debug.Log(own.Definition.Id);
-                }
-                
+
                 _targetPool = _cardResolver.GetTargetPool(
                     card.Instance.Definition,
                     _matchState.OwnMeleeRow.Concat(_matchState.OwnRangedRow).Cast<UnitInstance>(),
@@ -131,11 +136,10 @@ namespace IsntGwent.Scripts.Cards.Client
                         return;
                     }
                     
-                    CardPlayRequested.OnNext((card.Instance, null, new List<string>()));
-                    CancelSelection();
+                    BeginConfirm();
                     return;
                 }
-                
+
                 _requiredTargets = count;
                 _selectedTargets = new List<string>();
                 
@@ -151,13 +155,31 @@ namespace IsntGwent.Scripts.Cards.Client
                 _state = State.CardSelected;
                 return;
             }
-            
-            CardPlayRequested.OnNext((card.Instance, null, new List<string>()));
+
+            BeginConfirm();
+        }
+
+        private void BeginConfirm()
+        {
+            _selectedTargets = new List<string>();
+            _state = State.ConfirmPending;
+            HighlightBoard.OnNext(Unit.Default);
+        }
+
+        private void ConfirmPlay()
+        {
+            CardPlayRequested.OnNext((_selectedCard.Instance, null, new List<string>()));
             CancelSelection();
         }
-        
+
         private void OnBoardCardClicked(CardView target)
         {
+            if (_state == State.ConfirmPending)
+            {
+                ConfirmPlay();
+                return;
+            }
+
             if (_state is not (State.TargetSelection or State.TargetThenRow)) return;
             if (target.Instance is not UnitInstance unit) return;
             if (!_targetPool.Contains(target.Instance.Id.ToString()))

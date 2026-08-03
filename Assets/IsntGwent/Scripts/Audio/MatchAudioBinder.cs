@@ -48,6 +48,10 @@ namespace IsntGwent.Scripts.Audio
                 .Subscribe(_ => _audio.Play("card_draw"))
                 .AddTo(_disposables);
 
+            _state.CardRedrawn
+                .Subscribe(_ => _audio.Play("card_draw"))
+                .AddTo(_disposables);
+
             _state.DamageDealt
                 .Subscribe(hits => _audio.PlayStack("hit", hits?.Length ?? 1))
                 .AddTo(_disposables);

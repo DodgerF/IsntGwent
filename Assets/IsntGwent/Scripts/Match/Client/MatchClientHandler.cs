@@ -30,6 +30,8 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<RedrawStartedMessage> OnRedrawStarted = new();
         public readonly Subject<CardRedrawnMessage> OnCardRedrawn = new();
         public readonly Subject<RedrawEndedMessage> OnRedrawEnded = new();
+        public readonly Subject<MatchSnapshotMessage> OnSnapshot = new();
+        public readonly Subject<OpponentReconnectingMessage> OnOpponentReconnecting = new();
 
         public void Initialize()
         {
@@ -55,6 +57,8 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<RedrawStartedMessage>(msg => OnRedrawStarted.OnNext(msg));
             NetworkClient.RegisterHandler<CardRedrawnMessage>(msg => OnCardRedrawn.OnNext(msg));
             NetworkClient.RegisterHandler<RedrawEndedMessage>(msg => OnRedrawEnded.OnNext(msg));
+            NetworkClient.RegisterHandler<MatchSnapshotMessage>(msg => OnSnapshot.OnNext(msg));
+            NetworkClient.RegisterHandler<OpponentReconnectingMessage>(msg => OnOpponentReconnecting.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -113,6 +117,8 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.UnregisterHandler<RedrawStartedMessage>();
             NetworkClient.UnregisterHandler<CardRedrawnMessage>();
             NetworkClient.UnregisterHandler<RedrawEndedMessage>();
+            NetworkClient.UnregisterHandler<MatchSnapshotMessage>();
+            NetworkClient.UnregisterHandler<OpponentReconnectingMessage>();
         }
     }
 }

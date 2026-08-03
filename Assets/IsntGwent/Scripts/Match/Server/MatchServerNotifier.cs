@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Messages;
+using Mirror;
 
 namespace IsntGwent.Scripts.Match.Server
 {
@@ -16,10 +17,11 @@ namespace IsntGwent.Scripts.Match.Server
 
         private void NotifyGameStartedTo(GameContext context, Player player)
         {
-            player.Connection.Send(new GameStartedMessage
+            Send(player, new GameStartedMessage
             {
                 CardsInHand = player.Hand.Select(CardDataFactory.Create).ToArray(),
                 EnemyCardAmount = context.GetOpponent(player).Hand.Count,
+                ReconnectToken = player.ReconnectToken,
             });
         }
 
@@ -28,7 +30,7 @@ namespace IsntGwent.Scripts.Match.Server
             var p1 = context.Player1;
             var p2 = context.Player2;
 
-            p1.Connection.Send(new PowerUpdatedMessage
+            Send(p1, new PowerUpdatedMessage
             {
                 OwnMeleePower = p1.MeleePower,
                 OwnRangedPower = p1.RangedPower,
@@ -38,7 +40,7 @@ namespace IsntGwent.Scripts.Match.Server
                 EnemyTotalPower = p2.TotalPower,
             });
 
-            p2.Connection.Send(new PowerUpdatedMessage
+            Send(p2, new PowerUpdatedMessage
             {
                 OwnMeleePower = p2.MeleePower,
                 OwnRangedPower = p2.RangedPower,
@@ -55,12 +57,12 @@ namespace IsntGwent.Scripts.Match.Server
 
             if (card is UnitInstance unit)
             {
-                player.Connection.Send(new OwnCardPlayedMessage
+                Send(player, new OwnCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
                     Row = row
                 });
-                opponent.Connection.Send(new EnemyCardPlayedMessage
+                Send(opponent, new EnemyCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
                     DefinitionId = unit.Definition.Id,
@@ -71,11 +73,11 @@ namespace IsntGwent.Scripts.Match.Server
             }
             else
             {
-                player.Connection.Send(new OwnCardPlayedMessage
+                Send(player, new OwnCardPlayedMessage
                 {
                     CardInstanceId = card.Id.ToString()
                 });
-                opponent.Connection.Send(new EnemyCardPlayedMessage
+                Send(opponent, new EnemyCardPlayedMessage
                 {
                     CardInstanceId = card.Id.ToString(),
                     DefinitionId = card.Definition.Id,
@@ -86,17 +88,17 @@ namespace IsntGwent.Scripts.Match.Server
 
         public void NotifyCardRemovedFromHand(Player player, CardInstance card)
         {
-            player.Connection.Send(new CardRemovedFromHandMessage { CardInstanceId = card.Id.ToString() });
+            Send(player, new CardRemovedFromHandMessage { CardInstanceId = card.Id.ToString() });
         }
 
         public void NotifyTurnChanged(Player player, bool isMyTurn)
         {
-            player.Connection.Send(new TurnChangedMessage { IsMyTurn = isMyTurn });
+            Send(player, new TurnChangedMessage { IsMyTurn = isMyTurn });
         }
 
         public void NotifyEnemyPassed(Player player)
         {
-            player.Connection.Send(new EnemyPassedMessage());
+            Send(player, new EnemyPassedMessage());
         }
 
         public void NotifyHpChanged(GameContext context)
@@ -104,8 +106,8 @@ namespace IsntGwent.Scripts.Match.Server
             var p1 = context.Player1;
             var p2 = context.Player2;
 
-            p1.Connection.Send(new HpChangedMessage { MyHp = p1.Hp, EnemyHp = p2.Hp });
-            p2.Connection.Send(new HpChangedMessage { MyHp = p2.Hp, EnemyHp = p1.Hp });
+            Send(p1, new HpChangedMessage { MyHp = p1.Hp, EnemyHp = p2.Hp });
+            Send(p2, new HpChangedMessage { MyHp = p2.Hp, EnemyHp = p1.Hp });
         }
 
         public void NotifyRoundResult(GameContext context, bool isTie, Player winner)
@@ -113,12 +115,12 @@ namespace IsntGwent.Scripts.Match.Server
             var p1 = context.Player1;
             var p2 = context.Player2;
 
-            p1.Connection.Send(new RoundEndedMessage
+            Send(p1, new RoundEndedMessage
             {
                 Result = isTie ? RoundResult.Tie : winner == p1 ? RoundResult.Win : RoundResult.Lose
             });
 
-            p2.Connection.Send(new RoundEndedMessage
+            Send(p2, new RoundEndedMessage
             {
                 Result = isTie ? RoundResult.Tie : winner == p2 ? RoundResult.Win : RoundResult.Lose
             });
@@ -128,29 +130,72 @@ namespace IsntGwent.Scripts.Match.Server
         {
             if (isTie)
             {
-                context.Player1.Connection.Send(new GameEndedMessage { IsTie = true });
-                context.Player2.Connection.Send(new GameEndedMessage { IsTie = true });
+                Send(context.Player1, new GameEndedMessage { IsTie = true });
+                Send(context.Player2, new GameEndedMessage { IsTie = true });
             }
             else
             {
-                winner.Connection.Send(new GameEndedMessage { AmIWinner = true });
-                loser.Connection.Send(new GameEndedMessage { AmIWinner = false });
+                Send(winner, new GameEndedMessage { AmIWinner = true });
+                Send(loser, new GameEndedMessage { AmIWinner = false });
             }
         }
 
         public void NotifyGiveUp(Player winner, Player loser)
         {
-            if (winner.Connection != null && winner.Connection.isReady)
-                winner.Connection.Send(new GiveUpMessage { IsMyLose = false });
-
-            if (loser?.Connection != null && loser.Connection.isReady)
-                loser.Connection.Send(new GiveUpMessage { IsMyLose = true });
+            Send(winner, new GiveUpMessage { IsMyLose = false });
+            Send(loser, new GiveUpMessage { IsMyLose = true });
         }
 
         public void NotifyEnemyDisconnected(Player winner)
         {
-            if (winner.Connection != null && winner.Connection.isReady)
-                winner.Connection.Send(new EnemyDisconnectedMessage());
+            Send(winner, new EnemyDisconnectedMessage());
+        }
+
+        public void NotifyOpponentReconnecting(Player player, bool isReconnecting)
+        {
+            Send(player, new OpponentReconnectingMessage { IsReconnecting = isReconnecting });
+        }
+
+        public void NotifySnapshot(GameContext context, Player player)
+        {
+            Send(player, BuildSnapshot(context, player));
+        }
+
+        public MatchSnapshotMessage BuildSnapshot(GameContext context, Player player)
+        {
+            var opponent = context.GetOpponent(player);
+
+            return new MatchSnapshotMessage
+            {
+                CardsInHand = player.Hand.Select(CardDataFactory.Create).ToArray(),
+                EnemyCardAmount = opponent.Hand.Count,
+
+                OwnMeleeRow = player.MeleeRow.Select(CardDataFactory.Create).ToArray(),
+                OwnRangedRow = player.RangedRow.Select(CardDataFactory.Create).ToArray(),
+                EnemyMeleeRow = opponent.MeleeRow.Select(CardDataFactory.Create).ToArray(),
+                EnemyRangedRow = opponent.RangedRow.Select(CardDataFactory.Create).ToArray(),
+                OwnGraveyard = player.Graveyard.Select(CardDataFactory.Create).ToArray(),
+                EnemyGraveyard = opponent.Graveyard.Select(CardDataFactory.Create).ToArray(),
+
+                OwnMeleePower = player.MeleePower,
+                OwnRangedPower = player.RangedPower,
+                OwnTotalPower = player.TotalPower,
+                EnemyMeleePower = opponent.MeleePower,
+                EnemyRangedPower = opponent.RangedPower,
+                EnemyTotalPower = opponent.TotalPower,
+
+                MyHp = player.Hp,
+                EnemyHp = opponent.Hp,
+
+                IsMyTurn = !context.IsRedrawPhase && context.CurrentPlayer == player,
+                IsEnemyPassed = opponent.IsPassed,
+
+                IsRedrawPhase = context.IsRedrawPhase,
+                RedrawsLeft = player.RedrawsLeft,
+                IsRedrawReady = player.IsRedrawReady,
+
+                RoundNumber = context.RoundNumber,
+            };
         }
 
         public void NotifyUnitStates(GameContext context, IReadOnlyList<UnitInstance> changed)
@@ -163,8 +208,8 @@ namespace IsntGwent.Scripts.Match.Server
             }).ToArray();
 
             var msg = new UnitsStateChangedMessage { Units = data };
-            context.Player1.Connection.Send(msg);
-            context.Player2.Connection.Send(msg);
+            Send(context.Player1, msg);
+            Send(context.Player2, msg);
         }
 
         public void NotifyDamageDealt(GameContext context, IReadOnlyList<DamageRecord> records)
@@ -179,18 +224,18 @@ namespace IsntGwent.Scripts.Match.Server
             }).ToArray();
 
             var msg = new DamageDealtMessage { Hits = hits };
-            context.Player1.Connection.Send(msg);
-            context.Player2.Connection.Send(msg);
+            Send(context.Player1, msg);
+            Send(context.Player2, msg);
         }
 
         public void NotifyCardDrawn(Player player, CardInstance card)
         {
-            player.Connection.Send(new CardDrawnMessage { Card = CardDataFactory.Create(card) });
+            Send(player, new CardDrawnMessage { Card = CardDataFactory.Create(card) });
         }
 
         public void NotifyEnemyCardDrawn(Player opponent, int enemyCardAmount)
         {
-            opponent.Connection.Send(new EnemyCardDrawnMessage { EnemyCardAmount = enemyCardAmount });
+            Send(opponent, new EnemyCardDrawnMessage { EnemyCardAmount = enemyCardAmount });
         }
 
         public void NotifyRedrawStarted(GameContext context, int amount)
@@ -201,13 +246,13 @@ namespace IsntGwent.Scripts.Match.Server
                 RoundNumber = context.RoundNumber
             };
 
-            context.Player1.Connection.Send(msg);
-            context.Player2.Connection.Send(msg);
+            Send(context.Player1, msg);
+            Send(context.Player2, msg);
         }
 
         public void NotifyCardRedrawn(Player player, CardInstance removed, CardInstance drawn, int redrawsLeft)
         {
-            player.Connection.Send(new CardRedrawnMessage
+            Send(player, new CardRedrawnMessage
             {
                 RemovedInstanceId = removed.Id.ToString(),
                 NewCard = CardDataFactory.Create(drawn),
@@ -219,8 +264,8 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var msg = new RedrawEndedMessage();
 
-            context.Player1.Connection.Send(msg);
-            context.Player2.Connection.Send(msg);
+            Send(context.Player1, msg);
+            Send(context.Player2, msg);
         }
 
         public void NotifyBoardSync(GameContext context)
@@ -228,7 +273,7 @@ namespace IsntGwent.Scripts.Match.Server
             var p1 = context.Player1;
             var p2 = context.Player2;
 
-            p1.Connection.Send(new BoardSyncMessage
+            Send(p1, new BoardSyncMessage
             {
                 OwnMeleeRow = p1.MeleeRow.Select(CardDataFactory.Create).ToArray(),
                 OwnRangedRow = p1.RangedRow.Select(CardDataFactory.Create).ToArray(),
@@ -238,7 +283,7 @@ namespace IsntGwent.Scripts.Match.Server
                 EnemyGraveyard = p2.Graveyard.Select(CardDataFactory.Create).ToArray(),
             });
 
-            p2.Connection.Send(new BoardSyncMessage
+            Send(p2, new BoardSyncMessage
             {
                 OwnMeleeRow = p2.MeleeRow.Select(CardDataFactory.Create).ToArray(),
                 OwnRangedRow = p2.RangedRow.Select(CardDataFactory.Create).ToArray(),
@@ -247,6 +292,14 @@ namespace IsntGwent.Scripts.Match.Server
                 OwnGraveyard = p2.Graveyard.Select(CardDataFactory.Create).ToArray(),
                 EnemyGraveyard = p1.Graveyard.Select(CardDataFactory.Create).ToArray(),
             });
+        }
+
+        private static void Send<T>(Player player, T message) where T : struct, NetworkMessage
+        {
+            if (player is not { IsConnected: true }) return;
+            if (player.Connection == null) return;
+
+            player.Connection.Send(message);
         }
     }
 }

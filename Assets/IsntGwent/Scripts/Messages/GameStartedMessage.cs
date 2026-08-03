@@ -6,5 +6,6 @@ namespace IsntGwent.Scripts.Messages
     {
         public CardData[] CardsInHand;
         public int EnemyCardAmount;
+        public string ReconnectToken;
     }
 }

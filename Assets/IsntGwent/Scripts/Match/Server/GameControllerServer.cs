@@ -65,6 +65,7 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsPaused) return;
             if (context.IsRedrawPhase) return;
 
             var player = context.GetPlayer(conn);
@@ -82,6 +83,7 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsPaused) return;
             if (context.IsRedrawPhase) return;
 
             var player = context.GetPlayer(conn);
@@ -95,6 +97,7 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsPaused) return;
 
             var player = context.GetPlayer(conn);
             if (player == null) return;
@@ -106,6 +109,7 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var context = _lobbyManager.GetGameContext(conn);
             if (context == null) return;
+            if (context.IsPaused) return;
 
             var player = context.GetPlayer(conn);
             if (player == null) return;

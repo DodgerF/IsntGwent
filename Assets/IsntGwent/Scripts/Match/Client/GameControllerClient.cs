@@ -22,6 +22,7 @@ namespace IsntGwent.Scripts.Match.Client
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardInstanceRegistry _instances;
         [Inject] private readonly ConnectionService _connectionService;
+        [Inject] private readonly MatchReconnectService _reconnectService;
         [Inject] private readonly AnimationCoordinator _coordinator;
         [Inject] private readonly CardPreviewService _previewService;
 
@@ -30,9 +31,11 @@ namespace IsntGwent.Scripts.Match.Client
         private readonly CompositeDisposable _disposables = new();
         private readonly SerialDisposable _pendingTimeout = new();
         private readonly List<PendingHit> _pendingHits = new();
+        private readonly List<PendingState> _pendingStates = new();
 
         private int _playSequence;
         private int _hitBatch;
+        private int _stateSequence;
 
         private readonly struct PendingHit
         {
@@ -45,6 +48,20 @@ namespace IsntGwent.Scripts.Match.Client
                 Hit = hit;
                 PlaySequence = playSequence;
                 Batch = batch;
+            }
+        }
+
+        private readonly struct PendingState
+        {
+            public readonly int Id;
+            public readonly int Batch;
+            public readonly UnitsStateChangedMessage Message;
+
+            public PendingState(int id, int batch, UnitsStateChangedMessage message)
+            {
+                Id = id;
+                Batch = batch;
+                Message = message;
             }
         }
 
@@ -79,6 +96,7 @@ namespace IsntGwent.Scripts.Match.Client
             
             _selectionService.CardPlayRequested
                 .Where(_ => _matchState.IsMyTurn.Value && !_matchState.IsActionPending.Value)
+                .Where(_ => !_matchState.IsMatchPaused.Value)
                 .Subscribe(e =>
                 {
                     _handler.SendPlayCard(
@@ -92,6 +110,7 @@ namespace IsntGwent.Scripts.Match.Client
 
             _matchState.PassRequested
                 .Where(_ => _matchState.IsMyTurn.Value && !_matchState.IsActionPending.Value)
+                .Where(_ => !_matchState.IsMatchPaused.Value)
                 .Subscribe(_ =>
                 {
                     _handler.SendPass();
@@ -136,6 +155,7 @@ namespace IsntGwent.Scripts.Match.Client
                 .Where(_ => _matchState.IsRedrawPhase.Value)
                 .Where(_ => !_matchState.IsRedrawReady.Value)
                 .Where(_ => !_matchState.IsActionPending.Value)
+                .Where(_ => !_matchState.IsMatchPaused.Value)
                 .Where(_ => _matchState.RedrawsLeft.Value > 0)
                 .Subscribe(card =>
                 {
@@ -174,7 +194,13 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
 
             _handler.OnUnitsStateChanged
-                .Subscribe(msg => _coordinator.EnqueueRoutine(() => UnitsStateChangedBeat(msg)))
+                .Subscribe(msg =>
+                {
+                    var id = ++_stateSequence;
+                    _pendingStates.Add(new PendingState(id, _hitBatch, msg));
+
+                    _coordinator.EnqueueRoutine(() => UnitsStateChangedBeat(id));
+                })
                 .AddTo(_disposables);
 
             _handler.OnDamageDealt
@@ -215,18 +241,107 @@ namespace IsntGwent.Scripts.Match.Client
                 })
                 .AddTo(_disposables);
 
+            _handler.OnSnapshot
+                .Subscribe(OnSnapshot)
+                .AddTo(_disposables);
+
+            _handler.OnOpponentReconnecting
+                .Subscribe(msg =>
+                {
+                    _matchState.IsOpponentReconnecting.Value = msg.IsReconnecting;
+                    RefreshPause();
+                })
+                .AddTo(_disposables);
+
+            _matchState.IsGameEnded
+                .Where(v => v)
+                .Take(1)
+                .Subscribe(_ => _reconnectService.EndMatch())
+                .AddTo(_disposables);
+
             _connectionService.IsConnectionLost
                 .Where(v => v)
                 .First()
-                .Subscribe(_ =>
-                {
-                    ClearAnimations();
-                    ClearPending();
-                    _matchState.IsConnectionLost.Value = true;
-                    _matchState.IsWaitingImageActive.Value = false;
-                    _matchState.IsGameEnded.Value = true;
-                })
+                .Subscribe(_ => OnConnectionLost())
                 .AddTo(_disposables);
+
+            _reconnectService.IsReconnecting
+                .Where(v => !v)
+                .Skip(1)
+                .Where(_ => !_reconnectService.IsMatchActive)
+                .Subscribe(_ => EndByConnectionLost())
+                .AddTo(_disposables);
+        }
+
+        private void OnConnectionLost()
+        {
+            ClearAnimations();
+            ClearPending();
+
+            if (_reconnectService.IsMatchActive && !_matchState.IsGameEnded.Value)
+            {
+                _matchState.IsSelfReconnecting.Value = true;
+                RefreshPause();
+                return;
+            }
+
+            EndByConnectionLost();
+        }
+
+        private void RefreshPause()
+        {
+            _matchState.IsMatchPaused.Value =
+                _matchState.IsSelfReconnecting.Value || _matchState.IsOpponentReconnecting.Value;
+        }
+
+        private void EndByConnectionLost()
+        {
+            if (_matchState.IsGameEnded.Value) return;
+
+            ClearAnimations();
+            ClearPending();
+            _matchState.IsConnectionLost.Value = true;
+            _matchState.IsWaitingImageActive.Value = false;
+            _matchState.IsGameEnded.Value = true;
+        }
+
+        private void OnSnapshot(MatchSnapshotMessage msg)
+        {
+            ClearAnimations();
+            ClearPending();
+
+            SyncCollection(_matchState.Hand, msg.CardsInHand);
+            _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount;
+
+            SyncCollection(_matchState.OwnMeleeRow, msg.OwnMeleeRow);
+            SyncCollection(_matchState.OwnRangedRow, msg.OwnRangedRow);
+            SyncCollection(_matchState.EnemyMeleeRow, msg.EnemyMeleeRow);
+            SyncCollection(_matchState.EnemyRangedRow, msg.EnemyRangedRow);
+            SyncCollection(_matchState.OwnGraveyard, msg.OwnGraveyard);
+            SyncCollection(_matchState.EnemyGraveyard, msg.EnemyGraveyard);
+
+            _matchState.OwnMeleePower.Value = msg.OwnMeleePower;
+            _matchState.OwnRangedPower.Value = msg.OwnRangedPower;
+            _matchState.OwnTotalPower.Value = msg.OwnTotalPower;
+            _matchState.EnemyMeleePower.Value = msg.EnemyMeleePower;
+            _matchState.EnemyRangedPower.Value = msg.EnemyRangedPower;
+            _matchState.EnemyTotalPower.Value = msg.EnemyTotalPower;
+
+            _matchState.MyHp.Value = msg.MyHp;
+            _matchState.EnemyHp.Value = msg.EnemyHp;
+
+            _matchState.RedrawsLeft.Value = msg.RedrawsLeft;
+            _matchState.IsRedrawReady.Value = msg.IsRedrawReady;
+            _matchState.IsRedrawPhase.Value = msg.IsRedrawPhase;
+
+            _matchState.IsOpponentReconnecting.Value = false;
+            _matchState.IsSelfReconnecting.Value = false;
+            RefreshPause();
+
+            _matchState.IsWaitingImageActive.Value = false;
+
+            _matchState.IsMyTurn.Value = msg.IsMyTurn;
+            _matchState.TurnChanged.OnNext(Unit.Default);
         }
         private void BeginPending()
         {
@@ -250,9 +365,21 @@ namespace IsntGwent.Scripts.Match.Client
         {
             _coordinator.Clear();
             _pendingHits.Clear();
+            _pendingStates.Clear();
         }
 
-        private IEnumerator UnitsStateChangedBeat(UnitsStateChangedMessage msg)
+        private IEnumerator UnitsStateChangedBeat(int id)
+        {
+            var index = _pendingStates.FindIndex(s => s.Id == id);
+            if (index < 0) yield break;
+
+            var message = _pendingStates[index].Message;
+            _pendingStates.RemoveAt(index);
+
+            yield return ApplyUnitStates(message);
+        }
+
+        private IEnumerator ApplyUnitStates(UnitsStateChangedMessage msg)
         {
             var buried = new List<UnitInstance>();
 
@@ -418,6 +545,8 @@ namespace IsntGwent.Scripts.Match.Client
         
         private void OnGameStarted(GameStartedMessage msg)
         {
+            _reconnectService.BeginMatch(msg.ReconnectToken);
+
             _matchState.IsWaitingImageActive.Value = false;
 
             _matchState.Hand.Clear();
@@ -532,7 +661,17 @@ namespace IsntGwent.Scripts.Match.Client
             }
             else
             {
-                yield return PlayHits(card.Id, sequence);
+                yield return null;
+
+                var hits = ConsumePendingHits(card.Id, sequence, out var batch);
+
+                if (hits.Length > 0)
+                {
+                    _matchState.DamageDealt.OnNext(hits);
+                    yield return new WaitForSeconds(CardAnimConfig.ProjectileDuration);
+                    yield return PlayStatesOf(batch);
+                }
+
                 place();
                 yield return new WaitForSeconds(CardAnimConfig.PlayFlightDuration);
             }
@@ -540,11 +679,25 @@ namespace IsntGwent.Scripts.Match.Client
 
         private IEnumerator PlayHits(Guid sourceId, int sequence)
         {
-            var hits = ConsumePendingHits(sourceId, sequence);
+            var hits = ConsumePendingHits(sourceId, sequence, out _);
             if (hits.Length == 0) yield break;
 
             _matchState.DamageDealt.OnNext(hits);
             yield return new WaitForSeconds(CardAnimConfig.ProjectileDuration);
+        }
+
+        private IEnumerator PlayStatesOf(int batch)
+        {
+            while (true)
+            {
+                var index = _pendingStates.FindIndex(s => s.Batch == batch);
+                if (index < 0) yield break;
+
+                var message = _pendingStates[index].Message;
+                _pendingStates.RemoveAt(index);
+
+                yield return ApplyUnitStates(message);
+            }
         }
 
         private IEnumerator FlushPendingHits(int batch)
@@ -563,17 +716,20 @@ namespace IsntGwent.Scripts.Match.Client
             yield return new WaitForSeconds(CardAnimConfig.ProjectileDuration);
         }
 
-        private DamageInstance[] ConsumePendingHits(Guid sourceId, int sequence)
+        private DamageInstance[] ConsumePendingHits(Guid sourceId, int sequence, out int batch)
         {
             var id = sourceId.ToString();
 
             bool Matches(PendingHit h) => h.PlaySequence == sequence && h.Hit.SourceInstanceId == id;
 
+            batch = 0;
+
             if (!_pendingHits.Any(Matches)) return Array.Empty<DamageInstance>();
 
-            var batch = _pendingHits.Where(Matches).Min(h => h.Batch);
+            var earliest = _pendingHits.Where(Matches).Min(h => h.Batch);
+            batch = earliest;
 
-            bool MatchesBatch(PendingHit h) => Matches(h) && h.Batch == batch;
+            bool MatchesBatch(PendingHit h) => Matches(h) && h.Batch == earliest;
 
             var hits = _pendingHits.Where(MatchesBatch).Select(h => h.Hit).ToArray();
             _pendingHits.RemoveAll(MatchesBatch);

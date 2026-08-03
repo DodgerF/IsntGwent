@@ -23,6 +23,11 @@ namespace IsntGwent.Scripts.Match.UI
 
         private void Start()
         {
+            ownMeleeRow.MarkAsBoardRow();
+            ownRangedRow.MarkAsBoardRow();
+            enemyMeleeRow.MarkAsBoardRow();
+            enemyRangedRow.MarkAsBoardRow();
+
             BindOwnRow(_matchState.OwnMeleeRow, ownMeleeRow);
             BindOwnRow(_matchState.OwnRangedRow, ownRangedRow);
             BindEnemyRow(_matchState.EnemyMeleeRow, enemyMeleeRow);

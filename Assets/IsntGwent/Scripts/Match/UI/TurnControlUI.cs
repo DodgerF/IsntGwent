@@ -20,8 +20,15 @@ namespace IsntGwent.Scripts.Match.UI
                 .AddTo(this);
 
             _matchState.IsMyTurn
-                .CombineLatest(_matchState.IsActionPending, (isMyTurn, isPending) => isMyTurn && !isPending)
-                .Subscribe(value => passButton.interactable = value)
+                .CombineLatest(
+                    _matchState.IsActionPending,
+                    _matchState.IsMatchPaused,
+                    (isMyTurn, isPending, isPaused) => isMyTurn && !isPending && !isPaused)
+                .Subscribe(value =>
+                {
+                    passButton.interactable = value;
+                    passButton.gameObject.SetActive(value);
+                })
                 .AddTo(this);
 
             passButton.OnClickAsObservable()

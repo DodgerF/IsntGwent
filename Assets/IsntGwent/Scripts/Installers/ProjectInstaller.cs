@@ -23,9 +23,20 @@ namespace IsntGwent.Scripts.Installers
                 .AsSingle()
                 .NonLazy();
             Container
+                .BindInterfacesAndSelfTo<MatchReconnectService>()
+                .AsSingle()
+                .NonLazy();
+            Container
                 .Bind<CoroutineRunner>()
                 .FromNewComponentOnNewGameObject()
                 .AsSingle();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Container
+                .Bind<NetDebugHud>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
+#endif
             Container
                 .BindInterfacesAndSelfTo<CardDatabase>()
                 .AsSingle()

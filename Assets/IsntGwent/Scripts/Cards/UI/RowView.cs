@@ -32,6 +32,10 @@ namespace IsntGwent.Scripts.Cards.UI
 
         public int CardCount => _cards.Count;
 
+        public bool IsBoardRow { get; private set; }
+
+        public void MarkAsBoardRow() => IsBoardRow = true;
+
         private void Awake()
         {
             _rt = (RectTransform)transform;
@@ -53,6 +57,10 @@ namespace IsntGwent.Scripts.Cards.UI
                     else
                         SetHighlight(false);
                 })
+                .AddTo(this);
+
+            _selectionService?.HighlightBoard
+                .Subscribe(_ => SetHighlight(IsBoardRow))
                 .AddTo(this);
 
             _selectionService?.ClearHighlights

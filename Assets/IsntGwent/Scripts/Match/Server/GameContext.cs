@@ -15,8 +15,10 @@ namespace IsntGwent.Scripts.Match.Server
     public class Player
     {
         public int Hp = 2;
-        
-        public readonly NetworkConnectionToClient Connection;
+
+        public NetworkConnectionToClient Connection;
+        public string ReconnectToken;
+        public bool IsConnected = true;
 
         public bool IsPassed = false;
 
@@ -134,17 +136,34 @@ namespace IsntGwent.Scripts.Match.Server
 
         public Player GetPlayer(NetworkConnectionToClient connection)
         {
+            if (connection == null) return null;
             if (Player1.Connection == connection) return Player1;
             if (Player2.Connection == connection) return Player2;
             return null;
         }
-        
+
+        public Player GetPlayerByToken(string token)
+        {
+            if (string.IsNullOrEmpty(token)) return null;
+            if (Player1.ReconnectToken == token) return Player1;
+            if (Player2.ReconnectToken == token) return Player2;
+            return null;
+        }
+
+        public bool IsPaused => !Player1.IsConnected || !Player2.IsConnected;
+
         public Player CurrentPlayer;
-        
+
         public void SetPlayers(PlayerLobby player1, PlayerLobby player2)
         {
-            Player1 = new Player(player1.Connection, CreateDeck(player1.Deck));
-            Player2 = new Player(player2.Connection, CreateDeck(player2.Deck));
+            Player1 = new Player(player1.Connection, CreateDeck(player1.Deck))
+            {
+                ReconnectToken = Guid.NewGuid().ToString()
+            };
+            Player2 = new Player(player2.Connection, CreateDeck(player2.Deck))
+            {
+                ReconnectToken = Guid.NewGuid().ToString()
+            };
         }
 
         private List<CardInstance> CreateDeck(DeckDefinition deckDefinition)
