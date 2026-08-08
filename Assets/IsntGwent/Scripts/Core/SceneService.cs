@@ -13,5 +13,10 @@ namespace IsntGwent.Scripts.Core
         {
             SceneManager.LoadScene("Menu");
         }
+
+        public void LoadDeckBuilder()
+        {
+            SceneManager.LoadScene("DeckBuilder");
+        }
     }
 }

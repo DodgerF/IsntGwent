@@ -48,6 +48,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
             LobbyError.LobbyFull => "Lobby is full",
             LobbyError.LobbyNotFound => "Lobby not found",
             LobbyError.AlreadyInLobby => "Already in a lobby",
+            LobbyError.DeckInvalid => "Deck is not valid",
             _ => "Something went wrong"
         };
     }

@@ -1,5 +1,7 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
+using System.Collections.Generic;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Decks.UI;
 using IsntGwent.Scripts.Lobby.Client;
 using ModestTree;
 using UniRx;
@@ -13,9 +15,9 @@ namespace IsntGwent.Scripts.Cards.UI
         public RowView meleeRow;
         public RowView rangedRow;
         public RowView spellRow;
-       
-        public CardView cardViewPrefab;
-        
+
+        public DeckStackView stackPrefab;
+
         [Inject] private CardDatabase _cardDatabase;
         [Inject] private DeckSelectService _deckSelectService;
         [Inject] private DiContainer _container;
@@ -30,41 +32,62 @@ namespace IsntGwent.Scripts.Cards.UI
         private void ViewCards(DeckDefinition deck)
         {
             ClearRows();
-            
+
             if (deck == null || deck.Cards.IsEmpty())
                 return;
 
-            foreach (var cardEntry in deck.Cards)
+            foreach (var pair in CountCards(deck))
             {
-                var cardDefinition = _cardDatabase.Get(cardEntry.CardId);
+                if (!_cardDatabase.Cards.TryGetValue(pair.Key, out var cardDefinition)) continue;
 
-                for (var i = 0; i < cardEntry.Count; i++)
-                {
-                    var cardView = _container.InstantiatePrefabForComponent<CardView>(cardViewPrefab);
-                    cardView.Setup(CardFactory.Create(cardDefinition));
-                    cardView.mode = CardMode.OnBoard;
+                var stack = _container.InstantiatePrefabForComponent<DeckStackView>(stackPrefab);
+                stack.Setup(cardDefinition, pair.Value, false);
 
-                    AddCardToRow(cardView, cardDefinition);
-                }
+                AddStackToRow(stack, cardDefinition);
             }
         }
 
-        private void AddCardToRow(CardView cardView, CardDefinition cardDefinition)
+        private static IEnumerable<KeyValuePair<string, int>> CountCards(DeckDefinition deck)
+        {
+            var counts = new Dictionary<string, int>();
+            var order = new List<string>();
+
+            foreach (var cardEntry in deck.Cards)
+            {
+                if (counts.TryGetValue(cardEntry.CardId, out var count))
+                {
+                    counts[cardEntry.CardId] = count + cardEntry.Count;
+                    continue;
+                }
+
+                counts[cardEntry.CardId] = cardEntry.Count;
+                order.Add(cardEntry.CardId);
+            }
+
+            foreach (var cardId in order)
+                yield return new KeyValuePair<string, int>(cardId, counts[cardId]);
+        }
+
+        private void AddStackToRow(DeckStackView stack, CardDefinition cardDefinition)
         {
             if (cardDefinition is not UnitDefinition unit)
             {
-                spellRow.AddCard(cardView.gameObject);
+                spellRow.AddCard(stack.gameObject);
                 return;
             }
 
             switch (unit.Row)
             {
                 case RowType.Melee:
-                    meleeRow.AddCard(cardView.gameObject);
+                    meleeRow.AddCard(stack.gameObject);
                     break;
 
                 case RowType.Ranged:
-                    rangedRow.AddCard(cardView.gameObject);
+                    rangedRow.AddCard(stack.gameObject);
+                    break;
+
+                default:
+                    spellRow.AddCard(stack.gameObject);
                     break;
             }
         }

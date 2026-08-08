@@ -47,6 +47,11 @@ namespace IsntGwent.Scripts.Decks
             return _decks[id];
         }
 
+        public bool Contains(string id)
+        {
+            return !string.IsNullOrEmpty(id) && _decks.ContainsKey(id);
+        }
+
         public IReadOnlyCollection<DeckDefinition> GetAll()
         {
             return _decks.Values;

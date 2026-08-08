@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Match.Server;
@@ -21,6 +25,9 @@ namespace IsntGwent.Scripts.Lobby.Server
         [Inject] private readonly GameControllerServer _gameController;
         [Inject] private readonly ServerHandler _serverHandler;
         [Inject] private readonly MatchServerNotifier _notifier;
+        [Inject] private readonly DeckValidator _deckValidator;
+        [Inject] private readonly CardDatabase _cardDatabase;
+        [Inject] private readonly DeckRulesProvider _deckRules;
 
         public static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(45);
 
@@ -194,9 +201,12 @@ namespace IsntGwent.Scripts.Lobby.Server
         
         public LobbyError TryCreateLobby(NetworkConnectionToClient conn, CreateLobbyMessage msg)
         {
+            if (!IsDeckAcceptable(msg.Deck))
+                return LobbyError.DeckInvalid;
+
             if (_playerLobbyMap.ContainsKey(conn))
                 return LobbyError.AlreadyInLobby;
-            
+
             var data = new LobbyData
             {
                 LobbyId = Guid.NewGuid().ToString(),
@@ -215,6 +225,9 @@ namespace IsntGwent.Scripts.Lobby.Server
         
         public LobbyError TryJoinLobby(NetworkConnectionToClient conn, JoinLobbyMessage message)
         {
+            if (!IsDeckAcceptable(message.Deck))
+                return LobbyError.DeckInvalid;
+
             if (!_rooms.TryGetValue(message.LobbyId, out var room))
                 return LobbyError.LobbyNotFound;
                 
@@ -236,6 +249,21 @@ namespace IsntGwent.Scripts.Lobby.Server
             
             
             return LobbyError.None;
+        }
+
+        private bool IsDeckAcceptable(DeckDefinition deck)
+        {
+            if (!_cardDatabase.OnLoaded.Value || !_deckRules.OnLoaded.Value)
+            {
+                Debug.LogWarning("Deck check skipped: card database or deck rules are not loaded yet");
+                return true;
+            }
+
+            var violations = _deckValidator.Validate(deck);
+            if (violations.Count == 0) return true;
+
+            Debug.Log("Deck rejected: " + DeckViolationCodes.ToWire(violations[0].Code));
+            return false;
         }
 
         public bool TryStartLobby(string lobbyId)

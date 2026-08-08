@@ -1,0 +1,6 @@
+{
+  "contentVersion": 1,
+  "minDeckSize": 10,
+  "maxCopiesUnit": 2,
+  "maxCopiesSpell": 1
+}

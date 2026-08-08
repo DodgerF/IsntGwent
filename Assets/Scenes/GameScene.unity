@@ -268,7 +268,6 @@ GameObject:
   - component: {fileID: 45261774}
   - component: {fileID: 45261773}
   - component: {fileID: 45261772}
-  - component: {fileID: 45261775}
   m_Layer: 5
   m_Name: SettingsButton
   m_TagString: Untagged
@@ -305,7 +304,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 45261770}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -352,6 +351,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &45261773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,20 +391,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 45261770}
   m_CullTransparentMesh: 1
---- !u!114 &45261775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 45261770}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
-  hoverSoundId: ui_button_hover
 --- !u!1 &88306295
 GameObject:
   m_ObjectHideFlags: 0
@@ -554,7 +541,6 @@ GameObject:
   - component: {fileID: 88502506}
   - component: {fileID: 88502505}
   - component: {fileID: 88502504}
-  - component: {fileID: 88502508}
   m_Layer: 5
   m_Name: GameEndedLeaveButton
   m_TagString: Untagged
@@ -603,7 +589,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 88502502}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -638,6 +624,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &88502506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -676,20 +664,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 88502502}
   m_CullTransparentMesh: 1
---- !u!114 &88502508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 88502502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
-  hoverSoundId: ui_button_hover
 --- !u!1 &147245254
 GameObject:
   m_ObjectHideFlags: 0
@@ -1046,7 +1020,6 @@ GameObject:
   - component: {fileID: 257064406}
   - component: {fileID: 257064405}
   - component: {fileID: 257064407}
-  - component: {fileID: 257064408}
   m_Layer: 5
   m_Name: PassButton
   m_TagString: Untagged
@@ -1121,7 +1094,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 257064403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -1156,19 +1129,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &257064408
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 257064403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
+  clickSoundId: ui_click
   hoverSoundId: ui_button_hover
 --- !u!1 &266348620
 GameObject:
@@ -4421,7 +4382,6 @@ GameObject:
   - component: {fileID: 1192292054}
   - component: {fileID: 1192292053}
   - component: {fileID: 1192292052}
-  - component: {fileID: 1192292055}
   m_Layer: 5
   m_Name: DoneButton
   m_TagString: Untagged
@@ -4458,7 +4418,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1192292050}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -4493,6 +4453,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &1192292053
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4531,20 +4493,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1192292050}
   m_CullTransparentMesh: 1
---- !u!114 &1192292055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1192292050}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
-  hoverSoundId: ui_button_hover
 --- !u!1 &1235183799
 GameObject:
   m_ObjectHideFlags: 0
@@ -7159,7 +7107,6 @@ GameObject:
   - component: {fileID: 1975801745}
   - component: {fileID: 1975801744}
   - component: {fileID: 1975801743}
-  - component: {fileID: 1975801747}
   m_Layer: 5
   m_Name: WaitingLeaveButton
   m_TagString: Untagged
@@ -7208,7 +7155,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1975801741}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -7243,6 +7190,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &1975801745
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7281,20 +7230,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1975801741}
   m_CullTransparentMesh: 1
---- !u!114 &1975801747
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1975801741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
-  hoverSoundId: ui_button_hover
 --- !u!1 &2034040727
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,28 +1,44 @@
 ﻿using DG.Tweening;
+using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using Zenject;
 
 namespace IsntGwent.Scripts.Cards.UI
 {
     public enum CardMode { InHand, OnBoard }
-    
-    public class CardView : MonoBehaviour
+
+    public class CardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        private const float HoverSoundInterval = 0.08f;
+
+        private static float _lastHoverSoundTime;
+
         public Image cardImage;
         public TextMeshProUGUI powerText;
         public GameObject meleeIcon;
         public GameObject rangedIcon;
         public Image targetHighlight;
-        
+
+        public bool hoverSfx = true;
+        public string hoverSoundId = "ui_hover";
+        public string hoverOutSoundId = "ui_hover_out";
+
+        [Inject] private readonly AudioService _audio;
+
+        private bool _hovered;
+
         public CardInstance Instance { get; private set; }
-        
+
         public CardMode mode = CardMode.InHand;
-        
-        
+
+
         public void Setup(CardInstance instance)
         {
             Instance = instance;
@@ -75,6 +91,43 @@ namespace IsntGwent.Scripts.Cards.UI
         public void SetSelected(bool selected)
         {
             gameObject.SetActive(!selected);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!CanPlayHover(eventData)) return;
+
+            _hovered = true;
+            PlayHover(hoverSoundId);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (!_hovered) return;
+
+            _hovered = false;
+            PlayHover(hoverOutSoundId);
+        }
+
+        private bool CanPlayHover(PointerEventData eventData)
+        {
+            if (!hoverSfx) return false;
+
+            return eventData is not ExtendedPointerEventData ext || ext.pointerType == UIPointerType.MouseOrPen;
+        }
+
+        private void PlayHover(string soundId)
+        {
+            if (!hoverSfx) return;
+            if (Time.unscaledTime - _lastHoverSoundTime < HoverSoundInterval) return;
+
+            _lastHoverSoundTime = Time.unscaledTime;
+            _audio?.Play(soundId);
+        }
+
+        private void OnDisable()
+        {
+            _hovered = false;
         }
 
         public void HitReact()

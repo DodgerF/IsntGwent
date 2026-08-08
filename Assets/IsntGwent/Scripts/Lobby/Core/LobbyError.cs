@@ -7,6 +7,7 @@
         LobbyFull,
         AlreadyInLobby,
         InvalidPassword,
+        DeckInvalid,
         Unknown
     }
 }

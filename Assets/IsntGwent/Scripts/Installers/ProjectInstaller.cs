@@ -1,5 +1,6 @@
 ﻿using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Lobby.Client;
@@ -45,6 +46,20 @@ namespace IsntGwent.Scripts.Installers
                 .BindInterfacesAndSelfTo<DeckDatabase>()
                 .AsSingle()
                 .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<DeckRulesProvider>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<DeckValidator>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<UserDeckStore>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<DeckSelectService>()
+                .AsSingle();
             Container
                 .Bind<AudioPlayer>()
                 .FromNewComponentOnNewGameObject()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Lobby.Client;
@@ -56,11 +57,14 @@ namespace IsntGwent.Scripts.Audio
             if (deck?.Cards == null)
                 return 0;
 
-            var total = 0;
+            var ids = new HashSet<string>();
             foreach (var entry in deck.Cards)
-                total += entry.Count;
+            {
+                if (entry.Count > 0)
+                    ids.Add(entry.CardId);
+            }
 
-            return Mathf.Min(total, MenuDrawMaxSounds);
+            return Mathf.Min(ids.Count, MenuDrawMaxSounds);
         }
 
         public void Dispose()

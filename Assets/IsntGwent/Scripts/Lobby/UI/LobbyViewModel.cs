@@ -1,4 +1,6 @@
 ﻿using System;
+using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Network;
@@ -12,6 +14,8 @@ namespace IsntGwent.Scripts.Lobby.UI
         [Inject] private LobbyStore _lobbyStore;
         [Inject] private LobbyClientHandler _handler;
         [Inject] private DeckSelectService _deckSelect;
+        [Inject] private DeckRulesProvider _rules;
+        [Inject] private DeckValidator _validator;
         [Inject] private ConnectionService _connection;
         public readonly ReactiveProperty<bool> IsCreateLobbyWindowOpen = new(false);
         public readonly ReactiveProperty<bool> IsPasswordWindowOpen = new(false);
@@ -29,8 +33,9 @@ namespace IsntGwent.Scripts.Lobby.UI
             _requestTimeout.AddTo(_disposables);
 
             _deckSelect.SelectedDeck
-                .CombineLatest(_connection.IsConnected, _isRequestPending,
-                    (deck, isConnected, isPending) => deck != null && isConnected && !isPending)
+                .CombineLatest(_connection.IsConnected, _isRequestPending, _rules.OnLoaded,
+                    (deck, isConnected, isPending, rulesLoaded) =>
+                        deck != null && isConnected && !isPending && rulesLoaded && _validator.IsValid(deck))
                 .Subscribe(canCreateOrJoin => CanCreateOrJoinLobby.Value = canCreateOrJoin)
                 .AddTo(_disposables);
 

@@ -45,7 +45,6 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             
             Container.Bind<LobbyNetworkHub>().FromComponentInHierarchy().AsSingle();
-            Container.Bind<DeckSelectService>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbySceneController>().AsSingle().NonLazy();

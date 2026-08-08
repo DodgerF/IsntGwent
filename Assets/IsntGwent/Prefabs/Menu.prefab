@@ -222,7 +222,6 @@ GameObject:
   - component: {fileID: 3933770101873438714}
   - component: {fileID: 1095513282810150336}
   - component: {fileID: 5691148379158117206}
-  - component: {fileID: 4537934893653984343}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -297,7 +296,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 843520544962941566}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -332,6 +331,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &5691148379158117206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,19 +345,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f110e752286407db9f8a4d5c16f6202, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.QuitButton
---- !u!114 &4537934893653984343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 843520544962941566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8fd6ac2831bd5448aef528c8287aea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Audio.ButtonClickSfx
-  soundId: ui_click
 --- !u!1 &1156498068399973603
 GameObject:
   m_ObjectHideFlags: 0

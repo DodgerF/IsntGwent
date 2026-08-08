@@ -1,28 +1,29 @@
 {
   "id": "base_deck",
   "name": "Base Deck",
+  "contentVersion": 1,
 
   "cards":
   [
     {
       "cardId": "giant",
-      "count": 4
+      "count": 2
     },
     {
       "cardId": "soldier",
-      "count": 4
+      "count": 2
     },
     {
       "cardId": "avenger",
-      "count": 3
+      "count": 2
     },
     {
       "cardId": "sniper",
-      "count": 3
+      "count": 2
     },
     {
       "cardId": "fireball",
-      "count": 5
+      "count": 1
     },
     {
       "cardId": "plague",

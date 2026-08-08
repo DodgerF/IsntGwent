@@ -12,7 +12,8 @@ namespace IsntGwent.Scripts.Cards.Definitions
         public string Description;
         public string ImageName;
         public string SoundId;
-        
+        public int MaxCopies;
+
         [JsonIgnore]
         public List<EffectDefinition> Effects = new();
         [JsonProperty("effects")]

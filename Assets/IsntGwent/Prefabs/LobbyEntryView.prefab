@@ -50,7 +50,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3840187482041184781}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dc331fb20d27254ead6cee516d28140, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
@@ -85,6 +85,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+  clickSoundId: ui_click
+  hoverSoundId: ui_button_hover
 --- !u!114 &5358311442150685313
 MonoBehaviour:
   m_ObjectHideFlags: 0
