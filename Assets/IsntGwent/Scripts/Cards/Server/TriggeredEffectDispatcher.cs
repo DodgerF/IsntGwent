@@ -25,6 +25,22 @@ namespace IsntGwent.Scripts.Cards.Server
             {
                 case UnitDied died when died.Owner != null:
                     RunCard(context, died.Owner, died.Unit, EffectTrigger.OnDeath, gameEvent);
+                    RunKiller(context, died);
+                    RunOnBoard(context, gameEvent, owner => owner == died.Owner
+                        ? EffectTrigger.OnAllyDied
+                        : (EffectTrigger?)null);
+                    break;
+
+                case UnitDevoured devoured when devoured.Owner != null:
+                    RunOnBoard(context, gameEvent, owner => owner == devoured.Owner
+                        ? EffectTrigger.OnAllyDevoured
+                        : (EffectTrigger?)null);
+                    break;
+
+                case UnitSummoned summoned when summoned.Owner != null:
+                    RunOnBoard(context, gameEvent, owner => owner == summoned.Owner
+                        ? EffectTrigger.OnAllySummoned
+                        : (EffectTrigger?)null);
                     break;
 
                 case TurnStarted turnStarted:
@@ -41,11 +57,32 @@ namespace IsntGwent.Scripts.Cards.Server
                 
                 case CardPlayed cardPlayed:
                     RunOnBoard(context, gameEvent, _ => EffectTrigger.OnCardPlayed, cardPlayed.Card);
+                    RunOnBoard(context, gameEvent, owner => owner != cardPlayed.Owner
+                        ? EffectTrigger.OnEnemyCardPlayed
+                        : (EffectTrigger?)null, cardPlayed.Card);
+                    break;
+
+                case UnitMoved moved:
+                    RunOnBoard(context, gameEvent, _ => EffectTrigger.OnUnitMoved, moved.Unit);
                     break;
 
                 case RoundEnded:
                     RunOnBoard(context, gameEvent, _ => EffectTrigger.OnRoundEnd);
                     break;
+            }
+        }
+
+        private void RunKiller(GameContext context, UnitDied died)
+        {
+            if (died.Killer is not UnitInstance killer) return;
+            if (killer == died.Unit) return;
+
+            foreach (var player in new[] { context.Player1, context.Player2 })
+            {
+                if (!player.MeleeRow.Contains(killer) && !player.RangedRow.Contains(killer)) continue;
+
+                RunCard(context, player, killer, EffectTrigger.OnKill, died);
+                return;
             }
         }
 
@@ -76,6 +113,9 @@ namespace IsntGwent.Scripts.Cards.Server
 
             _cardResolver.RunEffects(context, owner, card, trigger, gameEvent, null);
             _boardSync.Sync(context);
+
+            if (context.FlushBoardDirty())
+                _boardSync.SyncBoard(context);
         }
 
         private static bool HasTrigger(CardInstance card, EffectTrigger trigger)

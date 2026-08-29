@@ -7,10 +7,18 @@ namespace IsntGwent.Scripts.Messages
         public DamageInstance[] Hits;
     }
 
+    public enum DamageKind : byte
+    {
+        Card,
+        Weather
+    }
+
     public struct DamageInstance
     {
         public string SourceInstanceId;
+        public string SourceCardId;
         public string TargetInstanceId;
         public int Amount;
+        public DamageKind Kind;
     }
 }

@@ -1,4 +1,4 @@
-﻿using IsntGwent.Scripts.Lobby.Core;
+using IsntGwent.Scripts.Lobby.Core;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -14,32 +14,51 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
         public GameObject LockIcon;
 
         private LobbyData _lobbyData;
+        private Button _button;
+        private bool _canJoin;
 
         [Inject] private LobbyViewModel _vm;
-        
+
         public void Setup(LobbyData lobbyData)
         {
-            if (_lobbyData.LobbyId == "") return;
-            
-            _lobbyData = lobbyData;
-            Text.text = lobbyData.Name;
-            LockIcon.SetActive(lobbyData.IsPrivate);
+            _button = gameObject.GetComponent<Button>();
 
-            var button =  gameObject.GetComponent<Button>();
-            button.OnClickAsObservable()
+            Refresh(lobbyData);
+
+            _button.OnClickAsObservable()
                 .Subscribe(_ =>
                 {
                     _vm.SelectLobby(_lobbyData);
                 })
                 .AddTo(this);
+
             _vm.CanCreateOrJoinLobby
                 .Subscribe(value =>
                 {
-                    button.interactable = value;
-                    float alpha = button.interactable ? 1f : 0.3f;
-                    Text.alpha = alpha;
+                    _canJoin = value;
+                    ApplyInteractable();
                 })
                 .AddTo(this);
+        }
+
+        public void Refresh(LobbyData lobbyData)
+        {
+            _lobbyData = lobbyData;
+
+            Text.text = lobbyData.Name + "  " + lobbyData.Players + "/" + lobbyData.MaxPlayers;
+            LockIcon.SetActive(lobbyData.IsPrivate);
+
+            ApplyInteractable();
+        }
+
+        private void ApplyInteractable()
+        {
+            if (_button == null) return;
+
+            var isFull = _lobbyData.MaxPlayers > 0 && _lobbyData.Players >= _lobbyData.MaxPlayers;
+
+            _button.interactable = _canJoin && !isFull;
+            Text.alpha = _button.interactable ? 1f : 0.3f;
         }
     }
 }

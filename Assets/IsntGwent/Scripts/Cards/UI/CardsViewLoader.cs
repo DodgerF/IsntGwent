@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Decks.UI;
@@ -12,18 +13,25 @@ namespace IsntGwent.Scripts.Cards.UI
 {
     public class CardsViewLoader : MonoBehaviour
     {
-        public RowView meleeRow;
-        public RowView rangedRow;
-        public RowView spellRow;
+        public CardLaneView[] lanes;
 
-        public DeckStackView stackPrefab;
+        public CardTileView stackPrefab;
 
         [Inject] private CardDatabase _cardDatabase;
         [Inject] private DeckSelectService _deckSelectService;
         [Inject] private DiContainer _container;
 
+        private RectTransform _spawnOrigin;
+
+        public void SpawnFrom(RectTransform origin)
+        {
+            _spawnOrigin = origin;
+        }
+
         private void Start()
         {
+            DeckLaneLayout.Apply((RectTransform)transform, lanes);
+
             _deckSelectService.SelectedDeck
                 .Subscribe(ViewCards)
                 .AddTo(this);
@@ -31,19 +39,32 @@ namespace IsntGwent.Scripts.Cards.UI
 
         private void ViewCards(DeckDefinition deck)
         {
-            ClearRows();
+            ClearLanes();
 
-            if (deck == null || deck.Cards.IsEmpty())
-                return;
+            if (deck == null || deck.Cards.IsEmpty()) return;
+            if (lanes == null || lanes.Length == 0) return;
 
-            foreach (var pair in CountCards(deck))
+            var ordered = CountCards(deck)
+                .Select(pair => _cardDatabase.Cards.TryGetValue(pair.Key, out var definition)
+                    ? new KeyValuePair<CardDefinition, int>(definition, pair.Value)
+                    : default)
+                .Where(pair => pair.Key != null)
+                .OrderBy(pair => pair.Key, DeckCardOrder.Comparer)
+                .ToList();
+
+            for (var i = 0; i < ordered.Count; i++)
             {
-                if (!_cardDatabase.Cards.TryGetValue(pair.Key, out var cardDefinition)) continue;
+                var stack = _container.InstantiatePrefabForComponent<CardTileView>(stackPrefab);
+                stack.Setup(ordered[i].Key, false);
+                stack.SetCount(ordered[i].Value);
 
-                var stack = _container.InstantiatePrefabForComponent<DeckStackView>(stackPrefab);
-                stack.Setup(cardDefinition, pair.Value, false);
+                if (_spawnOrigin != null)
+                {
+                    stack.transform.SetParent(_spawnOrigin, false);
+                    stack.transform.position = _spawnOrigin.position;
+                }
 
-                AddStackToRow(stack, cardDefinition);
+                lanes[DeckCardOrder.LaneOf(i, DeckLaneLayout.LaneCapacity, lanes.Length)].AddCard(stack.gameObject);
             }
         }
 
@@ -68,35 +89,12 @@ namespace IsntGwent.Scripts.Cards.UI
                 yield return new KeyValuePair<string, int>(cardId, counts[cardId]);
         }
 
-        private void AddStackToRow(DeckStackView stack, CardDefinition cardDefinition)
+        private void ClearLanes()
         {
-            if (cardDefinition is not UnitDefinition unit)
-            {
-                spellRow.AddCard(stack.gameObject);
-                return;
-            }
+            if (lanes == null) return;
 
-            switch (unit.Row)
-            {
-                case RowType.Melee:
-                    meleeRow.AddCard(stack.gameObject);
-                    break;
-
-                case RowType.Ranged:
-                    rangedRow.AddCard(stack.gameObject);
-                    break;
-
-                default:
-                    spellRow.AddCard(stack.gameObject);
-                    break;
-            }
-        }
-
-        private void ClearRows()
-        {
-            meleeRow.ClearCards();
-            rangedRow.ClearCards();
-            spellRow.ClearCards();
+            foreach (var lane in lanes)
+                lane.ClearCards();
         }
     }
 }

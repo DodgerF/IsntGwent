@@ -1,0 +1,26 @@
+{
+  "id": "vodyanoy",
+  "name": "Vodyanoy",
+  "imageName": "vodyanoy",
+  "type": "Unit",
+  "power": 1,
+  "rarity": "Epic",
+  "description": "Deploy: consume the first creature in the line ahead, if it is an ally. On kill: cast Omut from your deck.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source",
+      "includeAllies": true
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay"
+    },
+    {
+      "effect": "CastFromDeck",
+      "trigger": "OnKill",
+      "cardId": "omut"
+    }
+  ]
+}

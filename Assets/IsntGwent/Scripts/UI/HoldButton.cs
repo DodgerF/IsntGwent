@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using IsntGwent.Scripts.Audio;
 using UniRx;
 using UnityEngine;
@@ -10,7 +11,8 @@ using Zenject;
 namespace IsntGwent.Scripts.UI
 {
     public class HoldButton : MonoBehaviour,
-        IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
+        IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler,
+        IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private const float HoldDelay = 0.3f;
         private const float DragThreshold = 10f;
@@ -27,13 +29,19 @@ namespace IsntGwent.Scripts.UI
         private readonly Subject<Unit> _holdStarted = new();
         private readonly Subject<Unit> _holdEnded = new();
 
+        private readonly List<RaycastResult> _hits = new();
+
+        private PointerEventData _pointerData;
         private IDisposable _pressWatcher;
         private Vector2 _pressPosition;
         private float _pressTime;
         private bool _pressing;
         private bool _held;
+        private bool _showing;
         private bool _cancelled;
         private bool _hovered;
+        private HoldButton _target;
+        private GameObject _routedDrag;
 
         public bool Interactable { get; set; } = true;
 
@@ -43,11 +51,14 @@ namespace IsntGwent.Scripts.UI
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+
             _pressing = true;
             _held = false;
             _cancelled = false;
             _pressTime = Time.unscaledTime;
             _pressPosition = eventData.position;
+            _routedDrag = null;
 
             _pressWatcher?.Dispose();
             _pressWatcher = Observable.EveryUpdate()
@@ -56,6 +67,7 @@ namespace IsntGwent.Scripts.UI
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
             if (!_pressing) return;
 
             StopWatching();
@@ -63,12 +75,11 @@ namespace IsntGwent.Scripts.UI
 
             if (_held)
             {
-                _held = false;
-                _holdEnded.OnNext(Unit.Default);
+                EndSession();
                 return;
             }
 
-            if (_cancelled) return;
+            if (_cancelled || eventData.dragging) return;
 
             if (!Interactable)
             {
@@ -83,6 +94,7 @@ namespace IsntGwent.Scripts.UI
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (!IsPointingDevice(eventData)) return;
+            if (IsPointerPressed()) return;
 
             _hovered = true;
             _audio?.Play(hoverSoundId);
@@ -96,9 +108,42 @@ namespace IsntGwent.Scripts.UI
                 _audio?.Play(hoverOutSoundId);
             }
 
-            if (!_pressing) return;
+            if (!_pressing || _held) return;
 
             Cancel();
+        }
+
+        public void OnInitializePotentialDrag(PointerEventData eventData)
+        {
+            if (transform.parent == null) return;
+
+            ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.initializePotentialDrag);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (_held) return;
+
+            Cancel();
+
+            if (transform.parent == null) return;
+
+            _routedDrag = ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (_routedDrag == null) return;
+
+            ExecuteEvents.Execute(_routedDrag, eventData, ExecuteEvents.dragHandler);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (_routedDrag == null) return;
+
+            ExecuteEvents.Execute(_routedDrag, eventData, ExecuteEvents.endDragHandler);
+            _routedDrag = null;
         }
 
         private static bool IsPointingDevice(PointerEventData eventData)
@@ -106,8 +151,17 @@ namespace IsntGwent.Scripts.UI
             return eventData is not ExtendedPointerEventData ext || ext.pointerType == UIPointerType.MouseOrPen;
         }
 
+        private static bool IsPointerPressed() =>
+            Pointer.current != null && Pointer.current.press.isPressed;
+
         private void WatchPress()
         {
+            if (_held)
+            {
+                TrackTarget();
+                return;
+            }
+
             if (Vector2.Distance(PointerPosition(), _pressPosition) > DragThreshold)
             {
                 Cancel();
@@ -116,21 +170,81 @@ namespace IsntGwent.Scripts.UI
 
             if (Time.unscaledTime - _pressTime < HoldDelay) return;
 
-            StopWatching();
+            BeginSession();
+        }
+
+        private void BeginSession()
+        {
             _held = true;
+            SetTarget(this);
+        }
+
+        private void EndSession()
+        {
+            if (!_held) return;
+
+            _held = false;
+            SetTarget(null);
+        }
+
+        private void TrackTarget()
+        {
+            var button = ButtonUnderPointer();
+            if (button == _target) return;
+
+            SetTarget(button);
+        }
+
+        private void SetTarget(HoldButton button)
+        {
+            if (_target != null)
+                _target.CloseHold();
+
+            _target = button;
+
+            if (_target != null)
+                _target.OpenHold();
+        }
+
+        private void OpenHold()
+        {
+            if (_showing) return;
+
+            _showing = true;
             _audio?.Play(holdSoundId);
             _holdStarted.OnNext(Unit.Default);
+        }
+
+        private void CloseHold()
+        {
+            if (!_showing) return;
+
+            _showing = false;
+            _holdEnded.OnNext(Unit.Default);
+        }
+
+        private HoldButton ButtonUnderPointer()
+        {
+            var events = EventSystem.current;
+            if (events == null) return null;
+
+            _pointerData ??= new PointerEventData(events);
+            _pointerData.position = PointerPosition();
+
+            _hits.Clear();
+            events.RaycastAll(_pointerData, _hits);
+
+            if (_hits.Count == 0) return null;
+
+            var button = _hits[0].gameObject.GetComponentInParent<HoldButton>();
+
+            return button != null && button.isActiveAndEnabled ? button : null;
         }
 
         private void Cancel()
         {
             StopWatching();
             _cancelled = true;
-
-            if (!_held) return;
-
-            _held = false;
-            _holdEnded.OnNext(Unit.Default);
         }
 
         private void StopWatching()
@@ -146,14 +260,11 @@ namespace IsntGwent.Scripts.UI
         {
             StopWatching();
             _hovered = false;
-
-            if (_held)
-            {
-                _held = false;
-                _holdEnded.OnNext(Unit.Default);
-            }
-
             _pressing = false;
+            _routedDrag = null;
+
+            CloseHold();
+            EndSession();
         }
 
         private void OnDestroy()

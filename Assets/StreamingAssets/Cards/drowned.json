@@ -1,0 +1,29 @@
+{
+  "id": "drowned",
+  "name": "Drowned",
+  "imageName": "drowned",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "description": "Deploy: damage 3 to the first creature in the line ahead. On kill: summon a Corpse from your deck.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 3
+    },
+    {
+      "effect": "SummonFromDeck",
+      "trigger": "OnKill",
+      "cardId": "corpse",
+      "count": 1,
+      "placement": "Neighbors",
+      "strictNeighbors": true
+    }
+  ]
+}

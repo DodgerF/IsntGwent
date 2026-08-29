@@ -47,19 +47,19 @@ namespace IsntGwent.Scripts.Network
                 return;
             }
 
-            GUILayout.Label("Не сервер и не клиент");
+            GUILayout.Label("Neither server nor client");
         }
 
         private void DrawServer()
         {
-            GUILayout.Label("Сервер. Подключений: " + NetworkServer.connections.Count);
+            GUILayout.Label("Server. Connections: " + NetworkServer.connections.Count);
 
             _buffer.Clear();
             _buffer.AddRange(NetworkServer.connections.Values.Where(c => c != null));
 
             foreach (var conn in _buffer)
             {
-                if (!GUILayout.Button("Разорвать conn #" + conn.connectionId)) continue;
+                if (!GUILayout.Button("Drop conn #" + conn.connectionId)) continue;
 
                 Debug.Log("NetDebugHud: разрываем conn " + conn.connectionId);
                 conn.Disconnect();
@@ -68,9 +68,9 @@ namespace IsntGwent.Scripts.Network
 
         private void DrawClient()
         {
-            GUILayout.Label(NetworkClient.isConnected ? "Клиент: подключён" : "Клиент: подключается…");
+            GUILayout.Label(NetworkClient.isConnected ? "Client: connected" : "Client: connecting…");
 
-            if (!GUILayout.Button("Разорвать своё соединение")) return;
+            if (!GUILayout.Button("Drop own connection")) return;
 
             Debug.Log("NetDebugHud: рвём своё соединение");
             NetworkClient.Disconnect();

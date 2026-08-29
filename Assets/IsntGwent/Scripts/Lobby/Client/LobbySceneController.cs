@@ -11,6 +11,7 @@ namespace IsntGwent.Scripts.Lobby.Client
         [Inject] private readonly LobbyClientHandler _handler;
         [Inject] private readonly SceneService _scenes;
         [Inject] private readonly ConnectionService _connection;
+        [Inject] private readonly MatchReconnectService _reconnect;
         private readonly CompositeDisposable _disposables = new();
 
         public void Initialize()
@@ -20,6 +21,8 @@ namespace IsntGwent.Scripts.Lobby.Client
             _handler.OnJoinedLobby
                 .Subscribe(_ => LoadGameScene())
                 .AddTo(_disposables);
+
+            _reconnect.TryResume();
         }
 
         private void LoadGameScene()

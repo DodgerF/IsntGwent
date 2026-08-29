@@ -37,12 +37,23 @@ namespace IsntGwent.Scripts.Decks.UI
                 .AddTo(this);
         }
 
-        protected abstract void OnDeckClicked(DeckDefinition deck, bool isBuiltIn);
+        protected abstract void OnDeckClicked(DeckDefinition deck, bool isBuiltIn, DeckSelectionView view);
 
         protected abstract void OnNewDeckClicked();
 
         protected virtual void ConfigureView(DeckSelectionView view, DeckDefinition deck, IReadOnlyList<DeckViolation> violations)
         {
+        }
+
+        protected virtual void OnPopulated()
+        {
+        }
+
+        protected DeckSelectionView ViewOf(string deckId)
+        {
+            if (string.IsNullOrEmpty(deckId)) return null;
+
+            return _views.TryGetValue(deckId, out var view) ? view : null;
         }
 
         protected void SetSelected(string deckId)
@@ -78,6 +89,8 @@ namespace IsntGwent.Scripts.Decks.UI
             UserDecks.Decks.ObserveRemove()
                 .Subscribe(removed => RemoveView(removed.Value))
                 .AddTo(this);
+
+            OnPopulated();
         }
 
         private void CreateView(DeckDefinition deck)
@@ -96,7 +109,7 @@ namespace IsntGwent.Scripts.Decks.UI
             ConfigureView(view, deck, violations);
 
             view.Clicked
-                .Subscribe(_ => OnDeckClicked(deck, isBuiltIn))
+                .Subscribe(_ => OnDeckClicked(deck, isBuiltIn, view))
                 .AddTo(view);
 
             _views.Add(deck.Id, view);

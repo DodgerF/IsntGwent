@@ -1,0 +1,23 @@
+{
+  "id": "bear",
+  "name": "Bear",
+  "imageName": "bear",
+  "type": "Unit",
+  "power": 7,
+  "rarity": "Rare",
+  "description": "Deploy: consume a neighbour as armor and take its cell.",
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnPlay",
+      "relativeTo": "Source",
+      "pick": "Highest"
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay",
+      "asArmor": true,
+      "takeSlot": true
+    }
+  ]
+}

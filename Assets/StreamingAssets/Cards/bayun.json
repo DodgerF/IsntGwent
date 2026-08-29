@@ -1,0 +1,35 @@
+{
+  "id": "bayun",
+  "name": "Cat Bayun",
+  "imageName": "bayun",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Common",
+  "description": "Turn end: boost the strongest ally by 2. Without Leadership: damage it by 2 instead.",
+  "effects": [
+    {
+      "effect": "StrongestTargeting",
+      "trigger": "OnTurnEnd",
+      "count": 1,
+      "includeAllies": true,
+      "excludeSource": true
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnTurnEnd",
+      "amount": 2,
+      "requireTargets": true,
+      "condition": {
+        "leadership": "Held"
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnTurnEnd",
+      "amount": 2,
+      "condition": {
+        "leadership": "Lost"
+      }
+    }
+  ]
+}

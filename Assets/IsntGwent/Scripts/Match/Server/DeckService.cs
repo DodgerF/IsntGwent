@@ -47,6 +47,7 @@ namespace IsntGwent.Scripts.Match.Server
             }
 
             _notifier.NotifyEnemyCardDrawn(context.GetOpponent(player), player.Hand.Count);
+            _notifier.NotifyDecks(context);
         }
     }
 }

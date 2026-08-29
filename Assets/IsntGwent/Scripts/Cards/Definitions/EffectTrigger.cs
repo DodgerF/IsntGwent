@@ -9,5 +9,12 @@ namespace IsntGwent.Scripts.Cards.Definitions
         OnTurnEnd,
         OnCardPlayed,
         OnRoundEnd,
+        OnAllyDevoured,
+        OnAllySummoned,
+        OnAllyDied,
+        OnKill,
+        OnEnemyCardPlayed,
+        OnUnitMoved,
+        OnWeatherTick,
     }
 }

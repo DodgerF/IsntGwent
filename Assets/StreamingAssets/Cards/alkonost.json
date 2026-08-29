@@ -1,0 +1,52 @@
+{
+  "id": "alkonost",
+  "name": "Alkonost",
+  "imageName": "alkonost",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Epic",
+  "description": "Deploy: move the creature ahead to the other row. Bond (Sirin): move the whole opposite row instead.",
+  "effects": [
+    {
+      "effect": "SlotTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source",
+      "direction": "Opposite",
+      "includeEnemies": true,
+      "condition": {
+        "allyOnBoard": "sirin",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "Move",
+      "trigger": "OnPlay",
+      "axis": "Depth",
+      "direction": "OtherRow",
+      "condition": {
+        "allyOnBoard": "sirin",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "RowTargeting",
+      "trigger": "OnPlay",
+      "sameRowAsSource": true,
+      "includeEnemies": true,
+      "condition": {
+        "allyOnBoard": "sirin",
+        "allyAbsent": false
+      }
+    },
+    {
+      "effect": "Move",
+      "trigger": "OnPlay",
+      "axis": "Depth",
+      "direction": "OtherRow",
+      "condition": {
+        "allyOnBoard": "sirin",
+        "allyAbsent": false
+      }
+    }
+  ]
+}

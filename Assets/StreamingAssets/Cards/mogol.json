@@ -1,0 +1,24 @@
+{
+  "id": "mogol",
+  "name": "Mogol",
+  "imageName": "mogol",
+  "type": "Unit",
+  "power": 12,
+  "rarity": "Legendary",
+  "description": "Turn end: damage 3 to the weakest ally, or to itself if there is none.",
+  "effects": [
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnTurnEnd",
+      "count": 1,
+      "includeAllies": true,
+      "excludeSource": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnTurnEnd",
+      "amount": 3,
+      "selfIfNoTargets": true
+    }
+  ]
+}

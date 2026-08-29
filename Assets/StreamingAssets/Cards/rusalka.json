@@ -1,0 +1,39 @@
+{
+  "id": "rusalka",
+  "name": "Rusalka",
+  "imageName": "rusalka",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Common",
+  "description": "Melee: damage 3 to the first creature in the line ahead. Ranged: pull the creature opposite one line closer.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "anchor": "Source"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "amount": 3
+    },
+    {
+      "effect": "SlotTargeting",
+      "trigger": "OnPlay",
+      "requiredRow": "Ranged",
+      "anchor": "Source",
+      "direction": "Opposite",
+      "includeEnemies": true
+    },
+    {
+      "effect": "Move",
+      "trigger": "OnPlay",
+      "requiredRow": "Ranged",
+      "axis": "Depth",
+      "direction": "TowardSource",
+      "anchor": "Source"
+    }
+  ]
+}

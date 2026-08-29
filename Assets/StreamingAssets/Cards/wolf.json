@@ -1,0 +1,27 @@
+{
+  "id": "wolf",
+  "name": "Wolf",
+  "imageName": "wolf",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "description": "Deploy: damage 3 to the first creature in the line ahead. On kill: summon your copies from the deck.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 3
+    },
+    {
+      "effect": "SummonFromDeck",
+      "trigger": "OnKill",
+      "count": 0,
+      "placement": "Neighbors"
+    }
+  ]
+}

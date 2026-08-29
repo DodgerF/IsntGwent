@@ -1,4 +1,5 @@
 using System;
+using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Core;
 using TMPro;
@@ -10,7 +11,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 {
     public class LobbyErrorUI : MonoBehaviour
     {
-        private static readonly TimeSpan ShowDuration = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan ShowDuration = TimeSpan.FromSeconds(3);
 
         [Inject] private readonly LobbyClientHandler _handler;
         [SerializeField] private TextMeshProUGUI errorText;
@@ -28,13 +29,13 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
             _hideTimer.AddTo(this);
 
             _handler.OnError
-                .Subscribe(Show)
+                .Subscribe(e => Show(e.error, e.violations))
                 .AddTo(this);
         }
 
-        private void Show(LobbyError error)
+        private void Show(LobbyError error, DeckViolation[] violations)
         {
-            errorText.text = Describe(error);
+            errorText.text = Describe(error, violations);
             panel.SetActive(true);
 
             _hideTimer.Disposable = Observable
@@ -42,14 +43,20 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                 .Subscribe(_ => panel.SetActive(false));
         }
 
-        private static string Describe(LobbyError error) => error switch
+        private static string Describe(LobbyError error, DeckViolation[] violations)
         {
-            LobbyError.InvalidPassword => "Wrong password",
-            LobbyError.LobbyFull => "Lobby is full",
-            LobbyError.LobbyNotFound => "Lobby not found",
-            LobbyError.AlreadyInLobby => "Already in a lobby",
-            LobbyError.DeckInvalid => "Deck is not valid",
-            _ => "Something went wrong"
-        };
+            if (error == LobbyError.DeckInvalid && violations is { Length: > 0 })
+                return DeckViolationText.Describe(violations[0]);
+
+            return error switch
+            {
+                LobbyError.InvalidPassword => "Wrong password",
+                LobbyError.LobbyFull => "Lobby is full",
+                LobbyError.LobbyNotFound => "Lobby not found",
+                LobbyError.AlreadyInLobby => "Already in a lobby",
+                LobbyError.DeckInvalid => "Deck is not valid",
+                _ => "Something went wrong"
+            };
+        }
     }
 }

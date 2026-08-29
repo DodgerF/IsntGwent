@@ -1,4 +1,3 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Client;
 using TMPro;
@@ -11,60 +10,87 @@ namespace IsntGwent.Scripts.Cards.UI
 {
     public class CardPreviewWindow : MonoBehaviour
     {
-        public Image image;
+        public CardView cardView;
         public TextMeshProUGUI description;
         public GameObject descriptionBackground;
-        public TextMeshProUGUI power;
         public GameObject preview;
-        public GameObject meleeIcon;
-        public GameObject rangedIcon;
-        [Inject] private CardPreviewService _previewService;  
-        
-        private void Start()  
-        {  
-            _previewService.ShowCard  
-                .Subscribe(Show)  
-                .AddTo(this);  
-		  
-            _previewService.HideCard  
-                .Subscribe(_ => Hide())  
+        public KeywordListView keywords;
+
+        [SerializeField] private Button dimmer;
+        [SerializeField] private TextMeshProUGUI title;
+        [SerializeField] private TextMeshProUGUI stats;
+        [SerializeField] private ScrollRect descriptionScroll;
+
+        [Inject] private CardPreviewService _previewService;
+        [Inject] private KeywordDatabase _keywords;
+
+        private void Start()
+        {
+            cardView.hoverSfx = false;
+
+            _previewService.ShowCard
+                .Subscribe(Show)
                 .AddTo(this);
-            Hide(); 
-        } 
-        
-        private void Show(CardInstance card)  
-        {  
-            preview.SetActive(true);  
-            Setup(card);
+
+            _previewService.HideCard
+                .Subscribe(_ => Hide())
+                .AddTo(this);
+
+            if (dimmer != null)
+                dimmer.onClick.AddListener(_previewService.Hide);
+
+            Hide();
         }
-        
+
+        private void Show(PreviewRequest request)
+        {
+            preview.SetActive(true);
+
+            if (dimmer != null)
+                dimmer.gameObject.SetActive(request.Modal);
+
+            Setup(request.Card);
+        }
+
         public void Setup(CardInstance card)
         {
-            var spritePath = "Sprites/Cards/" + card.Definition.ImageName;
-            image.sprite = Resources.Load<Sprite>(spritePath);
+            cardView.Setup(card);
 
-            if (card.Definition is UnitDefinition unit)
+            var text = card.Definition.Description;
+
+            description.text = _keywords.Format(text);
+            descriptionBackground.SetActive(!string.IsNullOrWhiteSpace(text));
+
+            if (keywords != null)
+                keywords.Show(text);
+
+            if (descriptionScroll != null && descriptionScroll.gameObject.activeInHierarchy)
             {
-                meleeIcon.SetActive(unit.Row == RowType.Melee);
-                rangedIcon.SetActive(unit.Row == RowType.Ranged);
-                
-                power.gameObject.SetActive(true);
-                power.text = unit.Power.ToString();
+                Canvas.ForceUpdateCanvases();
+                descriptionScroll.verticalNormalizedPosition = 1f;
             }
-            else
+
+            if (title != null)
+                title.text = card.Definition.Name;
+
+            if (stats != null)
             {
-                power.gameObject.SetActive(false);
-                meleeIcon.SetActive(false);
-                rangedIcon.SetActive(false);
+                var unit = card as UnitInstance;
+                var changed = unit != null && unit.CurrentPower.Value != unit.UnitDefinition.Power;
+
+                stats.gameObject.SetActive(changed);
+
+                if (changed)
+                    stats.text = unit.UnitDefinition.Power.ToString();
             }
-            
-            description.text = card.Definition.Description;
-            descriptionBackground.SetActive(card.Definition.Description != null);
         }
-	
-        private void Hide()  
-        {  
-            preview.SetActive(false);  
+
+        private void Hide()
+        {
+            preview.SetActive(false);
+
+            if (keywords != null)
+                keywords.Hide();
         }
     }
 }

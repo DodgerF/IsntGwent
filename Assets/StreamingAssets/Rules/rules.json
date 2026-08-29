@@ -1,6 +1,8 @@
 {
-  "contentVersion": 1,
-  "minDeckSize": 10,
-  "maxCopiesUnit": 2,
-  "maxCopiesSpell": 1
+  "contentVersion": 3,
+  "minDeckSize": 25,
+  "maxCopiesCommon": 3,
+  "maxCopiesRare": 2,
+  "maxCopiesEpic": 1,
+  "maxCopiesLegendary": 1
 }

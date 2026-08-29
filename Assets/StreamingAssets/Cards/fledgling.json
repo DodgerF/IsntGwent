@@ -1,0 +1,11 @@
+{
+  "id": "fledgling",
+  "name": "Fledgling",
+  "imageName": "fledgling",
+  "type": "Unit",
+  "power": 6,
+  "rarity": "Token",
+  "description": "",
+  "isToken": true,
+  "effects": []
+}

@@ -21,7 +21,6 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 CardsInHand = player.Hand.Select(CardDataFactory.Create).ToArray(),
                 EnemyCardAmount = context.GetOpponent(player).Hand.Count,
-                ReconnectToken = player.ReconnectToken,
             });
         }
 
@@ -51,7 +50,7 @@ namespace IsntGwent.Scripts.Match.Server
             });
         }
 
-        public void NotifyCardPlayed(GameContext context, Player player, CardInstance card, RowType row)
+        public void NotifyCardPlayed(GameContext context, Player player, CardInstance card, RowType row, int slotIndex)
         {
             var opponent = context.GetOpponent(player);
 
@@ -60,15 +59,18 @@ namespace IsntGwent.Scripts.Match.Server
                 Send(player, new OwnCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
-                    Row = row
+                    Row = row,
+                    SlotIndex = slotIndex
                 });
                 Send(opponent, new EnemyCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
                     DefinitionId = unit.Definition.Id,
                     CurrentPower = unit.CurrentPower.Value,
+                    Armor = unit.Armor.Value,
                     CardAmount = player.Hand.Count,
                     Row = row,
+                    SlotIndex = slotIndex,
                 });
             }
             else
@@ -162,41 +164,7 @@ namespace IsntGwent.Scripts.Match.Server
         }
 
         public MatchSnapshotMessage BuildSnapshot(GameContext context, Player player)
-        {
-            var opponent = context.GetOpponent(player);
-
-            return new MatchSnapshotMessage
-            {
-                CardsInHand = player.Hand.Select(CardDataFactory.Create).ToArray(),
-                EnemyCardAmount = opponent.Hand.Count,
-
-                OwnMeleeRow = player.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                OwnRangedRow = player.RangedRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyMeleeRow = opponent.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyRangedRow = opponent.RangedRow.Select(CardDataFactory.Create).ToArray(),
-                OwnGraveyard = player.Graveyard.Select(CardDataFactory.Create).ToArray(),
-                EnemyGraveyard = opponent.Graveyard.Select(CardDataFactory.Create).ToArray(),
-
-                OwnMeleePower = player.MeleePower,
-                OwnRangedPower = player.RangedPower,
-                OwnTotalPower = player.TotalPower,
-                EnemyMeleePower = opponent.MeleePower,
-                EnemyRangedPower = opponent.RangedPower,
-                EnemyTotalPower = opponent.TotalPower,
-
-                MyHp = player.Hp,
-                EnemyHp = opponent.Hp,
-
-                IsMyTurn = !context.IsRedrawPhase && context.CurrentPlayer == player,
-                IsEnemyPassed = opponent.IsPassed,
-
-                IsRedrawPhase = context.IsRedrawPhase,
-                RedrawsLeft = player.RedrawsLeft,
-                IsRedrawReady = player.IsRedrawReady,
-
-                RoundNumber = context.RoundNumber,
-            };
-        }
+            => MatchSnapshotBuilder.ToMessage(MatchSnapshotBuilder.Build(context, player));
 
         public void NotifyUnitStates(GameContext context, IReadOnlyList<UnitInstance> changed)
         {
@@ -204,6 +172,7 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 InstanceId = u.Id.ToString(),
                 CurrentPower = u.CurrentPower.Value,
+                Armor = u.Armor.Value,
                 IsDead = u.CurrentPower.Value <= 0
             }).ToArray();
 
@@ -214,16 +183,36 @@ namespace IsntGwent.Scripts.Match.Server
 
         public void NotifyDamageDealt(GameContext context, IReadOnlyList<DamageRecord> records)
         {
-            if (records.Count == 0) return;
-
-            var hits = records.Select(r => new DamageInstance
+            var hits = records.Where(r => r.IsVisible).Select(r => new DamageInstance
             {
                 SourceInstanceId = r.Source != null ? r.Source.Id.ToString() : string.Empty,
+                SourceCardId = r.Source != null ? r.Source.Definition.Id : string.Empty,
                 TargetInstanceId = r.Target.Id.ToString(),
-                Amount = r.Amount
+                Amount = r.Amount,
+                Kind = r.Kind
             }).ToArray();
 
+            if (hits.Length == 0) return;
+
             var msg = new DamageDealtMessage { Hits = hits };
+            Send(context.Player1, msg);
+            Send(context.Player2, msg);
+        }
+
+        public void NotifyUnitLinks(GameContext context, IReadOnlyList<UnitLinkRecord> records)
+        {
+            if (records.Count == 0) return;
+
+            var links = records.Select(r => new UnitLinkData
+            {
+                SourceInstanceId = r.Source.Id.ToString(),
+                TargetInstanceId = r.Target.Id.ToString(),
+                Kind = r.Kind,
+                TargetRow = r.TargetRow,
+                TargetSlot = r.TargetSlot
+            }).ToArray();
+
+            var msg = new UnitLinksMessage { Links = links };
             Send(context.Player1, msg);
             Send(context.Player2, msg);
         }
@@ -233,21 +222,26 @@ namespace IsntGwent.Scripts.Match.Server
             Send(player, new CardDrawnMessage { Card = CardDataFactory.Create(card) });
         }
 
+        public void NotifyPendingPlay(GameContext context, Player player)
+        {
+            var cards = player.PendingPlays.Select(CardDataFactory.Create).ToArray();
+
+            Send(player, new PendingPlayMessage { Cards = cards, IsMine = true });
+            Send(context.GetOpponent(player), new PendingPlayMessage { Cards = cards, IsMine = false });
+        }
+
         public void NotifyEnemyCardDrawn(Player opponent, int enemyCardAmount)
         {
             Send(opponent, new EnemyCardDrawnMessage { EnemyCardAmount = enemyCardAmount });
         }
 
-        public void NotifyRedrawStarted(GameContext context, int amount)
+        public void NotifyRedrawStarted(GameContext context, Player player, int amount)
         {
-            var msg = new RedrawStartedMessage
+            Send(player, new RedrawStartedMessage
             {
                 RedrawsLeft = amount,
                 RoundNumber = context.RoundNumber
-            };
-
-            Send(context.Player1, msg);
-            Send(context.Player2, msg);
+            });
         }
 
         public void NotifyCardRedrawn(Player player, CardInstance removed, CardInstance drawn, int redrawsLeft)
@@ -275,31 +269,53 @@ namespace IsntGwent.Scripts.Match.Server
 
             Send(p1, new BoardSyncMessage
             {
-                OwnMeleeRow = p1.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                OwnRangedRow = p1.RangedRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyMeleeRow = p2.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyRangedRow = p2.RangedRow.Select(CardDataFactory.Create).ToArray(),
+                OwnMeleeRow = MatchSnapshotBuilder.SlotData(p1.MeleeRow),
+                OwnRangedRow = MatchSnapshotBuilder.SlotData(p1.RangedRow),
+                EnemyMeleeRow = MatchSnapshotBuilder.SlotData(p2.MeleeRow),
+                EnemyRangedRow = MatchSnapshotBuilder.SlotData(p2.RangedRow),
                 OwnGraveyard = p1.Graveyard.Select(CardDataFactory.Create).ToArray(),
                 EnemyGraveyard = p2.Graveyard.Select(CardDataFactory.Create).ToArray(),
+                OwnRowStatus = MatchSnapshotBuilder.RowStatus(p1),
+                EnemyRowStatus = MatchSnapshotBuilder.RowStatus(p2),
             });
 
             Send(p2, new BoardSyncMessage
             {
-                OwnMeleeRow = p2.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                OwnRangedRow = p2.RangedRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyMeleeRow = p1.MeleeRow.Select(CardDataFactory.Create).ToArray(),
-                EnemyRangedRow = p1.RangedRow.Select(CardDataFactory.Create).ToArray(),
+                OwnMeleeRow = MatchSnapshotBuilder.SlotData(p2.MeleeRow),
+                OwnRangedRow = MatchSnapshotBuilder.SlotData(p2.RangedRow),
+                EnemyMeleeRow = MatchSnapshotBuilder.SlotData(p1.MeleeRow),
+                EnemyRangedRow = MatchSnapshotBuilder.SlotData(p1.RangedRow),
                 OwnGraveyard = p2.Graveyard.Select(CardDataFactory.Create).ToArray(),
                 EnemyGraveyard = p1.Graveyard.Select(CardDataFactory.Create).ToArray(),
+                OwnRowStatus = MatchSnapshotBuilder.RowStatus(p2),
+                EnemyRowStatus = MatchSnapshotBuilder.RowStatus(p1),
             });
         }
 
+        public void NotifyDecks(GameContext context)
+        {
+            var p1 = context.Player1;
+            var p2 = context.Player2;
+
+            Send(p1, new DeckSyncMessage
+            {
+                OwnDeck = DeckData(p1),
+                EnemyDeckCount = p2.Deck.Count,
+            });
+
+            Send(p2, new DeckSyncMessage
+            {
+                OwnDeck = DeckData(p2),
+                EnemyDeckCount = p1.Deck.Count,
+            });
+        }
+
+        private static CardData[] DeckData(Player player)
+            => player.Deck.OrderBy(card => card.Id).Select(CardDataFactory.Create).ToArray();
+
         private static void Send<T>(Player player, T message) where T : struct, NetworkMessage
         {
-            if (player is not { IsConnected: true }) return;
-            if (player.Connection == null) return;
-
-            player.Connection.Send(message);
+            player?.Seat?.Send(message);
         }
     }
 }

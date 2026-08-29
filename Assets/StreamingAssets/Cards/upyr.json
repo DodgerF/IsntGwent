@@ -1,0 +1,21 @@
+{
+  "id": "upyr",
+  "name": "Upyr",
+  "imageName": "upyr",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "description": "Deploy: consume the first creature in the line ahead, if it is an ally.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source",
+      "includeAllies": true
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay"
+    }
+  ]
+}

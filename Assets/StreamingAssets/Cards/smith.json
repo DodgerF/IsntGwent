@@ -1,0 +1,27 @@
+{
+  "id": "smith",
+  "name": "Smith",
+  "imageName": "smith",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "Deploy: give a chosen neighbour 3 armor.",
+  "effects": [
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true,
+      "sameLine": true,
+      "width": 1,
+      "excludeAnchor": true
+    },
+    {
+      "effect": "GainArmor",
+      "trigger": "OnPlay",
+      "amount": 3,
+      "requireTargets": true
+    }
+  ]
+}

@@ -35,7 +35,7 @@ namespace IsntGwent.Scripts.Match.UI
             if (!_matchState.IsConnectionLost.Value && !_reconnectService.IsReconnecting.Value)
                 _handler.SendLeave();
 
-            _reconnectService.EndMatch();
+            _reconnectService.EndSeat();
             _connectionService.ReturnToMenu();
         }
     }

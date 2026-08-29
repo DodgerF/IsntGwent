@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UniRx;
 using Zenject;
 
@@ -17,12 +17,19 @@ namespace IsntGwent.Scripts.Match.Server
         {
             var amount = context.RoundNumber == 1 ? FirstRoundRedraws : RoundRedraws;
 
-            Reset(context.Player1, amount);
-            Reset(context.Player2, amount);
+            var p1 = context.Player1;
+            var p2 = context.Player2;
+
+            Reset(p1, p1.Deck.Count == 0 ? 0 : amount);
+            Reset(p2, p2.Deck.Count == 0 ? 0 : amount);
 
             context.IsRedrawPhase = true;
 
-            _notifier.NotifyRedrawStarted(context, amount);
+            _notifier.NotifyRedrawStarted(context, p1, p1.RedrawsLeft);
+            _notifier.NotifyRedrawStarted(context, p2, p2.RedrawsLeft);
+
+            if (p1.RedrawsLeft == 0) SetReady(context, p1);
+            if (p2.RedrawsLeft == 0) SetReady(context, p2);
         }
 
         public void Redraw(GameContext context, Player player, string cardInstanceId)
@@ -44,7 +51,10 @@ namespace IsntGwent.Scripts.Match.Server
 
             player.RedrawsLeft--;
 
+            if (player.Deck.Count == 0) player.RedrawsLeft = 0;
+
             _notifier.NotifyCardRedrawn(player, card, drawn, player.RedrawsLeft);
+            _notifier.NotifyDecks(context);
 
             if (player.RedrawsLeft == 0)
                 SetReady(context, player);
@@ -58,6 +68,8 @@ namespace IsntGwent.Scripts.Match.Server
             player.IsRedrawReady = true;
 
             ReturnPileToDeck(player);
+
+            _notifier.NotifyDecks(context);
 
             if (!context.Player1.IsRedrawReady || !context.Player2.IsRedrawReady) return;
 

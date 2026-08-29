@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Messages;
+using IsntGwent.Scripts.Network;
 using Mirror;
 using UniRx;
 using Zenject;
@@ -10,10 +12,12 @@ namespace IsntGwent.Scripts.Lobby.Client
 {
     public class LobbyClientHandler : IInitializable, IDisposable
     {
-        public readonly Subject<LobbyError> OnError = new();
+        [Inject] private readonly MatchReconnectService _reconnect;
+
+        public readonly Subject<(LobbyError error, DeckViolation[] violations)> OnError = new();
         public readonly Subject<Unit> OnJoinedLobby = new();
         public readonly Subject<Unit> OnLobbyCreated = new();
-        
+
         public void Initialize()
         {
             if (NetworkClient.active)
@@ -22,7 +26,7 @@ namespace IsntGwent.Scripts.Lobby.Client
                 NetworkClient.RegisterHandler<JoinLobbyResultMessage>(OnJoinLobbyResult);
             }
         }
-        
+
         public void SendCreateLobby(string lobbyName, string password, DeckDefinition deck)
         {
             NetworkClient.Send(new CreateLobbyMessage
@@ -46,21 +50,27 @@ namespace IsntGwent.Scripts.Lobby.Client
         private void OnJoinLobbyResult(JoinLobbyResultMessage msg)
         {
             if (msg.IsSuccess)
+            {
+                _reconnect.BeginSeat(msg.SeatToken);
                 OnJoinedLobby.OnNext(Unit.Default);
+            }
             else
-                OnError.OnNext(msg.Error);
+            {
+                OnError.OnNext((msg.Error, msg.Violations));
+            }
         }
 
         private void OnCreateLobbyResult(CreateLobbyResultMessage msg)
         {
             if (msg.IsSuccess)
             {
+                _reconnect.BeginSeat(msg.SeatToken);
                 OnLobbyCreated.OnNext(Unit.Default);
                 OnJoinedLobby.OnNext(Unit.Default);
             }
             else
             {
-                OnError.OnNext(msg.Error);
+                OnError.OnNext((msg.Error, msg.Violations));
             }
         }
 

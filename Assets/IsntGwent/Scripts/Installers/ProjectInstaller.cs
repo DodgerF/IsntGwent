@@ -5,6 +5,7 @@ using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Network;
+using IsntGwent.Scripts.Vfx;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -43,6 +44,10 @@ namespace IsntGwent.Scripts.Installers
                 .AsSingle()
                 .NonLazy();
             Container
+                .BindInterfacesAndSelfTo<KeywordDatabase>()
+                .AsSingle()
+                .NonLazy();
+            Container
                 .BindInterfacesAndSelfTo<DeckDatabase>()
                 .AsSingle()
                 .NonLazy();
@@ -74,6 +79,10 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             Container
                 .BindInterfacesAndSelfTo<AudioService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<VfxDatabase>()
                 .AsSingle()
                 .NonLazy();
         }

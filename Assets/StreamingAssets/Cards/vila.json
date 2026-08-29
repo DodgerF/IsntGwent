@@ -1,0 +1,17 @@
+{
+  "id": "vila",
+  "name": "Vila",
+  "imageName": "vila",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "Deathwish: summon its copy from your deck.",
+  "effects": [
+    {
+      "effect": "SummonFromDeck",
+      "trigger": "OnDeath",
+      "count": 1,
+      "placement": "OwnPosition"
+    }
+  ]
+}

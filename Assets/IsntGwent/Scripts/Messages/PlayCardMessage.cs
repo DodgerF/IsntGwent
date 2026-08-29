@@ -7,6 +7,8 @@ namespace IsntGwent.Scripts.Messages
     {
         public string CardInstanceId;
         public RowType Row;
+        public bool EnemyRow;
+        public int SlotIndex;
         public string[] TargetIds;
     }
 }

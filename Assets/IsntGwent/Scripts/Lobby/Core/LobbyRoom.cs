@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using IsntGwent.Scripts.Match.Client;
-using Mirror;
 
 namespace IsntGwent.Scripts.Lobby.Core
 {
@@ -10,54 +8,44 @@ namespace IsntGwent.Scripts.Lobby.Core
         public readonly LobbyData Data;
         public const int MaxPlayers = 2;
         public readonly string Password;
-        private readonly List<PlayerLobby> _players;
+        private readonly List<Seat> _seats;
 
-        public IReadOnlyList<PlayerLobby> Players => _players;
-        public bool TryAddPlayer(PlayerLobby playerLobby)
+        public IReadOnlyList<Seat> Seats => _seats;
+
+        public bool TryAddSeat(Seat seat)
         {
-            if (_players.Count >= MaxPlayers)
+            if (_seats.Count >= MaxPlayers)
                 return false;
 
-            if (_players.Contains(playerLobby))
+            if (_seats.Contains(seat))
                 return false;
 
-            _players.Add(playerLobby);
+            _seats.Add(seat);
             return true;
         }
-        public bool IsFull => _players.Count == MaxPlayers;
-        public bool AllReady => _players.Count > 0 && _players.All(p => p.IsReady);
+
+        public bool IsFull => _seats.Count == MaxPlayers;
+        public bool AllReady => _seats.Count > 0 && _seats.All(s => s.IsReady);
 
         public LobbyRoom(LobbyData data, string password)
         {
             Data = data;
             Password = password;
-            _players = new List<PlayerLobby>();
+            _seats = new List<Seat>();
         }
 
-        public PlayerLobby GetPlayer(NetworkConnectionToClient conn)
+        public bool Contains(Seat seat) => seat != null && _seats.Contains(seat);
+
+        public Seat GetOpponent(Seat seat)
         {
-            return _players.FirstOrDefault(p => p.Connection == conn);
+            return _seats.FirstOrDefault(s => s != seat);
         }
 
-        public PlayerLobby GetOpponent(NetworkConnectionToClient conn)
+        public void RemoveSeat(Seat seat)
         {
-            return _players.FirstOrDefault(p => p.Connection != conn);
-        }
+            if (seat == null) return;
 
-        public void SetReady(NetworkConnectionToClient conn)
-        {
-            var player = GetPlayer(conn);
-            if (player == null) return;
-
-            player.IsReady = true;
-        }
-
-        public void RemovePlayer(NetworkConnectionToClient conn)
-        {
-            var player = GetPlayer(conn);
-            if (player == null) return;
-
-            _players.Remove(player);
+            _seats.Remove(seat);
         }
     }
 }

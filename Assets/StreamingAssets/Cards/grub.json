@@ -1,0 +1,24 @@
+{
+  "id": "grub",
+  "name": "Grub",
+  "imageName": "grub",
+  "type": "Unit",
+  "power": 1,
+  "rarity": "Token",
+  "description": "Deathwish: boost the strongest neighbour by 1.",
+  "isToken": true,
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnDeath",
+      "relativeTo": "Source",
+      "pick": "Highest"
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnDeath",
+      "amount": 1,
+      "requireTargets": true
+    }
+  ]
+}

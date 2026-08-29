@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Server;
-using IsntGwent.Scripts.Messages;
-using Mirror;
 using UniRx;
 using UnityEngine;
 using Zenject;
@@ -16,21 +13,28 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly MatchServerHandler _handler;
         [Inject] private readonly MatchServerNotifier _notifier;
         [Inject] private readonly LobbyManager _lobbyManager;
-        [Inject] private readonly CardPlayService _cardPlayService;
-        [Inject] private readonly TurnService _turnService;
+        [Inject] private readonly MatchIntentService _intents;
         [Inject] private readonly RedrawService _redrawService;
         [Inject] private readonly TriggeredEffectDispatcher _dispatcher;
+        [Inject] private readonly WeatherService _weatherService;
 
         private readonly CompositeDisposable _disposables = new();
+
+        private static void Report(string intent, IntentError error)
+        {
+            if (error == IntentError.None) return;
+
+            Debug.LogWarning($"[Match] {intent} rejected: {error}");
+        }
 
         public void Initialize()
         {
             _handler.OnPlayCard
-                .Subscribe(t => OnPlayCard(t.conn, t.msg))
+                .Subscribe(t => Report("PlayCard", _intents.PlayCard(t.seat, t.msg)))
                 .AddTo(_disposables);
 
             _handler.OnPass
-                .Subscribe(OnPass)
+                .Subscribe(seat => Report("Pass", _intents.Pass(seat)))
                 .AddTo(_disposables);
 
             _handler.OnLeave
@@ -38,11 +42,11 @@ namespace IsntGwent.Scripts.Match.Server
                 .AddTo(_disposables);
 
             _handler.OnRedrawCard
-                .Subscribe(t => OnRedrawCard(t.conn, t.msg))
+                .Subscribe(t => Report("Redraw", _intents.Redraw(t.seat, t.msg.CardInstanceId)))
                 .AddTo(_disposables);
 
             _handler.OnRedrawReady
-                .Subscribe(OnRedrawReady)
+                .Subscribe(seat => Report("RedrawReady", _intents.RedrawReady(seat)))
                 .AddTo(_disposables);
 
             _redrawService.PhaseEnded
@@ -50,71 +54,17 @@ namespace IsntGwent.Scripts.Match.Server
                 .AddTo(_disposables);
         }
         
-        private void OnLeave(NetworkConnectionToClient conn)
+        public void OnLeave(Seat seat)
         {
-            var context = _lobbyManager.GetGameContext(conn);
-            var player = context?.GetPlayer(conn);
+            if (seat == null) return;
+
+            var context = _lobbyManager.GetGameContext(seat);
+            var player = context?.GetPlayer(seat);
 
             if (player != null)
                 EndGameBySurrender(context, context.GetOpponent(player), notifyLoser: false);
 
-            _lobbyManager.LeaveLobby(conn);
-        }
-
-        private void OnPlayCard(NetworkConnectionToClient conn, PlayCardMessage msg)
-        {
-            var context = _lobbyManager.GetGameContext(conn);
-            if (context == null) return;
-            if (context.IsPaused) return;
-            if (context.IsRedrawPhase) return;
-
-            var player = context.GetPlayer(conn);
-            if (context.CurrentPlayer != player) return;
-
-            var card = player.Hand.FirstOrDefault(c => c.Id.ToString() == msg.CardInstanceId);
-            if (card == null) return;
-
-            var selectedIds = msg.TargetIds?.ToList() ?? new List<string>();
-
-            _cardPlayService.PlayCard(context, player, card, msg.Row, selectedIds);
-        }
-
-        private void OnPass(NetworkConnectionToClient conn)
-        {
-            var context = _lobbyManager.GetGameContext(conn);
-            if (context == null) return;
-            if (context.IsPaused) return;
-            if (context.IsRedrawPhase) return;
-
-            var player = context.GetPlayer(conn);
-            if (context.CurrentPlayer != player) return;
-            if (player.IsPassed) return;
-
-            _turnService.PassTurn(context, player);
-        }
-
-        private void OnRedrawCard(NetworkConnectionToClient conn, RedrawCardMessage msg)
-        {
-            var context = _lobbyManager.GetGameContext(conn);
-            if (context == null) return;
-            if (context.IsPaused) return;
-
-            var player = context.GetPlayer(conn);
-            if (player == null) return;
-
-            _redrawService.Redraw(context, player, msg.CardInstanceId);
-        }
-
-        private void OnRedrawReady(NetworkConnectionToClient conn)
-        {
-            var context = _lobbyManager.GetGameContext(conn);
-            if (context == null) return;
-            if (context.IsPaused) return;
-
-            var player = context.GetPlayer(conn);
-            if (player == null) return;
-
-            _redrawService.SetReady(context, player);
+            _lobbyManager.LeaveLobby(seat);
         }
 
         private void OnRedrawPhaseEnded(GameContext context)
@@ -129,6 +79,7 @@ namespace IsntGwent.Scripts.Match.Server
         public void StartGame(GameContext context)
         {
             _dispatcher.Attach(context);
+            _weatherService.Attach(context);
 
             DeckService.Shuffle(context.Player1.Deck);
             DeckService.Shuffle(context.Player2.Deck);
@@ -140,6 +91,7 @@ namespace IsntGwent.Scripts.Match.Server
             context.CurrentPlayer = rnd == 0 ? context.Player1 : context.Player2;
 
             _notifier.NotifyGameStarted(context);
+            _notifier.NotifyDecks(context);
 
             _redrawService.BeginPhase(context);
         }

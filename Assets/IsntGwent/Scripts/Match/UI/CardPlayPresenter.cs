@@ -1,3 +1,4 @@
+﻿using DG.Tweening;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
@@ -11,10 +12,14 @@ namespace IsntGwent.Scripts.Match.UI
 {
     public class CardPlayPresenter : MonoBehaviour
     {
+        private const float EnemyHandScale = 0.7f;
+
         public GameObject cardPrefab;
 
         [FormerlySerializedAs("previewAnchor")]
         public RectTransform playAnchor;
+
+        public RectTransform enemyHandAnchor;
 
         [Inject] private readonly DiContainer _container;
         [Inject] private readonly MatchState _matchState;
@@ -30,6 +35,7 @@ namespace IsntGwent.Scripts.Match.UI
         private void Stage(CardInstance card)
         {
             var view = _registry.Get(card.Id);
+            var fromEnemyHand = false;
 
             if (view == null)
             {
@@ -38,21 +44,48 @@ namespace IsntGwent.Scripts.Match.UI
                 view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab);
                 view.Setup(card);
                 _registry.Register(view);
+
+                fromEnemyHand = enemyHandAnchor != null && Application.isPlaying;
             }
 
             var previousRow = view.transform.parent != null
-                ? view.transform.parent.GetComponent<RowView>()
+                ? view.transform.parent.GetComponent<CardLaneView>()
                 : null;
+
+            if (previousRow is BoardRowView)
+                return;
 
             if (previousRow != null)
                 previousRow.DetachCard(view.gameObject);
 
-            view.transform.SetParent(transform, false);
-            view.transform.position = playAnchor != null
-                ? playAnchor.position
-                : transform.position;
+            var staged = view.transform;
+
+            staged.DOKill();
+            staged.SetParent(transform, false);
+            staged.localRotation = Quaternion.identity;
+
+            var target = playAnchor != null ? playAnchor.position : transform.position;
 
             view.gameObject.SetActive(true);
+
+            if (!fromEnemyHand)
+            {
+                staged.position = target;
+                view.SetBaseScale(CardAnimConfig.PlayStageScale);
+                return;
+            }
+
+            staged.position = enemyHandAnchor.position;
+
+            view.SetBaseScale(EnemyHandScale);
+            view.SetBaseScale(
+                CardAnimConfig.PlayStageScale,
+                CardAnimConfig.EnemyStageFlightDuration,
+                CardAnimConfig.FlightGrowEase);
+
+            staged
+                .DOMove(target, CardAnimConfig.EnemyStageFlightDuration)
+                .SetEase(CardAnimConfig.FlightEase);
         }
     }
 }

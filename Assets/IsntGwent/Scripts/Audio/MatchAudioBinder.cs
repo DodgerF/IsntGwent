@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Match.Client;
 using IsntGwent.Scripts.Messages;
@@ -12,14 +14,17 @@ namespace IsntGwent.Scripts.Audio
         private readonly MatchState _state;
         private readonly MatchClientHandler _handler;
         private readonly InputRouter _input;
+        private readonly CardSelectionService _selection;
         private readonly AudioService _audio;
         private readonly CompositeDisposable _disposables = new();
 
-        public MatchAudioBinder(MatchState state, MatchClientHandler handler, InputRouter input, AudioService audio)
+        public MatchAudioBinder(MatchState state, MatchClientHandler handler, InputRouter input,
+            CardSelectionService selection, AudioService audio)
         {
             _state = state;
             _handler = handler;
             _input = input;
+            _selection = selection;
             _audio = audio;
         }
 
@@ -52,12 +57,25 @@ namespace IsntGwent.Scripts.Audio
                 .Subscribe(_ => _audio.Play("card_draw"))
                 .AddTo(_disposables);
 
+            _state.PendingPlayGranted
+                .Subscribe(_ => _audio.Play("card_draw"))
+                .AddTo(_disposables);
+
             _state.DamageDealt
-                .Subscribe(hits => _audio.PlayStack("hit", hits?.Length ?? 1))
+                .Subscribe(PlayHitSounds)
+                .AddTo(_disposables);
+
+            _state.UnitsLinked
+                .Subscribe(PlayLinkSounds)
                 .AddTo(_disposables);
 
             _state.UnitsDied
                 .Subscribe(count => _audio.PlayStack("unit_death", count))
+                .AddTo(_disposables);
+
+            _state.GraveyardPurged
+                .Where(count => count > 0)
+                .Subscribe(_ => _audio.Play("unit_devour"))
                 .AddTo(_disposables);
 
             _state.TurnChanged
@@ -94,6 +112,31 @@ namespace IsntGwent.Scripts.Audio
             _input.CardPressed.Subscribe(_ => _audio.Play("ui_click")).AddTo(_disposables);
             _input.BoardCardPressed.Subscribe(_ => _audio.Play("ui_click")).AddTo(_disposables);
             _input.CardHovered.Subscribe(_ => _audio.Play("ui_hover")).AddTo(_disposables);
+
+            _selection.PlacementDenied.Subscribe(_ => _audio.Play("ui_denied")).AddTo(_disposables);
+            _selection.DragBegan.Subscribe(_ => _audio.Play("card_move")).AddTo(_disposables);
+            _selection.SlotHovered.Subscribe(_ => _audio.Play("ui_hover")).AddTo(_disposables);
+            _selection.PlacementStaged.Subscribe(_ => _audio.Play("ui_click")).AddTo(_disposables);
+            _selection.PlacementCancelled.Subscribe(_ => _audio.Play("ui_denied")).AddTo(_disposables);
+        }
+
+        private void PlayHitSounds(DamageInstance[] hits)
+        {
+            if (hits == null) return;
+
+            var weather = hits.Count(hit => hit.Kind == DamageKind.Weather);
+
+            if (weather > 0) _audio.PlayStack("weather_hit", weather);
+            if (hits.Length > weather) _audio.PlayStack("hit", hits.Length - weather);
+        }
+
+        private void PlayLinkSounds(UnitLinkData[] links)
+        {
+            if (links == null) return;
+
+            var devoured = links.Count(link => link.Kind == UnitLinkKind.Devour);
+            if (devoured > 0)
+                _audio.PlayStack("unit_devour", devoured);
         }
 
         public void Dispose()

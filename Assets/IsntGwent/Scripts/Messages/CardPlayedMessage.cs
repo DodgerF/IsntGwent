@@ -7,14 +7,17 @@ namespace IsntGwent.Scripts.Messages
     {
         public string CardInstanceId;
         public RowType Row;
+        public int SlotIndex;
     }
-    
+
     public struct EnemyCardPlayedMessage : NetworkMessage
     {
         public string CardInstanceId;
         public string DefinitionId;
         public int CurrentPower;
+        public int Armor;
         public RowType Row;
+        public int SlotIndex;
         public int CardAmount;
     }
 
