@@ -1,7 +1,14 @@
-using Mirror;
+﻿using Mirror;
 
 namespace IsntGwent.Scripts.Messages
 {
+    public enum ReconnectPhase
+    {
+        None,
+        Lobby,
+        Match
+    }
+
     public struct ReconnectRequestMessage : NetworkMessage
     {
         public string Token;
@@ -10,6 +17,7 @@ namespace IsntGwent.Scripts.Messages
     public struct ReconnectResultMessage : NetworkMessage
     {
         public bool IsSuccess;
+        public ReconnectPhase Phase;
     }
 
     public struct OpponentReconnectingMessage : NetworkMessage
@@ -22,12 +30,17 @@ namespace IsntGwent.Scripts.Messages
         public CardData[] CardsInHand;
         public int EnemyCardAmount;
 
+        public CardData[] OwnDeck;
+        public int EnemyDeckCount;
+
         public CardData[] OwnMeleeRow;
         public CardData[] OwnRangedRow;
         public CardData[] EnemyMeleeRow;
         public CardData[] EnemyRangedRow;
         public CardData[] OwnGraveyard;
         public CardData[] EnemyGraveyard;
+        public RowStatusData[] OwnRowStatus;
+        public RowStatusData[] EnemyRowStatus;
 
         public int OwnMeleePower;
         public int OwnRangedPower;
@@ -47,5 +60,8 @@ namespace IsntGwent.Scripts.Messages
         public bool IsRedrawReady;
 
         public int RoundNumber;
+
+        public CardData[] PendingPlays;
+        public bool IsPendingMine;
     }
 }

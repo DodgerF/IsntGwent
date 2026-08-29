@@ -15,6 +15,7 @@ namespace IsntGwent.Scripts.UI
         [SerializeField] private GameObject panel;
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private Button retryButton;
+        [SerializeField] private Button quitButton;
         [SerializeField] private float unavailableAfterSeconds = 10f;
         [SerializeField] private string connectingMessage = "Connecting…";
         [SerializeField] private string unavailableMessage = "Server unavailable";
@@ -47,7 +48,7 @@ namespace IsntGwent.Scripts.UI
         private void ShowConnecting()
         {
             statusText.text = connectingMessage;
-            retryButton.gameObject.SetActive(false);
+            SetActionsVisible(false);
 
             _unavailableTimer.Disposable = Observable
                 .Timer(TimeSpan.FromSeconds(unavailableAfterSeconds))
@@ -57,7 +58,15 @@ namespace IsntGwent.Scripts.UI
         private void ShowUnavailable()
         {
             statusText.text = unavailableMessage;
-            retryButton.gameObject.SetActive(true);
+            SetActionsVisible(true);
+        }
+
+        private void SetActionsVisible(bool visible)
+        {
+            retryButton.gameObject.SetActive(visible);
+
+            if (quitButton != null)
+                quitButton.gameObject.SetActive(visible);
         }
 
         private void OnRetryClicked()

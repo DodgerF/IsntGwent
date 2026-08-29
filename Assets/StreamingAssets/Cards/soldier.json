@@ -1,9 +1,0 @@
-﻿{
-  "id": "soldier",
-  "name": "Soldier",
-  "imageName": "soldier",
-  "type": "Unit",
-  "row": "Melee",
-  "power": 6,
-  "effects": []
-} 

@@ -1,0 +1,33 @@
+{
+  "id": "thunderbolt",
+  "name": "Lightning of Perun",
+  "imageName": "thunderbolt",
+  "type": "Spell",
+  "rarity": "Epic",
+  "description": "Deploy: damage 4 to the chosen creature and 2 to its neighbours.",
+  "effects": [
+    {
+      "effect": "ManualTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "includeAllies": true,
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4
+    },
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnPlay",
+      "relativeTo": "ManualTarget",
+      "pick": "All"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 2
+    }
+  ]
+}

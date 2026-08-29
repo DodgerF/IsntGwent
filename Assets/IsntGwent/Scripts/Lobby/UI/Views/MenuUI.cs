@@ -22,18 +22,21 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
         [SerializeField] private Transform parent;
         [SerializeField] private LobbyEntryView prefab;
         
-        private readonly Dictionary<string, GameObject> _lobbyEntries = new();
+        private readonly Dictionary<string, LobbyEntryView> _lobbyEntries = new();
 
         private void Start()
         {
             foreach (var lobby in _vm.Lobbies)
                 CreateEntry(lobby);
-            
+
             _vm.Lobbies.ObserveAdd()
                 .Subscribe(addEvent => CreateEntry(addEvent.Value))
                 .AddTo(this);
             _vm.Lobbies.ObserveRemove()
                 .Subscribe(removeEvent => RemoveEntry(removeEvent.Value))
+                .AddTo(this);
+            _vm.Lobbies.ObserveReplace()
+                .Subscribe(replaceEvent => RefreshEntry(replaceEvent.NewValue))
                 .AddTo(this);
             _vm.CanCreateOrJoinLobby
                 .Subscribe(canCreate =>  
@@ -41,12 +44,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                     createButton.interactable = canCreate;
                 })  
                 .AddTo(this);
-            
-            foreach (var lobby in _vm.Lobbies)
-            {
-                CreateEntry(lobby);
-            }
-            
+
             createButton.OnClickAsObservable()
                 .Subscribe(_ =>
                 {
@@ -73,18 +71,26 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
         {
             if (_lobbyEntries.Remove(data.LobbyId, out var entry))
             {
-                Destroy(entry);
+                Destroy(entry.gameObject);
             }
+        }
+
+        private void RefreshEntry(LobbyData data)
+        {
+            if (_lobbyEntries.TryGetValue(data.LobbyId, out var entry))
+                entry.Refresh(data);
+            else
+                CreateEntry(data);
         }
 
         private void CreateEntry(LobbyData data)
         {
             if (_lobbyEntries.ContainsKey(data.LobbyId)) return;
-            
+
             var instance = _container.InstantiatePrefabForComponent<LobbyEntryView>(prefab, parent);
             instance.Setup(data);
-            
-            _lobbyEntries.Add(data.LobbyId, instance.gameObject);
+
+            _lobbyEntries.Add(data.LobbyId, instance);
             LayoutRebuilder.ForceRebuildLayoutImmediate(parent as RectTransform);
         }
     }

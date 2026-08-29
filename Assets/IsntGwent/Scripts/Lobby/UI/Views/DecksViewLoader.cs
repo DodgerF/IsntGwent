@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Decks.UI;
 using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Client;
 using UniRx;
+using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Lobby.UI.Views
@@ -13,6 +15,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
     {
         [Inject] private readonly DeckSelectService _deckSelect;
         [Inject] private readonly SceneService _scenes;
+        [InjectOptional] private readonly CardsViewLoader _cards;
 
         protected override void Start()
         {
@@ -23,9 +26,11 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
                 .AddTo(this);
         }
 
-        protected override void OnDeckClicked(DeckDefinition deck, bool isBuiltIn)
+        protected override void OnDeckClicked(DeckDefinition deck, bool isBuiltIn, DeckSelectionView view)
         {
+            _cards?.SpawnFrom(view != null ? (RectTransform)view.transform : null);
             _deckSelect.SelectedDeck.Value = deck;
+            _cards?.SpawnFrom(null);
         }
 
         protected override void OnNewDeckClicked()

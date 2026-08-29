@@ -31,7 +31,14 @@ namespace IsntGwent.Scripts.Decks
             if (card == null) return 0;
             if (card.MaxCopies > 0) return card.MaxCopies;
 
-            return card.Type == CardType.Spell ? Current.MaxCopiesSpell : Current.MaxCopiesUnit;
+            return card.Rarity switch
+            {
+                CardRarity.Rare => Current.MaxCopiesRare,
+                CardRarity.Epic => Current.MaxCopiesEpic,
+                CardRarity.Legendary => Current.MaxCopiesLegendary,
+                CardRarity.Token => 0,
+                _ => Current.MaxCopiesCommon
+            };
         }
 
         private IEnumerator LoadCoroutine()

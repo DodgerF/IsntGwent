@@ -1,0 +1,24 @@
+{
+  "id": "verlioka",
+  "name": "Verlioka",
+  "imageName": "verlioka",
+  "type": "Unit",
+  "power": 9,
+  "rarity": "Common",
+  "description": "Deploy: damage 2 to both neighbours. Damage 2 to itself for each missing target.",
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnPlay",
+      "relativeTo": "Source",
+      "pick": "All"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 2,
+      "selfPerMissingTarget": true,
+      "expectedTargets": 2
+    }
+  ]
+}

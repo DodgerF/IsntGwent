@@ -1,34 +1,29 @@
-using System;
 using IsntGwent.Scripts.Cards.Runtime;
-using IsntGwent.Scripts.Core;
 using UniRx;
-using Zenject;
 
 namespace IsntGwent.Scripts.Cards.Client
 {
-    public class CardPreviewService : IInitializable, IDisposable
+    public readonly struct PreviewRequest
     {
-        [Inject] private readonly InputRouter _inputRouter;
+        public readonly CardInstance Card;
+        public readonly bool Modal;
 
-        public readonly Subject<CardInstance> ShowCard = new();
+        public PreviewRequest(CardInstance card, bool modal)
+        {
+            Card = card;
+            Modal = modal;
+        }
+    }
+
+    public class CardPreviewService
+    {
+        public readonly Subject<PreviewRequest> ShowCard = new();
         public readonly Subject<Unit> HideCard = new();
 
-        private readonly CompositeDisposable _disposables = new();
+        public void Show(CardInstance card) => ShowCard.OnNext(new PreviewRequest(card, false));
 
-        public void Initialize()
-        {
-            _inputRouter.CardHovered
-                .Subscribe(card => ShowCard.OnNext(card.Instance))
-                .AddTo(_disposables);
+        public void ShowModal(CardInstance card) => ShowCard.OnNext(new PreviewRequest(card, true));
 
-            _inputRouter.HoverEnded
-                .Subscribe(_ => HideCard.OnNext(Unit.Default))
-                .AddTo(_disposables);
-        }
-
-        public void Dispose()
-        {
-            _disposables.Dispose();
-        }
+        public void Hide() => HideCard.OnNext(Unit.Default);
     }
 }

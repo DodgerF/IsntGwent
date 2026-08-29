@@ -1,0 +1,18 @@
+{
+  "id": "egg",
+  "name": "Egg",
+  "imageName": "egg",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "description": "Deathwish: summon a Fledgling on its cell.",
+  "effects": [
+    {
+      "effect": "SummonToken",
+      "trigger": "OnDeath",
+      "tokenId": "fledgling",
+      "count": 1,
+      "placement": "OwnPosition"
+    }
+  ]
+}

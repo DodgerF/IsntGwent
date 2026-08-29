@@ -16,11 +16,12 @@ namespace IsntGwent.Scripts.Match.UI
     public class RedrawPresenter : MonoBehaviour
     {
         public GameObject panel;
-        public RowView topRow;
-        public RowView bottomRow;
-        public RowView handRow;
+        public RedrawTrayView tray;
+        public CardLaneView handRow;
         public RectTransform deckAnchor;
         public Button doneButton;
+        public Button hideButton;
+        public Button showButton;
         public TextMeshProUGUI counterText;
         public GameObject waitingLabel;
 
@@ -28,15 +29,30 @@ namespace IsntGwent.Scripts.Match.UI
         [Inject] private readonly CardViewRegistry _registry;
         [Inject] private readonly InputRouter _inputRouter;
 
+        private CanvasGroup _panelGroup;
         private bool _isOpen;
+        private bool _isHidden;
+        private bool _isClosing;
+        private float _lastCardTime;
+        private Tween _closeDelay;
 
-        public bool IsPhaseActive => _isOpen;
+        public bool IsPhaseActive => _isOpen && !_isClosing;
 
-        public RowView NextRow() => bottomRow.CardCount < topRow.CardCount ? bottomRow : topRow;
+        public void AddCard(GameObject card)
+        {
+            _lastCardTime = Time.time;
+            tray.AddCard(card);
+        }
 
         private void Start()
         {
+            _panelGroup = panel.GetComponent<CanvasGroup>();
+            if (_panelGroup == null)
+                _panelGroup = panel.AddComponent<CanvasGroup>();
+
             panel.SetActive(false);
+
+            SetHidden(false);
 
             _matchState.IsRedrawPhase
                 .Subscribe(active =>
@@ -60,19 +76,33 @@ namespace IsntGwent.Scripts.Match.UI
 
             _matchState.IsGameEnded
                 .Where(ended => ended)
-                .Subscribe(_ => Close())
+                .Subscribe(_ => Finish())
                 .AddTo(this);
 
             _matchState.CardRedrawn
                 .Subscribe(Discard)
                 .AddTo(this);
 
+            _matchState.IsPileWindowOpen
+                .Subscribe(_ => RefreshShowButton())
+                .AddTo(this);
+
             doneButton.OnClickAsObservable()
                 .Subscribe(_ => _matchState.RedrawReadyRequested.OnNext(Unit.Default))
                 .AddTo(this);
 
+            if (hideButton != null)
+                hideButton.OnClickAsObservable()
+                    .Subscribe(_ => SetHidden(true))
+                    .AddTo(this);
+
+            if (showButton != null)
+                showButton.OnClickAsObservable()
+                    .Subscribe(_ => SetHidden(false))
+                    .AddTo(this);
+
             _inputRouter.CardPressed
-                .Where(_ => _isOpen)
+                .Where(_ => IsPhaseActive)
                 .Where(_ => !_matchState.IsRedrawReady.Value)
                 .Where(view => view != null && _matchState.Hand.Contains(view.Instance))
                 .Subscribe(view => _matchState.RedrawRequested.OnNext(view.Instance))
@@ -81,25 +111,48 @@ namespace IsntGwent.Scripts.Match.UI
 
         private void Open()
         {
+            CancelCloseDelay();
+
             if (_isOpen) return;
 
             _isOpen = true;
+            _lastCardTime = Time.time;
             panel.SetActive(true);
 
-            var cards = new List<CardInstance>(_matchState.Hand);
-            var half = (cards.Count + 1) / 2;
+            SetHidden(false);
 
-            for (var i = 0; i < cards.Count; i++)
+            foreach (var card in new List<CardInstance>(_matchState.Hand))
             {
-                var view = _registry.Get(cards[i].Id);
+                var view = _registry.Get(card.Id);
                 if (view == null) continue;
 
-                (i < half ? topRow : bottomRow).AddCard(view.gameObject);
+                tray.AddCard(view.gameObject);
             }
         }
 
         private void Close()
         {
+            if (!_isOpen || _isClosing) return;
+
+            var wait = _lastCardTime
+                       + CardAnimConfig.PlayFlightDuration
+                       + CardAnimConfig.RedrawCloseHold
+                       - Time.time;
+
+            if (!Application.isPlaying || wait <= 0f)
+            {
+                Finish();
+                return;
+            }
+
+            _isClosing = true;
+            _closeDelay = DOVirtual.DelayedCall(wait, Finish, false);
+        }
+
+        private void Finish()
+        {
+            CancelCloseDelay();
+
             if (!_isOpen) return;
 
             _isOpen = false;
@@ -109,11 +162,47 @@ namespace IsntGwent.Scripts.Match.UI
                 var view = _registry.Get(card.Id);
                 if (view == null) continue;
 
+                tray.Release(view.gameObject);
                 handRow.AddCard(view.gameObject);
             }
 
+            tray.ReleaseAll();
+
+            SetHidden(false);
+
             panel.SetActive(false);
         }
+
+        private void SetHidden(bool hidden)
+        {
+            _isHidden = hidden;
+
+            if (_panelGroup != null)
+            {
+                _panelGroup.alpha = hidden ? 0f : 1f;
+                _panelGroup.blocksRaycasts = !hidden;
+                _panelGroup.interactable = !hidden;
+            }
+
+            RefreshShowButton();
+        }
+
+        private void RefreshShowButton()
+        {
+            if (showButton == null) return;
+
+            showButton.gameObject.SetActive(_isOpen && _isHidden && !_matchState.IsPileWindowOpen.Value);
+        }
+
+        private void CancelCloseDelay()
+        {
+            _isClosing = false;
+
+            _closeDelay?.Kill();
+            _closeDelay = null;
+        }
+
+        private void OnDestroy() => CancelCloseDelay();
 
         private void Discard(CardInstance card)
         {
@@ -125,13 +214,12 @@ namespace IsntGwent.Scripts.Match.UI
             var moved = view.transform;
             var start = moved.position;
 
-            var row = moved.parent != null ? moved.parent.GetComponent<RowView>() : null;
-            if (row != null)
-                row.DetachCard(view.gameObject);
+            tray.Release(view.gameObject);
 
             moved.SetParent(panel.transform, false);
             moved.position = start;
 
+            view.SetBaseScale(1f, CardAnimConfig.RedrawDiscardDuration, CardAnimConfig.FlightEase);
             moved.DOMove(deckAnchor.position, CardAnimConfig.RedrawDiscardDuration)
                 .SetEase(CardAnimConfig.FlightEase)
                 .OnComplete(() => Destroy(view.gameObject));

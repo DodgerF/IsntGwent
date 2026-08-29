@@ -17,38 +17,48 @@ namespace IsntGwent.Scripts.Cards.Server
             _effectRegistry = effectRegistry;
         }
 
-        public bool PlayCard(GameContext context, Player caster, CardInstance card, List<string> selectedIds)
+        public bool PlayCard(GameContext context, Player caster, CardInstance card, RowType playedRow,
+            int playedSlot, List<string> selectedIds, bool enemyRow = false)
         {
             var manualTargets = ResolveManualTargets(context, selectedIds);
 
-            if (!ValidateManualTargets(context, caster, card.Definition, manualTargets))
+            if (!ValidateManualTargets(context, caster, card, manualTargets, playedRow, playedSlot))
                 return false;
 
-            RunEffects(context, caster, card, EffectTrigger.OnPlay, null, manualTargets);
+            RunEffects(context, caster, card, EffectTrigger.OnPlay, null, manualTargets, playedRow, playedSlot,
+                enemyRow);
             return true;
         }
-        
-        public bool CanPlay(GameContext context, Player caster, CardDefinition definition, List<string> selectedIds)
+
+        public bool CanPlay(GameContext context, Player caster, CardInstance card, List<string> selectedIds,
+            RowType playedRow = RowType.None, int playedSlot = -1)
         {
             var manualTargets = ResolveManualTargets(context, selectedIds);
-            return ValidateManualTargets(context, caster, definition, manualTargets);
+            return ValidateManualTargets(context, caster, card, manualTargets, playedRow, playedSlot);
         }
-        
-        private bool ValidateManualTargets(GameContext context, Player caster, CardDefinition definition,
-            List<UnitInstance> manualTargets)
+
+        private bool ValidateManualTargets(GameContext context, Player caster, CardInstance card,
+            List<UnitInstance> manualTargets, RowType playedRow, int playedSlot)
         {
-            foreach (var effectDef in definition.Effects)
+            foreach (var effectDef in card.Definition.Effects)
             {
                 if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
                 if (effectDef is not ManualTargetingDefinition manualDef) continue;
 
-                var effect = (ManualTargetingEffect)_effectRegistry.Get(effectDef);
-                var pool = effect.GetPool(new EffectContext
+                var effectContext = new EffectContext
                 {
                     Game = context,
+                    Source = card,
                     Owner = caster,
                     Definition = effectDef,
-                });
+                    PlayedRow = playedRow,
+                    PlayedSlot = playedSlot,
+                };
+
+                if (!EffectConditions.IsMet(effectContext, effectDef)) continue;
+
+                var effect = (ManualTargetingEffect)_effectRegistry.Get(effectDef);
+                var pool = effect.GetPool(effectContext);
 
                 var poolIds = new HashSet<Guid>(pool.Select(u => u.Id));
                 if (manualTargets.Any(t => !poolIds.Contains(t.Id)))
@@ -57,14 +67,15 @@ namespace IsntGwent.Scripts.Cards.Server
                 var maxAvailable = Math.Min(manualDef.Count, pool.Count);
                 var expected = manualDef.AllowPartial ? maxAvailable : manualDef.Count;
 
-                return manualTargets.Count == expected;
+                if (manualTargets.Count != expected) return false;
             }
 
             return true;
         }
         
         public void RunEffects(GameContext context, Player owner, CardInstance card,
-            EffectTrigger trigger, IGameEvent gameEvent, List<UnitInstance> manualTargets)
+            EffectTrigger trigger, IGameEvent gameEvent, List<UnitInstance> manualTargets,
+            RowType playedRow = RowType.None, int playedSlot = -1, bool enemyRow = false)
         {
             var effectContext = new EffectContext
             {
@@ -72,14 +83,26 @@ namespace IsntGwent.Scripts.Cards.Server
                 Source = card,
                 Owner = owner,
                 Event = gameEvent,
+                PlayedRow = playedRow != RowType.None
+                    ? playedRow
+                    : (card as UnitInstance)?.RowType ?? RowType.None,
+                PlayedSlot = playedSlot >= 0
+                    ? playedSlot
+                    : (card is UnitInstance unit ? context.FindSlot(unit)?.Index ?? -1 : -1),
                 ManualTargets = manualTargets ?? new List<UnitInstance>(),
+                TargetsEnemyRow = enemyRow,
             };
 
             foreach (var effectDef in card.Definition.Effects)
             {
                 if (effectDef.Trigger != trigger) continue;
+                if (effectDef.RequiredRow != RowType.None && effectDef.RequiredRow != effectContext.PlayedRow)
+                    continue;
 
                 effectContext.Definition = effectDef;
+
+                if (!SlotConditions.IsMet(effectContext, effectDef)) continue;
+                if (!EffectConditions.IsMet(effectContext, effectDef)) continue;
 
                 var effect = _effectRegistry.Get(effectDef);
                 if (!effect.CanTrigger(effectContext)) continue;
@@ -106,11 +129,55 @@ namespace IsntGwent.Scripts.Cards.Server
                 .ToList();
         }
 
-        public bool NeedsManualTargets(CardDefinition definition, out int count)
+        public bool NeedsRowChoice(CardDefinition definition)
+        {
+            if (TargetsAnyRow(definition)) return true;
+
+            foreach (var effectDef in definition.Effects)
+            {
+                if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (effectDef is TargetingEffectDefinition { RestrictToPlayedRow: true })
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool TargetsAnyRow(CardDefinition definition)
         {
             foreach (var effectDef in definition.Effects)
             {
                 if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (effectDef is ApplyWeatherDefinition) return true;
+            }
+
+            return false;
+        }
+
+        public bool NeedsAimAfterPlacement(CardDefinition definition, out AimedTargetingDefinition aim,
+            Func<EffectDefinition, bool> conditionFilter = null)
+        {
+            foreach (var effectDef in definition.Effects)
+            {
+                if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (effectDef is not AimedTargetingDefinition aimed) continue;
+                if (conditionFilter != null && !conditionFilter(effectDef)) continue;
+
+                aim = aimed;
+                return true;
+            }
+
+            aim = null;
+            return false;
+        }
+
+        public bool NeedsManualTargets(CardDefinition definition, out int count,
+            Func<EffectDefinition, bool> conditionFilter = null)
+        {
+            foreach (var effectDef in definition.Effects)
+            {
+                if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (conditionFilter != null && !conditionFilter(effectDef)) continue;
 
                 var effect = _effectRegistry.Get(effectDef);
                 if (effect.NeedsManualTargets(effectDef))
@@ -127,11 +194,13 @@ namespace IsntGwent.Scripts.Cards.Server
         public List<string> GetTargetPool(
             CardDefinition definition,
             IEnumerable<UnitInstance> ownUnits,
-            IEnumerable<UnitInstance> enemyUnits)
+            IEnumerable<UnitInstance> enemyUnits,
+            Func<EffectDefinition, bool> conditionFilter = null)
         {
             foreach (var effectDef in definition.Effects)
             {
                 if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (conditionFilter != null && !conditionFilter(effectDef)) continue;
 
                 if (effectDef is not TargetingEffectDefinition targetingDef) continue;
 

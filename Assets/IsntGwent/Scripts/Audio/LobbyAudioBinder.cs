@@ -38,6 +38,10 @@ namespace IsntGwent.Scripts.Audio
                 .Subscribe(_ => _audio.Play("sting_lobby_created"))
                 .AddTo(_disposables);
 
+            _input.CardPressed
+                .Subscribe(_ => _audio.Play("ui_click"))
+                .AddTo(_disposables);
+
             _input.CardHovered
                 .Subscribe(_ => _audio.Play("ui_hover"))
                 .AddTo(_disposables);

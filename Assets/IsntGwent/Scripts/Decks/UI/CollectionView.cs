@@ -12,7 +12,7 @@ namespace IsntGwent.Scripts.Decks.UI
     public class CollectionView : MonoBehaviour
     {
         public Transform grid;
-        public CollectionCardView cardPrefab;
+        public CardTileView cardPrefab;
 
         [Inject] private readonly CardDatabase _cardDatabase;
         [Inject] private readonly DeckRulesProvider _rules;
@@ -21,7 +21,8 @@ namespace IsntGwent.Scripts.Decks.UI
         [Inject] private readonly CardTooltipView _tooltip;
         [Inject] private readonly DiContainer _container;
 
-        private readonly Dictionary<string, CollectionCardView> _views = new();
+        private readonly Dictionary<string, CardTileView> _views = new();
+        private readonly HashSet<string> _incoming = new();
 
         private void Start()
         {
@@ -36,7 +37,7 @@ namespace IsntGwent.Scripts.Decks.UI
         {
             foreach (var definition in Sorted())
             {
-                var view = _container.InstantiatePrefabForComponent<CollectionCardView>(cardPrefab, grid);
+                var view = _container.InstantiatePrefabForComponent<CardTileView>(cardPrefab, grid);
                 view.Setup(definition);
                 view.SetRemaining(_draft.RemainingOf(definition.Id));
 
@@ -63,6 +64,19 @@ namespace IsntGwent.Scripts.Decks.UI
             RefreshAll();
         }
 
+        public RectTransform TileOf(string cardId)
+            => _views.TryGetValue(cardId, out var view) ? (RectTransform)view.transform : null;
+
+        public void HoldIncoming(string cardId) => _incoming.Add(cardId);
+
+        public void ReleaseIncoming(string cardId)
+        {
+            if (!_incoming.Remove(cardId)) return;
+
+            if (_views.TryGetValue(cardId, out var view))
+                view.SetRemaining(_draft.RemainingOf(cardId));
+        }
+
         private void Add(string cardId)
         {
             if (_draft.TryAdd(cardId))
@@ -72,27 +86,18 @@ namespace IsntGwent.Scripts.Decks.UI
         private void RefreshAll()
         {
             foreach (var pair in _views)
+            {
+                if (_incoming.Contains(pair.Key)) continue;
+
                 pair.Value.SetRemaining(_draft.RemainingOf(pair.Key));
+            }
         }
 
         private IEnumerable<CardDefinition> Sorted()
         {
             return _cardDatabase.Cards.Values
-                .OrderBy(SortGroup)
-                .ThenByDescending(SortPower)
-                .ThenBy(card => card.Id);
-        }
-
-        private static int SortGroup(CardDefinition card)
-        {
-            if (card is not UnitDefinition unit) return 2;
-
-            return unit.Row == RowType.Melee ? 0 : 1;
-        }
-
-        private static int SortPower(CardDefinition card)
-        {
-            return card is UnitDefinition unit ? unit.Power : 0;
+                .Where(card => !card.IsToken)
+                .OrderBy(card => card, DeckCardOrder.Comparer);
         }
     }
 }

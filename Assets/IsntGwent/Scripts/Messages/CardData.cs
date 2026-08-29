@@ -10,6 +10,9 @@ namespace IsntGwent.Scripts.Messages
         public string DefinitionId;
         public CardType Type;
         public int CurrentPower;
+        public int Armor;
+
+        public bool IsEmpty => string.IsNullOrEmpty(InstanceId);
     }
 
     public static class CardDataFactory
@@ -20,6 +23,7 @@ namespace IsntGwent.Scripts.Messages
             DefinitionId = card.Definition.Id,
             Type = card.Definition.Type,
             CurrentPower = card is UnitInstance unit ? unit.CurrentPower.Value : 0,
+            Armor = card is UnitInstance armored ? armored.Armor.Value : 0,
         };
     }
 }

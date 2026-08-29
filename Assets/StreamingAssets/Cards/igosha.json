@@ -1,0 +1,23 @@
+{
+  "id": "igosha",
+  "name": "Igosha",
+  "imageName": "igosha",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Common",
+  "description": "Deathwish: boost the strongest neighbour by 4.",
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnDeath",
+      "relativeTo": "Source",
+      "pick": "Highest"
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnDeath",
+      "amount": 4,
+      "requireTargets": true
+    }
+  ]
+}

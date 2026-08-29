@@ -62,7 +62,7 @@ namespace IsntGwent.Scripts.Decks.Validation
 
             foreach (var cardId in order)
             {
-                if (!_cards.Cards.ContainsKey(cardId))
+                if (!_cards.Cards.TryGetValue(cardId, out var known) || known.IsToken)
                     violations.Add(new DeckViolation { Code = DeckViolationCode.UnknownCard, CardId = cardId });
             }
 
@@ -92,7 +92,7 @@ namespace IsntGwent.Scripts.Decks.Validation
 
             foreach (var cardId in order)
             {
-                if (!_cards.Cards.TryGetValue(cardId, out var card)) continue;
+                if (!_cards.Cards.TryGetValue(cardId, out var card) || card.IsToken) continue;
 
                 var count = cardCounts[cardId];
                 if (count < 1) continue;

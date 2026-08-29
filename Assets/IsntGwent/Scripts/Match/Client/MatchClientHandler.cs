@@ -24,6 +24,7 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<HpChangedMessage> OnHpChanged = new();
         public readonly Subject<UnitsStateChangedMessage> OnUnitsStateChanged = new();
         public readonly Subject<DamageDealtMessage> OnDamageDealt = new();
+        public readonly Subject<UnitLinksMessage> OnUnitLinks = new();
         public readonly Subject<EnemyPassedMessage> OnEnemyPassed = new();
         public readonly Subject<EnemyDisconnectedMessage> OnEnemyDisconnected = new();
         public readonly Subject<GiveUpMessage> OnGiveUp = new();
@@ -32,6 +33,8 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<RedrawEndedMessage> OnRedrawEnded = new();
         public readonly Subject<MatchSnapshotMessage> OnSnapshot = new();
         public readonly Subject<OpponentReconnectingMessage> OnOpponentReconnecting = new();
+        public readonly Subject<PendingPlayMessage> OnPendingPlay = new();
+        public readonly Subject<DeckSyncMessage> OnDeckSync = new();
 
         public void Initialize()
         {
@@ -51,6 +54,7 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<HpChangedMessage>(msg => OnHpChanged.OnNext(msg));
             NetworkClient.RegisterHandler<UnitsStateChangedMessage>(msg => OnUnitsStateChanged.OnNext(msg));
             NetworkClient.RegisterHandler<DamageDealtMessage>(msg => OnDamageDealt.OnNext(msg));
+            NetworkClient.RegisterHandler<UnitLinksMessage>(msg => OnUnitLinks.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyPassedMessage>(msg => OnEnemyPassed.OnNext(msg));
             NetworkClient.RegisterHandler<EnemyDisconnectedMessage>(msg => OnEnemyDisconnected.OnNext(msg));
             NetworkClient.RegisterHandler<GiveUpMessage>(msg => OnGiveUp.OnNext(msg));
@@ -59,6 +63,8 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<RedrawEndedMessage>(msg => OnRedrawEnded.OnNext(msg));
             NetworkClient.RegisterHandler<MatchSnapshotMessage>(msg => OnSnapshot.OnNext(msg));
             NetworkClient.RegisterHandler<OpponentReconnectingMessage>(msg => OnOpponentReconnecting.OnNext(msg));
+            NetworkClient.RegisterHandler<PendingPlayMessage>(msg => OnPendingPlay.OnNext(msg));
+            NetworkClient.RegisterHandler<DeckSyncMessage>(msg => OnDeckSync.OnNext(msg));
         }
         public void SendReadyMessage()
         {
@@ -70,12 +76,14 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.Send(new PassMessage());
         }
         
-        public void SendPlayCard(string cardInstanceId, RowType row, string[] targetIds)
+        public void SendPlayCard(string cardInstanceId, RowType row, bool enemyRow, int slotIndex, string[] targetIds)
         {
             NetworkClient.Send(new PlayCardMessage
             {
                 CardInstanceId = cardInstanceId,
                 Row = row,
+                EnemyRow = enemyRow,
+                SlotIndex = slotIndex,
                 TargetIds = targetIds
             });
         }
@@ -111,6 +119,7 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.UnregisterHandler<HpChangedMessage>();
             NetworkClient.UnregisterHandler<UnitsStateChangedMessage>();
             NetworkClient.UnregisterHandler<DamageDealtMessage>();
+            NetworkClient.UnregisterHandler<UnitLinksMessage>();
             NetworkClient.UnregisterHandler<EnemyPassedMessage>();
             NetworkClient.UnregisterHandler<EnemyDisconnectedMessage>();
             NetworkClient.UnregisterHandler<GiveUpMessage>();
@@ -119,6 +128,8 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.UnregisterHandler<RedrawEndedMessage>();
             NetworkClient.UnregisterHandler<MatchSnapshotMessage>();
             NetworkClient.UnregisterHandler<OpponentReconnectingMessage>();
+            NetworkClient.UnregisterHandler<PendingPlayMessage>();
+            NetworkClient.UnregisterHandler<DeckSyncMessage>();
         }
     }
 }

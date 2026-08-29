@@ -1,0 +1,24 @@
+{
+  "id": "corpse",
+  "name": "Corpse",
+  "imageName": "corpse",
+  "type": "Unit",
+  "power": 6,
+  "rarity": "Common",
+  "description": "Turn end: damage 2 to itself and summon a Grub.",
+  "effects": [
+    {
+      "effect": "DealDamage",
+      "trigger": "OnTurnEnd",
+      "amount": 2,
+      "self": true
+    },
+    {
+      "effect": "SummonToken",
+      "trigger": "OnTurnEnd",
+      "tokenId": "grub",
+      "count": 1,
+      "placement": "Neighbors"
+    }
+  ]
+}

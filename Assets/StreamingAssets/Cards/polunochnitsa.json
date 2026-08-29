@@ -1,0 +1,52 @@
+{
+  "id": "polunochnitsa",
+  "name": "Polunochnitsa",
+  "imageName": "polunochnitsa",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Epic",
+  "description": "Deploy: damage 4 to the weakest creature. Bond (Poludnitsa): destroy all the weakest creatures instead.",
+  "effects": [
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "includeAllies": true,
+      "includeEnemies": true,
+      "excludeSource": true,
+      "condition": {
+        "allyOnBoard": "poludnitsa",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4,
+      "condition": {
+        "allyOnBoard": "poludnitsa",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnPlay",
+      "count": 0,
+      "includeAllies": true,
+      "includeEnemies": true,
+      "excludeSource": true,
+      "condition": {
+        "allyOnBoard": "poludnitsa",
+        "allyAbsent": false
+      }
+    },
+    {
+      "effect": "Destroy",
+      "trigger": "OnPlay",
+      "condition": {
+        "allyOnBoard": "poludnitsa",
+        "allyAbsent": false
+      }
+    }
+  ]
+}

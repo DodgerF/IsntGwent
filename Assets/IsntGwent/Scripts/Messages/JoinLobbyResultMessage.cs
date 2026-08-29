@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Lobby.Core;
+using IsntGwent.Scripts.Decks.Validation;
+using IsntGwent.Scripts.Lobby.Core;
 using Mirror;
 
 namespace IsntGwent.Scripts.Messages
@@ -7,5 +8,7 @@ namespace IsntGwent.Scripts.Messages
     {
         public bool IsSuccess;
         public LobbyError Error;
+        public DeckViolation[] Violations;
+        public string SeatToken;
     }
 }

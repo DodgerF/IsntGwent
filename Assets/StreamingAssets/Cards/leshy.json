@@ -1,0 +1,16 @@
+{
+  "id": "leshy",
+  "name": "Leshy",
+  "imageName": "leshy",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Epic",
+  "description": "Deploy: banish your graveyard and boost itself by 1 for each creature banished.",
+  "effects": [
+    {
+      "effect": "PurgeGraveyard",
+      "trigger": "OnPlay",
+      "buffPerUnit": 1
+    }
+  ]
+}

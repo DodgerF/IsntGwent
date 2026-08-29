@@ -1,0 +1,24 @@
+{
+  "id": "wisewoman",
+  "name": "Wisewoman",
+  "imageName": "znakharka",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Common",
+  "description": "Deploy: heal a chosen ally.",
+  "effects": [
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true
+    },
+    {
+      "effect": "Heal",
+      "trigger": "OnPlay",
+      "amount": 0,
+      "requireTargets": true
+    }
+  ]
+}

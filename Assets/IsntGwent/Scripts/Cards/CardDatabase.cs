@@ -66,8 +66,27 @@ namespace IsntGwent.Scripts.Cards
                 EffectDefinition effect = effectType switch
                 {
                     "ManualTargeting" => effectJson.ToObject<ManualTargetingDefinition>(),
+                    "AimedTargeting" => effectJson.ToObject<AimedTargetingDefinition>(),
                     "WeakestTargeting" => effectJson.ToObject<WeakestTargetingDefinition>(),
+                    "StrongestTargeting" => effectJson.ToObject<StrongestTargetingDefinition>(),
+                    "NeighborTargeting" => effectJson.ToObject<NeighborTargetingDefinition>(),
+                    "SlotTargeting" => effectJson.ToObject<SlotTargetingDefinition>(),
+                    "LineTargeting" => effectJson.ToObject<LineTargetingDefinition>(),
+                    "RowTargeting" => effectJson.ToObject<RowTargetingDefinition>(),
+                    "EventTargeting" => effectJson.ToObject<EventTargetingDefinition>(),
+                    "AreaTargeting" => effectJson.ToObject<RowTargetingDefinition>(),
                     "DealDamage" => effectJson.ToObject<DealDamageEffectDefinition>(),
+                    "BuffPower" => effectJson.ToObject<BuffPowerDefinition>(),
+                    "Devour" => effectJson.ToObject<DevourDefinition>(),
+                    "Destroy" => effectJson.ToObject<DestroyEffectDefinition>(),
+                    "SummonFromDeck" => effectJson.ToObject<SummonFromDeckDefinition>(),
+                    "SummonToken" => effectJson.ToObject<SummonTokenDefinition>(),
+                    "Move" => effectJson.ToObject<MoveEffectDefinition>(),
+                    "GainArmor" => effectJson.ToObject<GainArmorDefinition>(),
+                    "Heal" => effectJson.ToObject<HealDefinition>(),
+                    "PurgeGraveyard" => effectJson.ToObject<PurgeGraveyardDefinition>(),
+                    "CastFromDeck" => effectJson.ToObject<CastFromDeckDefinition>(),
+                    "ApplyWeather" => effectJson.ToObject<ApplyWeatherDefinition>(),
                     _ => throw new Exception("Unknown Effect: " + effectType)
                 };
                 card.Effects.Add(effect);

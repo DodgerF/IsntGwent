@@ -1,6 +1,8 @@
 using System;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Lobby.Client;
+using IsntGwent.Scripts.Lobby.UI.Views;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +22,8 @@ namespace IsntGwent.Scripts.Decks.UI
         [Inject] private readonly DeckDraft _draft;
         [Inject] private readonly AudioService _audio;
         [Inject] private readonly ConfirmWindow _confirm;
+        [Inject] private readonly DeckSelectService _deckSelect;
+        [InjectOptional] private readonly DeckContentView _content;
 
         private readonly SerialDisposable _drawSounds = new();
 
@@ -51,9 +55,22 @@ namespace IsntGwent.Scripts.Decks.UI
             RefreshCurrent();
         }
 
-        protected override void OnDeckClicked(DeckDefinition deck, bool isBuiltIn)
+        protected override void OnPopulated()
         {
-            AskIfDirty(() => Open(deck, isBuiltIn));
+            var deck = _deckSelect.ConsumeEditTarget(out var isBuiltIn);
+
+            if (deck == null)
+            {
+                _draft.NewDeck();
+                return;
+            }
+
+            Open(deck, isBuiltIn, ViewOf(deck.Id));
+        }
+
+        protected override void OnDeckClicked(DeckDefinition deck, bool isBuiltIn, DeckSelectionView view)
+        {
+            AskIfDirty(() => Open(deck, isBuiltIn, view));
         }
 
         protected override void OnNewDeckClicked()
@@ -69,9 +86,11 @@ namespace IsntGwent.Scripts.Decks.UI
                 action();
         }
 
-        private void Open(DeckDefinition deck, bool isBuiltIn)
+        private void Open(DeckDefinition deck, bool isBuiltIn, DeckSelectionView view)
         {
+            _content?.SpawnFrom(view != null ? (RectTransform)view.transform : null);
             _draft.LoadFrom(deck, isBuiltIn);
+            _content?.SpawnFrom(null);
 
             _openListId = deck.Id;
             _openDraftId = _draft.Id;

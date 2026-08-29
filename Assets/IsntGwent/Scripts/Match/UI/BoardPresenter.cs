@@ -1,4 +1,6 @@
-﻿using IsntGwent.Scripts.Cards.Client;
+﻿using IsntGwent.Scripts.Audio;
+using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match.Client;
@@ -12,63 +14,79 @@ namespace IsntGwent.Scripts.Match.UI
     {
         public GameObject cardPrefab;
 
-        public RowView ownMeleeRow;
-        public RowView ownRangedRow;
-        public RowView enemyMeleeRow;
-        public RowView enemyRangedRow;
+        public BoardRowView ownMeleeRow;
+        public BoardRowView ownRangedRow;
+        public BoardRowView enemyMeleeRow;
+        public BoardRowView enemyRangedRow;
 
         [Inject] private readonly DiContainer _container;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardViewRegistry _registry;
+        [Inject] private readonly AudioService _audio;
 
         private void Start()
         {
-            ownMeleeRow.MarkAsBoardRow();
-            ownRangedRow.MarkAsBoardRow();
-            enemyMeleeRow.MarkAsBoardRow();
-            enemyRangedRow.MarkAsBoardRow();
+            ownMeleeRow.MarkAsBoardRow(true, RowType.Melee);
+            ownRangedRow.MarkAsBoardRow(true, RowType.Ranged);
+            enemyMeleeRow.MarkAsBoardRow(false, RowType.Melee);
+            enemyRangedRow.MarkAsBoardRow(false, RowType.Ranged);
 
-            BindOwnRow(_matchState.OwnMeleeRow, ownMeleeRow);
-            BindOwnRow(_matchState.OwnRangedRow, ownRangedRow);
-            BindEnemyRow(_matchState.EnemyMeleeRow, enemyMeleeRow);
-            BindEnemyRow(_matchState.EnemyRangedRow, enemyRangedRow);
+            BindRow(_matchState.OwnMeleeRow, ownMeleeRow);
+            BindRow(_matchState.OwnRangedRow, ownRangedRow);
+            BindRow(_matchState.EnemyMeleeRow, enemyMeleeRow);
+            BindRow(_matchState.EnemyRangedRow, enemyRangedRow);
+
+            BindWeather(_matchState.OwnMeleeWeather, ownMeleeRow);
+            BindWeather(_matchState.OwnRangedWeather, ownRangedRow);
+            BindWeather(_matchState.EnemyMeleeWeather, enemyMeleeRow);
+            BindWeather(_matchState.EnemyRangedWeather, enemyRangedRow);
         }
 
-        private void BindOwnRow(ReactiveCollection<CardInstance> collection, RowView row)
+        private void BindWeather(RowWeatherState state, BoardRowView row)
         {
-            collection
-                .ObserveAdd()
-                .Subscribe(e =>
-                {
-                    var view = _registry.Get(e.Value.Id);
-                    if (view == null) return;
-
-                    view.mode = CardMode.OnBoard;
-                    row.AddCard(view.gameObject);
-                })
+            state.CardId
+                .CombineLatest(state.TurnsLeft, (cardId, turns) => (cardId, turns))
+                .Subscribe(e => row.ShowWeather(e.cardId, e.turns))
                 .AddTo(this);
         }
 
-        private void BindEnemyRow(ReactiveCollection<CardInstance> collection, RowView row)
+        private void BindRow(BoardRowState state, BoardRowView row)
         {
-            collection
-                .ObserveAdd()
+            state.Placed
                 .Subscribe(e =>
                 {
-                    var view = _registry.Get(e.Value.Id);
+                    var view = _registry.Get(e.Card.Id);
+                    var summoned = view == null;
 
-                    if (view == null)
+                    if (summoned)
                     {
                         view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab);
-                        view.Setup(e.Value);
+                        view.Setup(e.Card);
                         view.transform.position = row.transform.position;
                         _registry.Register(view);
                     }
 
+                    PlayPlaceSfx(view, e.Card, summoned);
                     view.mode = CardMode.OnBoard;
-                    row.AddCard(view.gameObject);
+                    row.PlaceCard(view.gameObject, e.Index);
                 })
                 .AddTo(this);
+        }
+
+        private void PlayPlaceSfx(CardView view, CardInstance card, bool summoned)
+        {
+            if (_matchState.IsRestoring) return;
+
+            if (summoned)
+            {
+                var id = card?.Definition?.SoundId;
+                _audio.Play(string.IsNullOrEmpty(id) ? "card_play" : id);
+                return;
+            }
+
+            if (view.mode != CardMode.OnBoard) return;
+
+            _audio.Play("card_move");
         }
     }
 }

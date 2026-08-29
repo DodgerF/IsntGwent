@@ -31,16 +31,19 @@ namespace IsntGwent.Scripts.Match.UI
             Bind(_matchState.EnemyRangedPower, enemyRangedPowerText);
             Bind(_matchState.EnemyTotalPower, enemyTotalPowerText);
 
-            _matchState.Hand
-                .ObserveCountChanged()
-                .Subscribe(count => ownCardCounter.text = count.ToString())
-                .AddTo(this);
+            if (ownCardCounter != null)
+                _matchState.Hand
+                    .ObserveCountChanged()
+                    .Subscribe(count => ownCardCounter.text = count.ToString())
+                    .AddTo(this);
 
             Bind(_matchState.EnemyCardAmount, enemyCardCounter);
         }
 
         private void Bind(IReadOnlyReactiveProperty<int> value, TextMeshProUGUI text)
         {
+            if (text == null) return;
+
             value
                 .Subscribe(v => text.text = v.ToString())
                 .AddTo(this);

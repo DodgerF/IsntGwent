@@ -1,0 +1,38 @@
+{
+  "id": "likho",
+  "name": "Likho",
+  "imageName": "likho",
+  "type": "Unit",
+  "power": 8,
+  "rarity": "Epic",
+  "description": "Deploy: damage 4 to itself. Leadership: damage 4 to a chosen enemy instead.",
+  "effects": [
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4,
+      "self": true,
+      "condition": {
+        "leadership": "Lost"
+      }
+    },
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeEnemies": true,
+      "condition": {
+        "leadership": "Held"
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4,
+      "condition": {
+        "leadership": "Held"
+      }
+    }
+  ]
+}

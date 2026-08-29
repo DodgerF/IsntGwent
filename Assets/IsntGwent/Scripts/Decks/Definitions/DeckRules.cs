@@ -4,7 +4,9 @@ namespace IsntGwent.Scripts.Decks.Definitions
     {
         public int ContentVersion = 1;
         public int MinDeckSize = 10;
-        public int MaxCopiesUnit = 2;
-        public int MaxCopiesSpell = 1;
+        public int MaxCopiesCommon = 3;
+        public int MaxCopiesRare = 2;
+        public int MaxCopiesEpic = 1;
+        public int MaxCopiesLegendary = 1;
     }
 }

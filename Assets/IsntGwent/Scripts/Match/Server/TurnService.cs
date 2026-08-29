@@ -36,9 +36,11 @@ namespace IsntGwent.Scripts.Match.Server
             var opponent = context.GetOpponent(currentPlayer);
 
             context.Publish(new TurnEnded(currentPlayer));
-            
+
             if (opponent.IsPassed)
             {
+                RunSkippedTurn(context, opponent);
+
                 _notifier.NotifyTurnChanged(currentPlayer, true);
                 StartTurn(context, currentPlayer);
                 return;
@@ -50,7 +52,17 @@ namespace IsntGwent.Scripts.Match.Server
 
             StartTurn(context, opponent);
         }
-        
+
+        private void RunSkippedTurn(GameContext context, Player player)
+        {
+            context.Publish(new TurnStarted(player));
+            context.Publish(new TurnEnded(player));
+            _boardSync.Sync(context);
+
+            if (context.FlushBoardDirty())
+                _boardSync.SyncBoard(context);
+        }
+
         private void StartTurn(GameContext context, Player player)
         {
             context.Publish(new TurnStarted(player));

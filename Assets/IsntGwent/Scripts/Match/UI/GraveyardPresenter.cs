@@ -1,4 +1,4 @@
-﻿using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Match.Client;
 using UniRx;
@@ -30,6 +30,17 @@ namespace IsntGwent.Scripts.Match.UI
                     var view = _registry.Get(e.Value.Id);
                     graveyard.AddCard(e.Value, view != null ? view.gameObject : null);
                 })
+                .AddTo(this);
+
+            collection
+                .ObserveRemove()
+                .Subscribe(e => graveyard.RemoveCard(e.Value))
+                .AddTo(this);
+
+            collection
+                .ObserveRemove()
+                .BatchFrame()
+                .Subscribe(batch => _matchState.GraveyardPurged.OnNext(batch.Count))
                 .AddTo(this);
         }
     }

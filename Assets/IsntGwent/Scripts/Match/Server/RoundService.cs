@@ -4,6 +4,8 @@ namespace IsntGwent.Scripts.Match.Server
 {
     public class RoundService
     {
+        public const int RoundDraw = 3;
+
         [Inject] private readonly MatchServerNotifier _notifier;
         [Inject] private readonly BoardSyncService _boardSync;
         [Inject] private readonly DeckService _deckService;
@@ -43,16 +45,23 @@ namespace IsntGwent.Scripts.Match.Server
                 return;
             }
 
+            var pendingDropped = DiscardPendingPlays(p1) | DiscardPendingPlays(p2);
+
             BoardSyncService.MoveAllToGraveyard(context, p1);
             BoardSyncService.MoveAllToGraveyard(context, p2);
+            WeatherService.Clear(p1);
+            WeatherService.Clear(p2);
             _boardSync.Sync(context);
             _boardSync.SyncBoard(context);
+
+            if (pendingDropped)
+                _notifier.NotifyPendingPlay(context, p1);
 
             p1.IsPassed = false;
             p2.IsPassed = false;
 
-            _deckService.DrawAndSync(context, p1, 1);
-            _deckService.DrawAndSync(context, p2, 1);
+            _deckService.DrawAndSync(context, p1, RoundDraw);
+            _deckService.DrawAndSync(context, p2, RoundDraw);
 
             context.CurrentPlayer = isTie
                 ? context.GetOpponent(context.CurrentPlayer)
@@ -61,6 +70,16 @@ namespace IsntGwent.Scripts.Match.Server
             context.RoundNumber++;
 
             _redrawService.BeginPhase(context);
+        }
+
+        private static bool DiscardPendingPlays(Player player)
+        {
+            if (player.PendingPlays.Count == 0) return false;
+
+            player.Graveyard.AddRange(player.PendingPlays);
+            player.PendingPlays.Clear();
+
+            return true;
         }
 
         public void SendGameEnded(GameContext context, bool isTie, Player winner, Player loser)

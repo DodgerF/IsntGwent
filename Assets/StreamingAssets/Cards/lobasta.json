@@ -1,0 +1,31 @@
+{
+  "id": "lobasta",
+  "name": "Lobasta",
+  "imageName": "lobasta",
+  "type": "Unit",
+  "power": 1,
+  "rarity": "Rare",
+  "description": "Turn start: damage 2 to the first creature in the line ahead. React to enemy play: step into the new creature's column.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnTurnStart",
+      "anchor": "Source"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnTurnStart",
+      "amount": 2
+    },
+    {
+      "effect": "EventTargeting",
+      "trigger": "OnEnemyCardPlayed",
+      "includeEnemies": true
+    },
+    {
+      "effect": "Move",
+      "trigger": "OnEnemyCardPlayed",
+      "subject": "Source"
+    }
+  ]
+}

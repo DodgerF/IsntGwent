@@ -44,6 +44,9 @@ namespace IsntGwent.Scripts.Lobby.Network
                 case SyncList<LobbyData>.Operation.OP_REMOVEAT:
                     _store.Lobbies.RemoveAt(index);
                     break;
+                case SyncList<LobbyData>.Operation.OP_SET:
+                    _store.Lobbies[index] = newData;
+                    break;
                 default:
                     break;
             }

@@ -1,10 +1,14 @@
 ﻿using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Cards.Server;
 using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Cards.UI;
+using IsntGwent.Scripts.Content;
+using IsntGwent.Scripts.Network.Http;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.UI;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Decks.UI;
 using IsntGwent.Scripts.Match.Server;
 using IsntGwent.Scripts.Lobby.Server;
 using UnityEngine.EventSystems;
@@ -26,9 +30,25 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .Bind<TriggeredEffectDispatcher>()
                 .AsSingle();
+            Container
+                .Bind<ContentService>()
+                .AsSingle();
 
             Container
-                .BindInterfacesAndSelfTo<CardPreviewService>()
+                .Bind<CardPreviewService>()
+                .AsSingle();
+            Container
+                .Bind<CardTooltipView>()
+                .FromComponentInHierarchy()
+                .AsSingle()
+                .Lazy();
+            Container
+                .Bind<CardsViewLoader>()
+                .FromComponentInHierarchy()
+                .AsSingle()
+                .Lazy();
+            Container
+                .BindInterfacesAndSelfTo<CardInfoPresenter>()
                 .AsSingle()
                 .NonLazy();
             Container
@@ -45,6 +65,7 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             
             Container.Bind<LobbyNetworkHub>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<SeatRegistry>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbySceneController>().AsSingle().NonLazy();
@@ -61,8 +82,16 @@ namespace IsntGwent.Scripts.Installers
             Container.Bind<RoundService>().AsSingle();
             Container.Bind<TurnService>().AsSingle();
             Container.Bind<CardPlayService>().AsSingle();
+            Container.Bind<MatchIntentService>().AsSingle();
+            Container.Bind<WeatherService>().AsSingle();
 
             Container.BindInterfacesAndSelfTo<GameControllerServer>().AsSingle().NonLazy();
+
+            Container
+                .Bind<HttpGateway>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
         }
     }
 }

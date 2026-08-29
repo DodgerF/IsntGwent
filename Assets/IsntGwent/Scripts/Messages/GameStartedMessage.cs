@@ -1,4 +1,4 @@
-﻿using Mirror;
+using Mirror;
 
 namespace IsntGwent.Scripts.Messages
 {
@@ -6,6 +6,5 @@ namespace IsntGwent.Scripts.Messages
     {
         public CardData[] CardsInHand;
         public int EnemyCardAmount;
-        public string ReconnectToken;
     }
 }

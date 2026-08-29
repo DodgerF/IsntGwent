@@ -9,7 +9,8 @@ namespace IsntGwent.Scripts.Match.UI
 {
     public class HandPresenter : MonoBehaviour
     {
-        public RowView hand;
+        public CardLaneView hand;
+        public HandOutlineView handOutline;
         public GameObject cardPrefab;
         public RectTransform deckAnchor;
         public RedrawPresenter redraw;
@@ -17,6 +18,7 @@ namespace IsntGwent.Scripts.Match.UI
         [Inject] private readonly DiContainer _container;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardViewRegistry _registry;
+        [Inject] private readonly CardSelectionService _selection;
 
         private void Start()
         {
@@ -28,11 +30,30 @@ namespace IsntGwent.Scripts.Match.UI
 
                     var view = _container.InstantiatePrefabForComponent<CardView>(cardPrefab, parent);
                     view.Setup(e.Value);
+                    view.hoverScale = true;
                     _registry.Register(view);
 
-                    var target = redraw != null && redraw.IsPhaseActive ? redraw.NextRow() : hand;
-                    target.AddCard(view.gameObject);
+                    if (redraw != null && redraw.IsPhaseActive)
+                        redraw.AddCard(view.gameObject);
+                    else
+                        hand.AddCard(view.gameObject);
                 })
+                .AddTo(this);
+
+            _matchState.IsMyTurn
+                .Subscribe(myTurn => hand.SetFanOpen(myTurn))
+                .AddTo(this);
+
+            _selection.IsChoosing
+                .Subscribe(choosing => hand.SetLowered(choosing))
+                .AddTo(this);
+
+            if (handOutline == null) return;
+
+            _matchState.IsMyTurn
+                .CombineLatest(_selection.IsChoosing, (myTurn, choosing) => myTurn && !choosing)
+                .DistinctUntilChanged()
+                .Subscribe(shown => handOutline.SetShown(shown))
                 .AddTo(this);
         }
     }

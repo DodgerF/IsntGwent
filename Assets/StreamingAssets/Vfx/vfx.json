@@ -1,0 +1,69 @@
+{
+  "entries": [
+    {
+      "id": "vfx_damage_bolt",
+      "prefab": "DamageBolt",
+      "life": 0.7
+    },
+    {
+      "id": "vfx_damage_impact",
+      "prefab": "ImpactHit",
+      "life": 0.55
+    },
+    {
+      "id": "vfx_buff",
+      "prefab": "BuffAura",
+      "life": 0.75
+    },
+    {
+      "id": "vfx_devour",
+      "prefab": "DevourBlood",
+      "life": 0.95
+    },
+    {
+      "id": "vfx_lure_grasp",
+      "prefab": "LureGrasp",
+      "life": 1.1
+    },
+    {
+      "id": "vfx_weather_row",
+      "prefab": "WeatherSwamp",
+      "life": 2.4
+    },
+    {
+      "id": "vfx_weather_row_omut",
+      "prefab": "WeatherSwamp",
+      "life": 2.4,
+      "tint": "#5C6E34"
+    },
+    {
+      "id": "vfx_weather_hit",
+      "prefab": "WaterSplash",
+      "life": 0.6
+    },
+    {
+      "id": "vfx_weather_hit_omut",
+      "prefab": "WaterSplash",
+      "life": 0.6,
+      "tint": "#93B457"
+    },
+    {
+      "id": "vfx_heart_break",
+      "prefab": "ImpactHit",
+      "life": 0.55,
+      "tint": "#C8342A"
+    },
+    {
+      "id": "vfx_power_flame_own",
+      "prefab": "PowerFlame",
+      "life": 1.2,
+      "tint": "#4F9BFF"
+    },
+    {
+      "id": "vfx_power_flame_enemy",
+      "prefab": "PowerFlame",
+      "life": 1.2,
+      "tint": "#FF4B2C"
+    }
+  ]
+}
