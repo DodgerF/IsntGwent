@@ -16,6 +16,12 @@ namespace IsntGwent.Scripts.Match.Server
         Disconnect
     }
 
+    public class AimSnapshot
+    {
+        public string CardInstanceId;
+        public string[] TargetIds;
+    }
+
     public class MatchLimits
     {
         public int MaxHand;
@@ -69,6 +75,7 @@ namespace IsntGwent.Scripts.Match.Server
         public MatchLimits Limits;
         public RedrawSnapshot Redraw;
 
+        public AimSnapshot Aim;
         public SideSnapshot You;
         public SideSnapshot Enemy;
 

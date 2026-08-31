@@ -13,8 +13,13 @@ namespace IsntGwent.Scripts.Cards.Runtime
         public readonly ReactiveProperty<int> CurrentPower = new();
         public readonly ReactiveProperty<int> Armor = new();
 
+        public CardInstance LastAttacker;
+
+        public readonly ReactiveProperty<int> BasePower = new();
+
         public UnitInstance(UnitDefinition definition) : base(definition)
         {
+            BasePower.Value = definition.Power;
             CurrentPower.Value = definition.Power;
         }
 
@@ -45,8 +50,9 @@ namespace IsntGwent.Scripts.Cards.Runtime
 
         public void ResetToBase()
         {
-            CurrentPower.Value = UnitDefinition.Power;
+            CurrentPower.Value = BasePower.Value;
             Armor.Value = 0;
+            LastAttacker = null;
         }
     }
 }

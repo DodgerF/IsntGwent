@@ -2,14 +2,14 @@
 using IsntGwent.Scripts.Cards.Server;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Cards.UI;
-using IsntGwent.Scripts.Content;
-using IsntGwent.Scripts.Network.Http;
+using IsntGwent.Scripts.Accounts.Server;
 using IsntGwent.Scripts.Lobby.Client;
-using IsntGwent.Scripts.Lobby.Network;
 using IsntGwent.Scripts.Lobby.UI;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks.UI;
 using IsntGwent.Scripts.Match.Server;
+using IsntGwent.Scripts.Match.Server.Journal;
+using IsntGwent.Scripts.Match.Server.Stats;
 using IsntGwent.Scripts.Lobby.Server;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -30,10 +30,6 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .Bind<TriggeredEffectDispatcher>()
                 .AsSingle();
-            Container
-                .Bind<ContentService>()
-                .AsSingle();
-
             Container
                 .Bind<CardPreviewService>()
                 .AsSingle();
@@ -64,15 +60,24 @@ namespace IsntGwent.Scripts.Installers
                 .AsSingle()
                 .NonLazy();
             
-            Container.Bind<LobbyNetworkHub>().FromComponentInHierarchy().AsSingle();
+            Container.BindInterfacesAndSelfTo<FileAccountStore>().AsSingle().NonLazy();
+            Container.Bind<AccountRegistry>().AsSingle();
+            Container.Bind<Leaderboard>().AsSingle();
+            Container.BindInterfacesAndSelfTo<AccountServerHandler>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<AccountController>().AsSingle().NonLazy();
+
             Container.Bind<SeatRegistry>().AsSingle();
+            Container.Bind<MatchmakingQueue>().AsSingle();
+            Container.Bind<MatchStatsRecorder>().AsSingle();
+            Container.Bind<MatchJournalRecorder>().AsSingle();
+            Container.Bind<MatchJournalFactory>().AsSingle();
+            Container.BindInterfacesAndSelfTo<CardStatsStore>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LobbyManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbyViewModel>().AsSingle();
             Container.BindInterfacesAndSelfTo<LobbySceneController>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LobbyAudioBinder>().AsSingle().NonLazy();
             
             Container.BindInterfacesAndSelfTo<ServerHandler>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<LobbyClientHandler>().AsSingle();
             Container.BindInterfacesAndSelfTo<MatchServerHandler>().AsSingle().NonLazy();
             Container.Bind<MatchServerNotifier>().AsSingle();
 
@@ -86,12 +91,6 @@ namespace IsntGwent.Scripts.Installers
             Container.Bind<WeatherService>().AsSingle();
 
             Container.BindInterfacesAndSelfTo<GameControllerServer>().AsSingle().NonLazy();
-
-            Container
-                .Bind<HttpGateway>()
-                .FromNewComponentOnNewGameObject()
-                .AsSingle()
-                .NonLazy();
         }
     }
 }

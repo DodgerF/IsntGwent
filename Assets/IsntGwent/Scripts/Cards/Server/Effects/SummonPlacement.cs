@@ -10,11 +10,10 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
     public static class SummonUtil
     {
         public static bool Place(EffectContext context, UnitInstance unit,
-            SummonPlacement placement, RowType targetRow, int index, bool fromDeck,
-            bool strictNeighbors = false)
+            SummonPlacement placement, RowType targetRow, int index, bool fromDeck)
         {
-            var slot = Resolve(context, placement, targetRow, index, strictNeighbors);
-            if (slot == null && !strictNeighbors) slot = context.Owner.FirstFreeSlot();
+            var slot = Resolve(context, placement, targetRow, index);
+            if (slot == null && placement != SummonPlacement.Neighbors) slot = context.Owner.FirstFreeSlot();
             if (slot == null) return false;
 
             unit.RowType = slot.Row;
@@ -27,7 +26,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         }
 
         private static BoardSlot Resolve(EffectContext context, SummonPlacement placement,
-            RowType targetRow, int index, bool strictNeighbors)
+            RowType targetRow, int index)
         {
             var source = context.Source as UnitInstance;
             var fallbackRow = targetRow != RowType.None
@@ -40,7 +39,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                     return FirstFreeIn(context, index % 2 == 0 ? RowType.Melee : RowType.Ranged);
 
                 case SummonPlacement.Neighbors:
-                    return ResolveNeighbors(context, source, strictNeighbors);
+                    return ResolveNeighbors(context, source);
 
                 case SummonPlacement.OwnPosition:
                     return ResolveOwnPosition(context, fallbackRow);
@@ -57,7 +56,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             return index >= 0 ? row.Slots[index] : null;
         }
 
-        private static BoardSlot ResolveNeighbors(EffectContext context, UnitInstance source, bool strict)
+        private static BoardSlot ResolveNeighbors(EffectContext context, UnitInstance source)
         {
             if (source == null) return null;
 
@@ -65,18 +64,14 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             if (anchor == null) return null;
 
             var row = context.Owner.GetRow(anchor.Row);
-            var maxDistance = strict ? 2 : BoardConfig.SlotsPerRow;
 
-            for (var distance = 1; distance < maxDistance; distance++)
-            {
-                var right = anchor.Index + distance;
-                if (right < BoardConfig.SlotsPerRow && row.Slots[right].IsEmpty)
-                    return row.Slots[right];
+            var right = anchor.Index + 1;
+            if (right < BoardConfig.SlotsPerRow && row.Slots[right].IsEmpty)
+                return row.Slots[right];
 
-                var left = anchor.Index - distance;
-                if (left >= 0 && row.Slots[left].IsEmpty)
-                    return row.Slots[left];
-            }
+            var left = anchor.Index - 1;
+            if (left >= 0 && row.Slots[left].IsEmpty)
+                return row.Slots[left];
 
             return null;
         }

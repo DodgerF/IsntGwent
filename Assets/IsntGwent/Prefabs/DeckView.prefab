@@ -253,10 +253,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_HighlightedColor: {r: 1, g: 0.87, b: 0.62, a: 1}
+    m_PressedColor: {r: 0.7882353, g: 0.6313726, b: 0.34901962, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.38, g: 0.36, b: 0.33, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -278,6 +278,7 @@ MonoBehaviour:
   clickSoundId: ui_click
   hoverSoundId: ui_button_hover
   hoverOutSoundId: ui_button_hover_out
+  useSharedColors: 1
 --- !u!114 &2796792285464921788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -328,8 +329,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -130}
-  m_SizeDelta: {x: 222.8653, y: 67.4211}
+  m_AnchoredPosition: {x: -0.0006628, y: -117.04}
+  m_SizeDelta: {x: 200, y: 65.911}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5702346435610742513
 CanvasRenderer:
@@ -359,16 +360,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Deck Name
+  m_text: Deck name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dd956c30171771f4399efebd636160f9, type: 2}
-  m_sharedMaterial: {fileID: -8165179467272669399, guid: dd956c30171771f4399efebd636160f9, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: e4186835ebb359743a69f30cd2007c4f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291224304
   m_fontColor: {r: 0.9411765, g: 0.8862745, b: 0.7764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -425,7 +426,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 1.7451706, y: 0.87259674, z: 1.7452087, w: 9.598602}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -769,7 +770,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 3098990312
   m_fontColor: {r: 0.9098039, g: 0.8392157, b: 0.7137255, a: 0.72156864}
   m_enableVertexGradient: 0
   m_colorMode: 3

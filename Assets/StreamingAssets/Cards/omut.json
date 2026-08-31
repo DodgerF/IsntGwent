@@ -4,24 +4,21 @@
   "imageName": "omut",
   "type": "Spell",
   "rarity": "Rare",
-  "description": "Weather for 3 turns: at the end of the turn damage 3 to the weakest creature in the row.",
+  "description": "Weather: a creature entering the row takes 1 damage.",
   "effects": [
     {
       "effect": "ApplyWeather",
-      "trigger": "OnPlay",
-      "duration": 3
+      "trigger": "OnPlay"
     },
     {
-      "effect": "WeakestTargeting",
-      "trigger": "OnWeatherTick",
-      "count": 1,
-      "includeAllies": true,
-      "restrictToPlayedRow": true
+      "effect": "EventTargeting",
+      "trigger": "OnWeatherEnter",
+      "includeAllies": true
     },
     {
       "effect": "DealDamage",
-      "trigger": "OnWeatherTick",
-      "amount": 3
+      "trigger": "OnWeatherEnter",
+      "amount": 1
     }
   ]
 }

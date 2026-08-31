@@ -8,20 +8,28 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         public override void Execute(EffectContext context)
         {
             var definition = (DealDamageEffectDefinition)context.Definition;
+            var amount = definition.AmountFromDestroyed ? context.DestroyedPower : definition.Amount;
 
             if (definition.Self)
             {
-                Hit(context, context.Source as UnitInstance, definition.Amount);
+                Hit(context, context.Source as UnitInstance, amount);
                 return;
             }
 
+            context.KilledCount = 0;
+
             foreach (var target in context.Targets)
-                Hit(context, target, definition.Amount);
+            {
+                Hit(context, target, amount);
+
+                if (target.CurrentPower.Value <= 0)
+                    context.KilledCount++;
+            }
 
             var missed = MissedTargets(definition, context.Targets.Count);
             if (missed <= 0) return;
 
-            Hit(context, context.Source as UnitInstance, definition.Amount * missed);
+            Hit(context, context.Source as UnitInstance, amount * missed);
         }
 
         private static int MissedTargets(DealDamageEffectDefinition definition, int hitCount)
@@ -44,6 +52,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
     public class DealDamageEffectDefinition : EffectDefinition
     {
         public int Amount;
+        public bool AmountFromDestroyed;
         public bool Self;
         public bool SelfIfNoTargets;
         public bool SelfPerMissingTarget;

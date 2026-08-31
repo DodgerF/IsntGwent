@@ -3,15 +3,14 @@
   "name": "Mourner",
   "imageName": "plakalshchitsa",
   "type": "Unit",
-  "power": 2,
+  "power": 4,
   "rarity": "Common",
-  "description": "React to ally death: boost by 2 if the dead one was a neighbour.",
+  "description": "React to ally death: boost by 1.",
   "effects": [
     {
       "effect": "BuffPower",
       "trigger": "OnAllyDied",
-      "amount": 2,
-      "onlyIfEventNeighbor": true
+      "amount": 1
     }
   ]
 }

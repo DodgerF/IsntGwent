@@ -28,6 +28,8 @@ namespace IsntGwent.Scripts.Match.Server
             _notifier.NotifyRedrawStarted(context, p1, p1.RedrawsLeft);
             _notifier.NotifyRedrawStarted(context, p2, p2.RedrawsLeft);
 
+            context.Journal?.RedrawStart(context);
+
             if (p1.RedrawsLeft == 0) SetReady(context, p1);
             if (p2.RedrawsLeft == 0) SetReady(context, p2);
         }
@@ -53,6 +55,8 @@ namespace IsntGwent.Scripts.Match.Server
 
             if (player.Deck.Count == 0) player.RedrawsLeft = 0;
 
+            context.Journal?.Redraw(player, card, drawn);
+
             _notifier.NotifyCardRedrawn(player, card, drawn, player.RedrawsLeft);
             _notifier.NotifyDecks(context);
 
@@ -66,6 +70,7 @@ namespace IsntGwent.Scripts.Match.Server
             if (player.IsRedrawReady) return;
 
             player.IsRedrawReady = true;
+            context.Journal?.RedrawReady(player);
 
             ReturnPileToDeck(player);
 
@@ -74,6 +79,7 @@ namespace IsntGwent.Scripts.Match.Server
             if (!context.Player1.IsRedrawReady || !context.Player2.IsRedrawReady) return;
 
             context.IsRedrawPhase = false;
+            context.Journal?.RedrawEnd();
 
             _notifier.NotifyRedrawEnded(context);
 

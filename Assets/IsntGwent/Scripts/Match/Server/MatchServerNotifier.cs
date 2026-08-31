@@ -59,6 +59,10 @@ namespace IsntGwent.Scripts.Match.Server
                 Send(player, new OwnCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
+                    DefinitionId = unit.Definition.Id,
+                    CurrentPower = unit.CurrentPower.Value,
+                    BasePower = unit.BasePower.Value,
+                    Armor = unit.Armor.Value,
                     Row = row,
                     SlotIndex = slotIndex
                 });
@@ -67,6 +71,7 @@ namespace IsntGwent.Scripts.Match.Server
                     CardInstanceId = unit.Id.ToString(),
                     DefinitionId = unit.Definition.Id,
                     CurrentPower = unit.CurrentPower.Value,
+                    BasePower = unit.BasePower.Value,
                     Armor = unit.Armor.Value,
                     CardAmount = player.Hand.Count,
                     Row = row,
@@ -77,7 +82,8 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 Send(player, new OwnCardPlayedMessage
                 {
-                    CardInstanceId = card.Id.ToString()
+                    CardInstanceId = card.Id.ToString(),
+                    DefinitionId = card.Definition.Id,
                 });
                 Send(opponent, new EnemyCardPlayedMessage
                 {
@@ -86,6 +92,15 @@ namespace IsntGwent.Scripts.Match.Server
                     CardAmount = player.Hand.Count,
                 });
             }
+        }
+
+        public void NotifyAimRequest(Player player, CardInstance card, List<string> pool)
+        {
+            Send(player, new AimRequestMessage
+            {
+                CardInstanceId = card.Id.ToString(),
+                TargetIds = pool.ToArray(),
+            });
         }
 
         public void NotifyCardRemovedFromHand(Player player, CardInstance card)
@@ -172,6 +187,7 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 InstanceId = u.Id.ToString(),
                 CurrentPower = u.CurrentPower.Value,
+                BasePower = u.BasePower.Value,
                 Armor = u.Armor.Value,
                 IsDead = u.CurrentPower.Value <= 0
             }).ToArray();

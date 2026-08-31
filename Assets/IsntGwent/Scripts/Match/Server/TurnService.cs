@@ -11,6 +11,8 @@ namespace IsntGwent.Scripts.Match.Server
         public void PassTurn(GameContext context, Player player)
         {
             player.IsPassed = true;
+            context.Journal?.Pass(player);
+
             var opponent = context.GetOpponent(player);
 
             context.Publish(new TurnEnded(player));

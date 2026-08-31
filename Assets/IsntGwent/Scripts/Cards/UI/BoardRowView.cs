@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using DG.Tweening;
-using TMPro;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Match;
@@ -28,8 +27,7 @@ namespace IsntGwent.Scripts.Cards.UI
         [SerializeField] private float rowPadding = 6f;
         [SerializeField] private float slotIconScale = 0.45f;
 
-        [SerializeField] private GameObject weatherRoot;
-        [SerializeField] private TextMeshProUGUI weatherText;
+        [SerializeField] private WeatherBadgeView weatherBadge;
 
         private Image _image;
         private Image _glow;
@@ -94,7 +92,7 @@ namespace IsntGwent.Scripts.Cards.UI
                 .AddTo(this);
 
             _selectionService?.HighlightFreeSlots
-                .Subscribe(_ => HighlightFreeSlots(OwnSide))
+                .Subscribe(side => HighlightFreeSlots(OwnSide == side))
                 .AddTo(this);
 
             _selectionService?.HighlightCells
@@ -139,12 +137,11 @@ namespace IsntGwent.Scripts.Cards.UI
                 .AddTo(this);
         }
 
-        public void ShowWeather(string cardId, int turnsLeft)
+        public void ShowWeather(string cardId)
         {
-            var active = !string.IsNullOrEmpty(cardId) && turnsLeft > 0;
+            var active = !string.IsNullOrEmpty(cardId);
 
-            if (weatherRoot != null) weatherRoot.SetActive(active);
-            if (weatherText != null) weatherText.text = active ? turnsLeft.ToString() : string.Empty;
+            if (weatherBadge != null) weatherBadge.Show(cardId);
 
             ShowWeatherVfx(active ? cardId : null);
         }
@@ -264,7 +261,7 @@ namespace IsntGwent.Scripts.Cards.UI
         protected override bool IsLayoutChild(Transform child)
             => child.GetComponent<SlotView>() == null
                && child.gameObject != _weatherVfx
-               && (weatherRoot == null || child != weatherRoot.transform)
+               && (weatherBadge == null || child != weatherBadge.transform)
                && (_weatherTint == null || child != _weatherTint.transform);
 
         protected override void PlaceAttached(Transform card)

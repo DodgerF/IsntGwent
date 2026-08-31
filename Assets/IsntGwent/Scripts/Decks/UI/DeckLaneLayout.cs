@@ -7,49 +7,50 @@ namespace IsntGwent.Scripts.Decks.UI
     {
         public const int LaneCapacity = 9;
 
-        private const float CardSpacing = 115f;
-        private const float LaneHeight = 160f;
+        private const float ReferenceLaneHeight = 160f;
+        private const float ReferenceCardSpacing = 115f;
+        private const float LaneGap = 30f;
+        private const float LaneSideMargin = 20f;
+        private const float LaneWidthReserve = 100f;
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
-        private static readonly Vector2 RootAnchorMin = new(0f, 0f);
-        private static readonly Vector2 RootAnchorMax = new(0.5f, 1f);
-        private static readonly Vector2 RootAnchoredPosition = new(5f, -56f);
-        private static readonly Vector2 RootSizeDelta = new(-30f, -280f);
-
-        private static readonly float[] LaneWidths = { 1000f, 1000f, 900f };
-        private static readonly float[] LaneMaxWidths = { 900f, 900f, 800f };
-        private static readonly float[] LaneOffsets = { 350f, 160f, -30f };
+        private static readonly float[] LaneWidthFactors = { 1f, 1f, 0.9f };
 
         public static void Apply(RectTransform root, CardLaneView[] lanes)
         {
-            if (root != null)
-            {
-                root.anchorMin = RootAnchorMin;
-                root.anchorMax = RootAnchorMax;
-                root.pivot = Center;
-                root.anchoredPosition = RootAnchoredPosition;
-                root.sizeDelta = RootSizeDelta;
-            }
+            if (root == null || lanes == null || lanes.Length == 0) return;
 
-            if (lanes == null) return;
+            var area = root.rect;
+            if (area.width <= 0f || area.height <= 0f) return;
 
-            for (var i = 0; i < lanes.Length; i++)
+            var count = lanes.Length;
+            var laneHeight = Mathf.Min(ReferenceLaneHeight, (area.height - LaneGap * (count - 1)) / count);
+            if (laneHeight <= 0f) return;
+
+            var scale = laneHeight / ReferenceLaneHeight;
+            var step = laneHeight + LaneGap;
+            var top = (count - 1) * step / 2f;
+            var fullWidth = Mathf.Max(0f, area.width - LaneSideMargin * 2f);
+
+            for (var i = 0; i < count; i++)
             {
                 var lane = lanes[i];
                 if (lane == null) continue;
 
-                var index = Mathf.Clamp(i, 0, LaneWidths.Length - 1);
+                var factor = LaneWidthFactors[Mathf.Clamp(i, 0, LaneWidthFactors.Length - 1)];
+                var laneWidth = fullWidth * factor;
                 var rect = (RectTransform)lane.transform;
 
                 rect.anchorMin = Center;
                 rect.anchorMax = Center;
                 rect.pivot = Center;
-                rect.sizeDelta = new Vector2(LaneWidths[index], LaneHeight);
-                rect.anchoredPosition = new Vector2(0f, LaneOffsets[index]);
+                rect.sizeDelta = new Vector2(laneWidth, laneHeight);
+                rect.anchoredPosition = new Vector2(0f, top - i * step);
                 rect.localScale = Vector3.one;
 
-                lane.cardSpacing = CardSpacing;
-                lane.maxWidth = LaneMaxWidths[index];
+                lane.cardSpacing = ReferenceCardSpacing * scale;
+                lane.cardScale = scale;
+                lane.maxWidth = Mathf.Max(0f, laneWidth - LaneWidthReserve * scale);
                 lane.RefreshLayout();
             }
         }

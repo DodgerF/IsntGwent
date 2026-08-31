@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 
 namespace IsntGwent.Scripts.Match.Server
@@ -29,8 +30,9 @@ namespace IsntGwent.Scripts.Match.Server
                 {
                     if (++guard > MaxEventsPerDispatch)
                     {
-                        Debug.LogError($"GameEventBus: превышен лимит событий за диспатч ({MaxEventsPerDispatch}), " +
-                                       "очередь сброшена — похоже на зацикленные триггеры карт");
+                        Log.Error(LogTag.Match,
+                            $"превышен лимит событий за диспатч ({MaxEventsPerDispatch}), " +
+                            "очередь сброшена — похоже на зацикленные триггеры карт");
                         _queue.Clear();
                         break;
                     }

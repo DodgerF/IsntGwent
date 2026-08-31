@@ -3,16 +3,16 @@
   "name": "Anchutka",
   "imageName": "anchutka",
   "type": "Unit",
-  "power": 3,
+  "power": 2,
   "rarity": "Common",
-  "description": "Deploy: damage 4 to the weakest enemy in the melee row.",
+  "description": "Deploy: damage 4 to the weakest enemy in the opposite row.",
   "effects": [
     {
       "effect": "WeakestTargeting",
       "trigger": "OnPlay",
       "count": 1,
       "includeEnemies": true,
-      "targetRow": "Melee"
+      "sameRowAsSource": true
     },
     {
       "effect": "DealDamage",

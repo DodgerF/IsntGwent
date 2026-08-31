@@ -45,8 +45,7 @@ namespace IsntGwent.Scripts.Match.UI
         private void BindWeather(RowWeatherState state, BoardRowView row)
         {
             state.CardId
-                .CombineLatest(state.TurnsLeft, (cardId, turns) => (cardId, turns))
-                .Subscribe(e => row.ShowWeather(e.cardId, e.turns))
+                .Subscribe(row.ShowWeather)
                 .AddTo(this);
         }
 
@@ -68,6 +67,8 @@ namespace IsntGwent.Scripts.Match.UI
 
                     PlayPlaceSfx(view, e.Card, summoned);
                     view.mode = CardMode.OnBoard;
+                    view.gameObject.SetActive(true);
+                    view.Group().blocksRaycasts = true;
                     row.PlaceCard(view.gameObject, e.Index);
                 })
                 .AddTo(this);

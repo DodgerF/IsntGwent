@@ -3,13 +3,14 @@
   "name": "Vila",
   "imageName": "vila",
   "type": "Unit",
-  "power": 4,
+  "power": 3,
   "rarity": "Common",
-  "description": "Deathwish: summon its copy from your deck.",
+  "description": "Deathwish: summon its copy from your graveyard onto this cell.",
   "effects": [
     {
       "effect": "SummonFromDeck",
       "trigger": "OnDeath",
+      "fromGraveyard": true,
       "count": 1,
       "placement": "OwnPosition"
     }

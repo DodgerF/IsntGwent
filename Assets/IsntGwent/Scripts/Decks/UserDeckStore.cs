@@ -2,6 +2,7 @@ using System.IO;
 using IsntGwent.Scripts.Decks.Definitions;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -25,7 +26,7 @@ namespace IsntGwent.Scripts.Decks
             }
             catch (IOException e)
             {
-                Debug.LogError("Failed to create deck folder: " + e.Message);
+                Log.Error(LogTag.Data, "Failed to create deck folder: " + e.Message);
                 return;
             }
 
@@ -65,7 +66,7 @@ namespace IsntGwent.Scripts.Decks
             }
             catch (IOException e)
             {
-                Debug.LogError("Failed to delete deck " + deckId + ": " + e.Message);
+                Log.Error(LogTag.Data, "Failed to delete deck " + deckId + ": " + e.Message);
             }
         }
 
@@ -83,7 +84,7 @@ namespace IsntGwent.Scripts.Decks
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to read deck " + path + ": " + e.Message);
+                Log.Error(LogTag.Data, "Failed to read deck " + path + ": " + e.Message);
                 return null;
             }
         }
@@ -98,7 +99,7 @@ namespace IsntGwent.Scripts.Decks
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to save deck " + deck.Id + ": " + e.Message);
+                Log.Error(LogTag.Data, "Failed to save deck " + deck.Id + ": " + e.Message);
             }
         }
 

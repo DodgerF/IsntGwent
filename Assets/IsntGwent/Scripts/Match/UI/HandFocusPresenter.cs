@@ -1,6 +1,7 @@
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Cards.UI;
+using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Match.Client;
 using UniRx;
 using UnityEngine;
@@ -11,10 +12,10 @@ namespace IsntGwent.Scripts.Match.UI
     public class HandFocusPresenter : MonoBehaviour
     {
         public CardLaneView hand;
-        public HandFocusZone handZone;
         public HandFocusZone dimmerZone;
         public GameObject dimmer;
 
+        [Inject] private readonly InputRouter _inputRouter;
         [Inject] private readonly MatchState _matchState;
         [Inject] private readonly CardSelectionService _selection;
         [Inject] private readonly AudioService _audio;
@@ -23,19 +24,15 @@ namespace IsntGwent.Scripts.Match.UI
         {
             if (dimmer != null) dimmer.SetActive(false);
 
-            if (handZone != null)
-                handZone.Clicked += () => SetFocused(!hand.IsFocused);
+            _inputRouter.Swiped
+                .Subscribe(direction => SetFocused(direction > 0))
+                .AddTo(this);
 
             if (dimmerZone != null)
                 dimmerZone.Clicked += () => SetFocused(false);
 
             _selection.IsChoosing
                 .Where(choosing => choosing)
-                .Subscribe(_ => SetFocused(false))
-                .AddTo(this);
-
-            _matchState.IsMyTurn
-                .Where(myTurn => !myTurn)
                 .Subscribe(_ => SetFocused(false))
                 .AddTo(this);
 
@@ -48,7 +45,7 @@ namespace IsntGwent.Scripts.Match.UI
         private void SetFocused(bool focused)
         {
             if (hand == null || hand.IsFocused == focused) return;
-            if (focused && (!_matchState.IsMyTurn.Value || hand.CardCount == 0)) return;
+            if (focused && hand.CardCount == 0) return;
 
             hand.SetFocused(focused);
 

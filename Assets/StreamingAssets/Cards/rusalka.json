@@ -3,37 +3,31 @@
   "name": "Rusalka",
   "imageName": "rusalka",
   "type": "Unit",
-  "power": 3,
+  "power": 5,
   "rarity": "Common",
-  "description": "Melee: damage 3 to the first creature in the line ahead. Ranged: pull the creature opposite one line closer.",
+  "description": "Deploy: pull a chosen creature one line closer. Habitat (Omut): damage 3 to it as well.",
   "effects": [
     {
-      "effect": "LineTargeting",
+      "effect": "AimedTargeting",
       "trigger": "OnPlay",
-      "requiredRow": "Melee",
-      "anchor": "Source"
-    },
-    {
-      "effect": "DealDamage",
-      "trigger": "OnPlay",
-      "requiredRow": "Melee",
-      "amount": 3
-    },
-    {
-      "effect": "SlotTargeting",
-      "trigger": "OnPlay",
-      "requiredRow": "Ranged",
-      "anchor": "Source",
-      "direction": "Opposite",
+      "count": 1,
+      "allowPartial": true,
       "includeEnemies": true
     },
     {
       "effect": "Move",
       "trigger": "OnPlay",
-      "requiredRow": "Ranged",
       "axis": "Depth",
       "direction": "TowardSource",
       "anchor": "Source"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 3,
+      "condition": {
+        "environment": "omut"
+      }
     }
   ]
 }

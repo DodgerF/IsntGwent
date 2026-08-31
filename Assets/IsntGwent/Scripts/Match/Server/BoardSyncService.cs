@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using IsntGwent.Scripts.Cards.Runtime;
+using IsntGwent.Scripts.Messages;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -37,6 +39,7 @@ namespace IsntGwent.Scripts.Match.Server
                 if (changed.Count == 0) return;
 
                 _notifier.NotifyUnitStates(context, changed);
+                context.Journal?.States(context, changed);
 
                 var dead = changed.Where(u => u.CurrentPower.Value <= 0).ToList();
                 if (dead.Count == 0) return;
@@ -58,8 +61,9 @@ namespace IsntGwent.Scripts.Match.Server
                 ApplySlotTakeovers(context);
             }
 
-            Debug.LogError($"BoardSyncService: каскад смертей не сошёлся за {MaxDeathCascadeIterations} " +
-                           "итераций — похоже на карты, убивающие друг друга по кругу");
+            Log.Error(LogTag.Match,
+                $"каскад смертей не сошёлся за {MaxDeathCascadeIterations} итераций " +
+                $"(match {context.MatchId}) — похоже на карты, убивающие друг друга по кругу");
         }
         
         private static void ApplySlotTakeovers(GameContext context)
@@ -87,11 +91,13 @@ namespace IsntGwent.Scripts.Match.Server
         {
             for (var i = damage.Count - 1; i >= 0; i--)
             {
-                if (damage[i].Target == unit && damage[i].Source != null)
-                    return damage[i].Source;
+                if (damage[i].Target != unit || damage[i].Source == null) continue;
+                if (damage[i].Kind == DamageKind.Weather) continue;
+
+                return damage[i].Source;
             }
 
-            return null;
+            return unit.LastAttacker;
         }
 
         public static (UnitInstance Left, UnitInstance Right) FindNeighbors(GameContext context, UnitInstance unit)

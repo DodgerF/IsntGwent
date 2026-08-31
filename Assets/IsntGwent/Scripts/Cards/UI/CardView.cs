@@ -71,16 +71,15 @@ namespace IsntGwent.Scripts.Cards.UI
 
             if (instance is UnitInstance unitInstance)
             {
-                var basePower = unitInstance.UnitDefinition.Power;
-
                 powerText.gameObject.SetActive(true);
                 if (powerBack != null) powerBack.SetActive(true);
 
                 unitInstance.CurrentPower
-                    .Subscribe(power =>
+                    .CombineLatest(unitInstance.BasePower, (power, basePower) => (power, basePower))
+                    .Subscribe(e =>
                     {
-                        powerText.text = power.ToString();
-                        powerText.color = PowerColor(power, basePower);
+                        powerText.text = e.power.ToString();
+                        powerText.color = PowerColor(e.power, e.basePower);
                     })
                     .AddTo(_cardBindings);
 

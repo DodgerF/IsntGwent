@@ -36,20 +36,36 @@ namespace IsntGwent.Scripts.Match.Server
             if (error != IntentError.None) return error;
 
             if (context.IsRedrawPhase) return IntentError.WrongPhase;
+            if (context.PendingAim != null) return IntentError.WrongPhase;
             if (context.CurrentPlayer != player) return IntentError.NotYourTurn;
 
             var card = FindPlayable(player, msg.CardInstanceId);
             if (card == null) return IntentError.CardNotInHand;
 
+            var boardOwner = CardPlayService.IsTraitor(card) ? context.GetOpponent(player) : player;
+
             if (!CardPlayService.IsRowValid(card, msg.Row)) return IntentError.IllegalRow;
-            if (!CardPlayService.IsSlotFree(player, card, msg.Row, msg.SlotIndex)) return IntentError.IllegalSlot;
+            if (!CardPlayService.IsSlotFree(boardOwner, card, msg.Row, msg.SlotIndex)) return IntentError.IllegalSlot;
 
             var selectedIds = msg.TargetIds?.ToList() ?? new List<string>();
 
-            if (!_cardResolver.CanPlay(context, player, card, selectedIds, msg.Row, msg.SlotIndex))
+            if (!_cardResolver.CanPlay(context, boardOwner, card, selectedIds, msg.Row, msg.SlotIndex))
                 return IntentError.IllegalTargets;
 
             _cardPlayService.PlayCard(context, player, card, msg.Row, msg.SlotIndex, selectedIds, msg.EnemyRow);
+
+            return IntentError.None;
+        }
+
+        public IntentError AimTargets(Seat seat, AimTargetMessage msg)
+        {
+            var error = ActivePlayer(seat, out var context, out var player);
+            if (error != IntentError.None) return error;
+
+            if (context.PendingAim == null) return IntentError.WrongPhase;
+            if (context.PendingAim.Caster != player) return IntentError.NotYourTurn;
+
+            _cardPlayService.ContinueAim(context, player, msg.TargetIds?.ToList());
 
             return IntentError.None;
         }

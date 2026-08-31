@@ -4,6 +4,7 @@ using Coffee.UIExtensions;
 using IsntGwent.Scripts.Core;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -39,7 +40,7 @@ namespace IsntGwent.Scripts.Vfx
 
                     OnLoaded.Value = true;
                 },
-                onError: err => Debug.LogError(err)
+                onError: err => Log.Error(LogTag.Data, err)
             );
         }
 
@@ -73,7 +74,7 @@ namespace IsntGwent.Scripts.Vfx
 
             var prefab = Resources.Load<GameObject>("Vfx/" + name);
             if (prefab == null)
-                Debug.LogWarning("Vfx prefab not found: Vfx/" + name);
+                Log.Warn(LogTag.Data, "Vfx prefab not found: Vfx/" + name);
 
             return prefab;
         }

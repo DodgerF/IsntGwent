@@ -28,6 +28,11 @@ namespace IsntGwent.Scripts.Cards.UI
             _spawnOrigin = origin;
         }
 
+        private void OnRectTransformDimensionsChange()
+        {
+            DeckLaneLayout.Apply((RectTransform)transform, lanes);
+        }
+
         private void Start()
         {
             DeckLaneLayout.Apply((RectTransform)transform, lanes);

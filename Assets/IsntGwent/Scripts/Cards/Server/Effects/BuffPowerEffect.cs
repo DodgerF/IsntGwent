@@ -19,16 +19,19 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         public override void Execute(EffectContext context)
         {
             var definition = (BuffPowerDefinition)context.Definition;
-            var targets = ResolveApplyTargets(context);
+            var amount = definition.PerKill ? definition.Amount * context.KilledCount : definition.Amount;
+            if (amount <= 0) return;
 
-            foreach (var target in targets)
-                target.CurrentPower.Value += definition.Amount;
+            foreach (var target in ResolveApplyTargets(context))
+                target.CurrentPower.Value += amount;
         }
 
         private static List<UnitInstance> ResolveApplyTargets(EffectContext context)
         {
-            if (context.Targets.Count > 0) return context.Targets;
-            if (((BuffPowerDefinition)context.Definition).RequireTargets) return new List<UnitInstance>();
+            var definition = (BuffPowerDefinition)context.Definition;
+
+            if (!definition.Self && context.Targets.Count > 0) return context.Targets;
+            if (!definition.Self && definition.RequireTargets) return new List<UnitInstance>();
 
             return context.Source is UnitInstance self
                 ? new List<UnitInstance> { self }
@@ -39,6 +42,8 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
     public class BuffPowerDefinition : EffectDefinition
     {
         public int Amount;
+        public bool PerKill;
+        public bool Self;
         public bool OnlyIfEventNeighbor;
         public bool RequireTargets;
     }

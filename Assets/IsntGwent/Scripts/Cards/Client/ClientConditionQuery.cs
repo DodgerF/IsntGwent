@@ -20,6 +20,11 @@ namespace IsntGwent.Scripts.Cards.Client
                 if (HasOnBoard(condition.AllyOnBoard) == condition.AllyAbsent) return false;
             }
 
+            if (!string.IsNullOrEmpty(condition.Environment))
+            {
+                if (HasEnvironment(condition.Environment) == condition.EnvironmentAbsent) return false;
+            }
+
             if (condition.Leadership != LeadershipMode.Any)
             {
                 var held = MaxPower(OwnUnits()) >= MaxPower(EnemyUnits());
@@ -27,6 +32,16 @@ namespace IsntGwent.Scripts.Cards.Client
             }
 
             return true;
+        }
+
+        private bool HasEnvironment(string cardId)
+        {
+            return HasWeather(_state.EnemyMeleeWeather, cardId) || HasWeather(_state.EnemyRangedWeather, cardId);
+        }
+
+        private static bool HasWeather(RowWeatherState weather, string cardId)
+        {
+            return weather.CardId.Value == cardId;
         }
 
         private bool HasOnBoard(string definitionId)

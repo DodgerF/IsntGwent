@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 
 namespace IsntGwent.Scripts.Network
@@ -61,7 +62,7 @@ namespace IsntGwent.Scripts.Network
             {
                 if (!GUILayout.Button("Drop conn #" + conn.connectionId)) continue;
 
-                Debug.Log("NetDebugHud: разрываем conn " + conn.connectionId);
+                Log.Info(LogTag.Net, "NetDebugHud: разрываем conn " + conn.connectionId);
                 conn.Disconnect();
             }
         }
@@ -72,7 +73,7 @@ namespace IsntGwent.Scripts.Network
 
             if (!GUILayout.Button("Drop own connection")) return;
 
-            Debug.Log("NetDebugHud: рвём своё соединение");
+            Log.Info(LogTag.Net, "NetDebugHud: рвём своё соединение");
             NetworkClient.Disconnect();
         }
     }

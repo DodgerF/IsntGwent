@@ -1,7 +1,7 @@
 {
   "contentVersion": 3,
   "minDeckSize": 25,
-  "maxCopiesCommon": 3,
+  "maxCopiesCommon": 2,
   "maxCopiesRare": 2,
   "maxCopiesEpic": 1,
   "maxCopiesLegendary": 1

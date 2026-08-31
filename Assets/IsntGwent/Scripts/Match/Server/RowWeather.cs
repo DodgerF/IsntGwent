@@ -6,6 +6,5 @@ namespace IsntGwent.Scripts.Match.Server
     {
         public CardInstance Source;
         public string CardId;
-        public int TurnsLeft;
     }
 }

@@ -7,8 +7,7 @@ namespace IsntGwent.Scripts.Messages
     {
         public RowType Row;
         public string CardId;
-        public int TurnsLeft;
 
-        public bool IsEmpty => string.IsNullOrEmpty(CardId) || TurnsLeft <= 0;
+        public bool IsEmpty => string.IsNullOrEmpty(CardId);
     }
 }

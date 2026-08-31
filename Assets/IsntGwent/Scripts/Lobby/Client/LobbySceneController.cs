@@ -22,6 +22,10 @@ namespace IsntGwent.Scripts.Lobby.Client
                 .Subscribe(_ => LoadGameScene())
                 .AddTo(_disposables);
 
+            _handler.OnSearchStarted
+                .Subscribe(_ => LoadGameScene())
+                .AddTo(_disposables);
+
             _reconnect.TryResume();
         }
 

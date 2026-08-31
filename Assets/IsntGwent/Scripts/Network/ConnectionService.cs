@@ -2,6 +2,7 @@ using System;
 using IsntGwent.Scripts.Core;
 using Mirror;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -15,6 +16,7 @@ namespace IsntGwent.Scripts.Network
 
         public readonly ReactiveProperty<bool> IsConnectionLost = new(false);
         public readonly ReactiveProperty<bool> IsConnected = new(false);
+        public readonly Subject<Unit> AttemptFailed = new();
 
         private readonly CompositeDisposable _disposables = new();
         private readonly SerialDisposable _reconnectLoop = new();
@@ -47,6 +49,14 @@ namespace IsntGwent.Scripts.Network
         
         public void RetryNow()
         {
+            if (NetworkManager.singleton == null) return;
+
+            if (NetworkClient.active && !NetworkClient.isConnected)
+            {
+                NetworkManager.singleton.StopClient();
+                return;
+            }
+
             TryReconnect();
         }
         
@@ -66,9 +76,11 @@ namespace IsntGwent.Scripts.Network
 
         private void OnLost()
         {
+            AttemptFailed.OnNext(Unit.Default);
+
             if (IsConnectionLost.Value) return;
 
-            Debug.Log("Connection lost");
+            Log.Info(LogTag.Net, "Connection lost");
 
             IsConnectionLost.Value = true;
             IsConnected.Value = false;

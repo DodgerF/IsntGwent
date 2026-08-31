@@ -11,6 +11,8 @@ namespace IsntGwent.Scripts.Cards.Definitions
     {
         public string AllyOnBoard;
         public bool AllyAbsent;
+        public string Environment;
+        public bool EnvironmentAbsent;
         public LeadershipMode Leadership;
     }
 }

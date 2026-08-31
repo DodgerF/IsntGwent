@@ -18,9 +18,12 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
 
         public EffectDefinition Definition;
 
-        public DamageKind DamageKind => Definition != null && Definition.Trigger == EffectTrigger.OnWeatherTick
+        public DamageKind DamageKind => Definition != null && IsWeather(Definition.Trigger)
             ? DamageKind.Weather
             : DamageKind.Card;
+
+        private static bool IsWeather(EffectTrigger trigger)
+            => trigger == EffectTrigger.OnWeatherEnter;
 
         public RowType PlayedRow;
 
@@ -52,6 +55,12 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         }
 
         public List<UnitInstance> ManualTargets = new();
+
+        public int ManualCursor;
+
+        public int DestroyedPower;
+
+        public int KilledCount;
 
         public List<UnitInstance> Targets = new();
     }

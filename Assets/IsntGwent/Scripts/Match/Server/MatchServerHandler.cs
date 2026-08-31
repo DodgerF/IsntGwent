@@ -13,6 +13,7 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly SeatRegistry _seats;
 
         public readonly Subject<(Seat seat, PlayCardMessage msg)> OnPlayCard = new();
+        public readonly Subject<(Seat seat, AimTargetMessage msg)> OnAimTargets = new();
         public readonly Subject<Seat> OnPass = new();
         public readonly Subject<Seat> OnLeave = new();
         public readonly Subject<(Seat seat, RedrawCardMessage msg)> OnRedrawCard = new();
@@ -23,6 +24,7 @@ namespace IsntGwent.Scripts.Match.Server
             if (!NetworkServer.active) return;
 
             NetworkServer.RegisterHandler<PlayCardMessage>((conn, msg) => Publish(OnPlayCard, conn, msg));
+            NetworkServer.RegisterHandler<AimTargetMessage>((conn, msg) => Publish(OnAimTargets, conn, msg));
             NetworkServer.RegisterHandler<PassMessage>((conn, _) => Publish(OnPass, conn));
             NetworkServer.RegisterHandler<LeaveMessage>((conn, _) => Publish(OnLeave, conn));
             NetworkServer.RegisterHandler<RedrawCardMessage>((conn, msg) => Publish(OnRedrawCard, conn, msg));
@@ -48,6 +50,7 @@ namespace IsntGwent.Scripts.Match.Server
         public void Dispose()
         {
             NetworkServer.UnregisterHandler<PlayCardMessage>();
+            NetworkServer.UnregisterHandler<AimTargetMessage>();
             NetworkServer.UnregisterHandler<PassMessage>();
             NetworkServer.UnregisterHandler<LeaveMessage>();
             NetworkServer.UnregisterHandler<RedrawCardMessage>();

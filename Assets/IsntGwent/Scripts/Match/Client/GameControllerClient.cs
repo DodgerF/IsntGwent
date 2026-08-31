@@ -10,6 +10,7 @@ using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -288,6 +289,19 @@ namespace IsntGwent.Scripts.Match.Client
                 .Subscribe(OnSnapshot)
                 .AddTo(_disposables);
 
+            _handler.OnAimRequest
+                .Subscribe(msg => _coordinator.Enqueue(() => OnAimRequest(msg)))
+                .AddTo(_disposables);
+
+            _selectionService.AimTargetsChosen
+                .Where(_ => !_matchState.IsMatchPaused.Value)
+                .Subscribe(ids =>
+                {
+                    _handler.SendAimTargets(ids.ToArray());
+                    BeginPending();
+                })
+                .AddTo(_disposables);
+
             _handler.OnOpponentReconnecting
                 .Subscribe(msg =>
                 {
@@ -402,7 +416,16 @@ namespace IsntGwent.Scripts.Match.Client
             _matchState.IsEnemyPassed.Value = msg.IsEnemyPassed;
             _matchState.IsMyTurn.Value = msg.IsMyTurn;
             _matchState.TurnChanged.OnNext(Unit.Default);
+
+            if (msg.AimTargetIds != null && msg.AimTargetIds.Length > 0)
+                _selectionService.BeginServerAim(msg.AimTargetIds);
         }
+        private void OnAimRequest(AimRequestMessage msg)
+        {
+            ClearPending();
+            _selectionService.BeginServerAim(msg.TargetIds);
+        }
+
         private void BeginPending()
         {
             _matchState.IsActionPending.Value = true;
@@ -410,7 +433,7 @@ namespace IsntGwent.Scripts.Match.Client
                 .Timer(PendingTimeout)
                 .Subscribe(_ =>
                 {
-                    Debug.LogWarning("Подтверждение действия не пришло — разблокируем ввод");
+                    Log.Warn(LogTag.Client, "Подтверждение действия не пришло — разблокируем ввод");
                     _matchState.IsActionPending.Value = false;
                     _matchState.ActionTimedOut.OnNext(Unit.Default);
                 });
@@ -450,6 +473,7 @@ namespace IsntGwent.Scripts.Match.Client
                 var unit = _instances.Get(data.InstanceId) as UnitInstance;
                 if (unit == null) continue;
 
+                unit.BasePower.Value = data.BasePower;
                 unit.CurrentPower.Value = data.CurrentPower;
                 unit.Armor.Value = data.Armor;
 
@@ -565,6 +589,7 @@ namespace IsntGwent.Scripts.Match.Client
 
                 if (instance is UnitInstance unit)
                 {
+                    unit.BasePower.Value = cardData.BasePower;
                     unit.CurrentPower.Value = cardData.CurrentPower;
                     unit.Armor.Value = cardData.Armor;
                 }
@@ -595,6 +620,7 @@ namespace IsntGwent.Scripts.Match.Client
 
                 if (instance is UnitInstance unit)
                 {
+                    unit.BasePower.Value = cardData.BasePower;
                     unit.CurrentPower.Value = cardData.CurrentPower;
                     unit.Armor.Value = cardData.Armor;
                 }
@@ -652,6 +678,7 @@ namespace IsntGwent.Scripts.Match.Client
 
                 if (entry.Card is not UnitInstance unit) continue;
 
+                unit.BasePower.Value = entry.Data.BasePower;
                 unit.CurrentPower.Value = entry.Data.CurrentPower;
                 unit.Armor.Value = entry.Data.Armor;
             }
@@ -773,8 +800,15 @@ namespace IsntGwent.Scripts.Match.Client
 
         private void OnOwnCardPlayed(OwnCardPlayedMessage msg)
         {
-            var card = _instances.Get(msg.CardInstanceId);
+            var card = _instances.GetOrCreate(msg.DefinitionId, msg.CardInstanceId);
             if (card == null) return;
+
+            if (card is UnitInstance played)
+            {
+                played.BasePower.Value = msg.BasePower;
+                played.CurrentPower.Value = msg.CurrentPower;
+                played.Armor.Value = msg.Armor;
+            }
 
             var sequence = ++_playSequence;
 
@@ -801,6 +835,7 @@ namespace IsntGwent.Scripts.Match.Client
 
             if (instance is UnitInstance unit)
             {
+                unit.BasePower.Value = msg.BasePower;
                 unit.CurrentPower.Value = msg.CurrentPower;
                 unit.Armor.Value = msg.Armor;
             }

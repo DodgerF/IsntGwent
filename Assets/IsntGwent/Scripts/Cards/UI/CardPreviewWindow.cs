@@ -76,12 +76,12 @@ namespace IsntGwent.Scripts.Cards.UI
             if (stats != null)
             {
                 var unit = card as UnitInstance;
-                var changed = unit != null && unit.CurrentPower.Value != unit.UnitDefinition.Power;
+                var changed = unit != null && unit.CurrentPower.Value != unit.BasePower.Value;
 
                 stats.gameObject.SetActive(changed);
 
                 if (changed)
-                    stats.text = unit.UnitDefinition.Power.ToString();
+                    stats.text = unit.BasePower.Value.ToString();
             }
         }
 

@@ -80,11 +80,7 @@ namespace IsntGwent.Scripts.Cards.Client
         }
 
         private bool CanShowPreview(CardView card)
-        {
-            if (card == null || card.Instance == null) return false;
-
-            return _matchState == null || !_matchState.IsRedrawPhase.Value;
-        }
+            => card != null && card.Instance != null;
 
         private bool CanShowBoardPreview(CardView card)
             => !_wasSelectingTargets && CanShowPreview(card);

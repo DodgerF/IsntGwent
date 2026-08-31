@@ -63,5 +63,7 @@ namespace IsntGwent.Scripts.Messages
 
         public CardData[] PendingPlays;
         public bool IsPendingMine;
+
+        public string[] AimTargetIds;
     }
 }

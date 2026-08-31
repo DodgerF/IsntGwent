@@ -3,15 +3,16 @@
   "name": "Bear",
   "imageName": "bear",
   "type": "Unit",
-  "power": 7,
+  "power": 8,
   "rarity": "Rare",
-  "description": "Deploy: consume a neighbour as armor and take its cell.",
+  "description": "Deploy: consume a chosen ally as armor and take its cell.",
   "effects": [
     {
-      "effect": "NeighborTargeting",
+      "effect": "AimedTargeting",
       "trigger": "OnPlay",
-      "relativeTo": "Source",
-      "pick": "Highest"
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true
     },
     {
       "effect": "Devour",

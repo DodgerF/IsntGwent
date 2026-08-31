@@ -3,7 +3,7 @@
   "name": "Verlioka",
   "imageName": "verlioka",
   "type": "Unit",
-  "power": 9,
+  "power": 7,
   "rarity": "Common",
   "description": "Deploy: damage 2 to both neighbours. Damage 2 to itself for each missing target.",
   "effects": [

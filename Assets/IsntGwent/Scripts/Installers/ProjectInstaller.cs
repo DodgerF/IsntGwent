@@ -3,6 +3,8 @@ using IsntGwent.Scripts.Decks;
 using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Audio;
+using IsntGwent.Scripts.Diagnostics;
+using IsntGwent.Scripts.Accounts.Client;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Network;
 using IsntGwent.Scripts.Vfx;
@@ -14,7 +16,25 @@ namespace IsntGwent.Scripts.Installers
     {
         public override void InstallBindings()
         {
-            Container.Bind<LobbyStore>().AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<LogService>()
+                .AsSingle()
+                .NonLazy();
+
+            Container.Bind<PlaySession>().AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<LobbyClientHandler>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<AccountClientHandler>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<PlayerAccount>()
+                .AsSingle()
+                .NonLazy();
+
             
             Container
                 .BindInterfacesAndSelfTo<SceneService>()

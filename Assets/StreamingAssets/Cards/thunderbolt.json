@@ -3,7 +3,7 @@
   "name": "Lightning of Perun",
   "imageName": "thunderbolt",
   "type": "Spell",
-  "rarity": "Epic",
+  "rarity": "Rare",
   "description": "Deploy: damage 4 to the chosen creature and 2 to its neighbours.",
   "effects": [
     {

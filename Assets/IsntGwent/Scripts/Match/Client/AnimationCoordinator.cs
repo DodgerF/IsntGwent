@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -76,7 +77,7 @@ namespace IsntGwent.Scripts.Match.Client
             }
             catch (Exception exception)
             {
-                Debug.LogException(exception);
+                Log.Exception(LogTag.Client, exception);
             }
 
             if (duration > 0f)

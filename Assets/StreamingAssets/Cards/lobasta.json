@@ -3,28 +3,34 @@
   "name": "Lobasta",
   "imageName": "lobasta",
   "type": "Unit",
-  "power": 1,
+  "power": 4,
   "rarity": "Rare",
-  "description": "Turn start: damage 2 to the first creature in the line ahead. React to enemy play: step into the new creature's column.",
+  "description": "Melee: at turn start damage 2 to the creature opposite, and on enemy play step into the new creature's column.",
   "effects": [
     {
-      "effect": "LineTargeting",
+      "effect": "SlotTargeting",
       "trigger": "OnTurnStart",
-      "anchor": "Source"
+      "requiredRow": "Melee",
+      "anchor": "Source",
+      "direction": "Opposite",
+      "includeEnemies": true
     },
     {
       "effect": "DealDamage",
       "trigger": "OnTurnStart",
+      "requiredRow": "Melee",
       "amount": 2
     },
     {
       "effect": "EventTargeting",
       "trigger": "OnEnemyCardPlayed",
+      "requiredRow": "Melee",
       "includeEnemies": true
     },
     {
       "effect": "Move",
       "trigger": "OnEnemyCardPlayed",
+      "requiredRow": "Melee",
       "subject": "Source"
     }
   ]

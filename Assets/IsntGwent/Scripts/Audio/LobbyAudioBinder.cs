@@ -34,8 +34,12 @@ namespace IsntGwent.Scripts.Audio
 
         public void Initialize()
         {
-            _handler.OnLobbyCreated
+            _handler.OnPrivateRoomCreated
                 .Subscribe(_ => _audio.Play("sting_lobby_created"))
+                .AddTo(_disposables);
+
+            _handler.OnError
+                .Subscribe(_ => _audio.Play("ui_denied"))
                 .AddTo(_disposables);
 
             _input.CardPressed

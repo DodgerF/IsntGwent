@@ -34,6 +34,7 @@ namespace IsntGwent.Scripts.Match.Client
         public readonly Subject<MatchSnapshotMessage> OnSnapshot = new();
         public readonly Subject<OpponentReconnectingMessage> OnOpponentReconnecting = new();
         public readonly Subject<PendingPlayMessage> OnPendingPlay = new();
+        public readonly Subject<AimRequestMessage> OnAimRequest = new();
         public readonly Subject<DeckSyncMessage> OnDeckSync = new();
 
         public void Initialize()
@@ -64,6 +65,7 @@ namespace IsntGwent.Scripts.Match.Client
             NetworkClient.RegisterHandler<MatchSnapshotMessage>(msg => OnSnapshot.OnNext(msg));
             NetworkClient.RegisterHandler<OpponentReconnectingMessage>(msg => OnOpponentReconnecting.OnNext(msg));
             NetworkClient.RegisterHandler<PendingPlayMessage>(msg => OnPendingPlay.OnNext(msg));
+            NetworkClient.RegisterHandler<AimRequestMessage>(msg => OnAimRequest.OnNext(msg));
             NetworkClient.RegisterHandler<DeckSyncMessage>(msg => OnDeckSync.OnNext(msg));
         }
         public void SendReadyMessage()
@@ -74,6 +76,11 @@ namespace IsntGwent.Scripts.Match.Client
         public void SendPass()
         {
             NetworkClient.Send(new PassMessage());
+        }
+
+        public void SendAimTargets(string[] targetIds)
+        {
+            NetworkClient.Send(new AimTargetMessage { TargetIds = targetIds });
         }
         
         public void SendPlayCard(string cardInstanceId, RowType row, bool enemyRow, int slotIndex, string[] targetIds)

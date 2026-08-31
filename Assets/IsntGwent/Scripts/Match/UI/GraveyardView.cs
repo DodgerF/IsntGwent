@@ -95,14 +95,18 @@ namespace IsntGwent.Scripts.Match.UI
             _cards.Remove(instance);
 
             var view = cardGo != null ? cardGo.GetComponent<CardView>() : null;
+            var leftForBoard = view != null && view.mode != CardMode.InGraveyard;
 
-            if (view != null && _views.Get(instance.Id) == view)
+            if (!leftForBoard && view != null && _views.Get(instance.Id) == view)
                 _views.Remove(instance.Id);
 
             if (cardGo == _topCardGo)
                 _topCardGo = null;
 
             RevealTop();
+
+            if (leftForBoard) return;
+
             Dissolve(cardGo);
         }
 

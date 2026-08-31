@@ -9,6 +9,7 @@ namespace Editor
     {
         private SerializedProperty _clickSoundId;
         private SerializedProperty _hoverSoundId;
+        private SerializedProperty _useSharedColors;
 
         protected override void OnEnable()
         {
@@ -16,6 +17,7 @@ namespace Editor
 
             _clickSoundId = serializedObject.FindProperty("clickSoundId");
             _hoverSoundId = serializedObject.FindProperty("hoverSoundId");
+            _useSharedColors = serializedObject.FindProperty("useSharedColors");
         }
 
         public override void OnInspectorGUI()
@@ -27,6 +29,7 @@ namespace Editor
             serializedObject.Update();
             EditorGUILayout.PropertyField(_clickSoundId);
             EditorGUILayout.PropertyField(_hoverSoundId);
+            EditorGUILayout.PropertyField(_useSharedColors);
             serializedObject.ApplyModifiedProperties();
         }
     }
