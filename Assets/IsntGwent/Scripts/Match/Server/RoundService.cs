@@ -16,8 +16,11 @@ namespace IsntGwent.Scripts.Match.Server
             var p1 = context.Player1;
             var p2 = context.Player2;
 
-            var isTie = p1.TotalPower == p2.TotalPower;
-            var winner = isTie ? null : p1.TotalPower > p2.TotalPower ? p1 : p2;
+            var power1 = p1.TotalPower;
+            var power2 = p2.TotalPower;
+
+            var isTie = power1 == power2;
+            var winner = isTie ? null : power1 > power2 ? p1 : p2;
             var loser = winner != null ? context.GetOpponent(winner) : null;
 
             context.Publish(new RoundEnded(winner, isTie));
@@ -37,11 +40,13 @@ namespace IsntGwent.Scripts.Match.Server
 
             _notifier.NotifyHpChanged(context);
 
+            context.Journal?.RoundEnd(context, winner, isTie, power1, power2);
+
             var isGameEnded = p1.Hp <= 0 || p2.Hp <= 0;
 
             if (isGameEnded)
             {
-                SendGameEnded(context, isTie, winner, loser);
+                SendGameEnded(context);
                 return;
             }
 
@@ -49,8 +54,8 @@ namespace IsntGwent.Scripts.Match.Server
 
             BoardSyncService.MoveAllToGraveyard(context, p1);
             BoardSyncService.MoveAllToGraveyard(context, p2);
-            WeatherService.Clear(p1);
-            WeatherService.Clear(p2);
+            ClearWeather(context, p1);
+            ClearWeather(context, p2);
             _boardSync.Sync(context);
             _boardSync.SyncBoard(context);
 
@@ -72,6 +77,14 @@ namespace IsntGwent.Scripts.Match.Server
             _redrawService.BeginPhase(context);
         }
 
+        private static void ClearWeather(GameContext context, Player player)
+        {
+            if (player.Weather.Count > 0)
+                context.Journal?.WeatherCleared(player);
+
+            WeatherService.Clear(player);
+        }
+
         private static bool DiscardPendingPlays(Player player)
         {
             if (player.PendingPlays.Count == 0) return false;
@@ -82,9 +95,20 @@ namespace IsntGwent.Scripts.Match.Server
             return true;
         }
 
-        public void SendGameEnded(GameContext context, bool isTie, Player winner, Player loser)
+        public void SendGameEnded(GameContext context)
         {
+            var p1 = context.Player1;
+            var p2 = context.Player2;
+
+            var isTie = p1.Hp <= 0 && p2.Hp <= 0;
+            var winner = isTie ? null : p1.Hp > p2.Hp ? p1 : p2;
+            var loser = winner != null ? context.GetOpponent(winner) : null;
+
             _notifier.NotifyGameEnded(context, isTie, winner, loser);
+
+            context.EndReason = "hp";
+            context.IsTie = isTie;
+            context.Winner = winner;
             context.GameEnded.Value = true;
         }
     }

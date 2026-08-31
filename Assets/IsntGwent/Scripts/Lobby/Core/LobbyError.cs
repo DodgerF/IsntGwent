@@ -1,13 +1,14 @@
-﻿namespace IsntGwent.Scripts.Lobby.Core
+namespace IsntGwent.Scripts.Lobby.Core
 {
     public enum LobbyError
     {
         None,
-        LobbyNotFound,
-        LobbyFull,
+        RoomNotFound,
+        RoomFull,
         AlreadyInLobby,
-        InvalidPassword,
+        InvalidCode,
         DeckInvalid,
+        NotLoggedIn,
         Unknown
     }
 }

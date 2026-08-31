@@ -4,6 +4,7 @@ using System.Text;
 using IsntGwent.Scripts.Core;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -27,6 +28,8 @@ namespace IsntGwent.Scripts.Cards
 
     public class KeywordDatabase : IInitializable
     {
+        private const string Paragraph = "\n";
+
         private readonly CoroutineRunner _runner;
         private readonly List<KeywordEntry> _keywords = new();
 
@@ -53,7 +56,7 @@ namespace IsntGwent.Scripts.Cards
                 },
                 onError: err =>
                 {
-                    Debug.LogError(err);
+                    Log.Error(LogTag.Data, err);
                     OnLoaded.Value = true;
                 }
             );
@@ -73,22 +76,64 @@ namespace IsntGwent.Scripts.Cards
 
             var builder = new StringBuilder(description.Length);
             var index = 0;
+            var sentenceStart = 0;
+            var broken = false;
 
             while (index < description.Length)
             {
                 var matched = MatchAt(description, index);
                 if (matched == null)
                 {
-                    builder.Append(description[index]);
+                    var symbol = description[index];
+                    builder.Append(symbol);
                     index++;
+
+                    if (symbol == '.')
+                    {
+                        sentenceStart = builder.Length;
+                        broken = false;
+                    }
+
                     continue;
                 }
 
+                if (!broken && sentenceStart > 0 && OpensClause(description, index + matched.word.Length))
+                {
+                    var tail = builder.ToString(sentenceStart, builder.Length - sentenceStart).TrimStart();
+                    builder.Length = sentenceStart;
+                    builder.Append(Paragraph).Append(tail);
+                    broken = true;
+                }
+
+                var colored = !string.IsNullOrWhiteSpace(matched.color);
+
+                if (colored) builder.Append("<color=").Append(matched.color).Append('>');
                 builder.Append("<b>").Append(matched.word).Append("</b>");
+                if (colored) builder.Append("</color>");
+
                 index += matched.word.Length;
             }
 
             return builder.ToString();
+        }
+
+        private static bool OpensClause(string text, int index)
+        {
+            if (index > 0 && text[index - 1] == ':') return true;
+
+            while (index < text.Length && text[index] == ' ') index++;
+
+            if (index < text.Length && text[index] == '(')
+            {
+                var close = text.IndexOf(')', index);
+                if (close < 0) return false;
+
+                index = close + 1;
+
+                while (index < text.Length && text[index] == ' ') index++;
+            }
+
+            return index < text.Length && text[index] == ':';
         }
 
         public List<KeywordEntry> Used(string description)

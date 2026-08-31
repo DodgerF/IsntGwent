@@ -3,7 +3,7 @@
   "name": "Wisewoman",
   "imageName": "znakharka",
   "type": "Unit",
-  "power": 3,
+  "power": 5,
   "rarity": "Common",
   "description": "Deploy: heal a chosen ally.",
   "effects": [

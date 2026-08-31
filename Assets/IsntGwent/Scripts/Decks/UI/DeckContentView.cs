@@ -35,6 +35,11 @@ namespace IsntGwent.Scripts.Decks.UI
             _spawnOrigin = origin;
         }
 
+        private void OnRectTransformDimensionsChange()
+        {
+            DeckLaneLayout.Apply((RectTransform)transform, lanes);
+        }
+
         private void Start()
         {
             Init();

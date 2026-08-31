@@ -6,78 +6,129 @@ using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
 using Mirror;
 using UniRx;
+using UnityEngine.SceneManagement;
 using Zenject;
 
 namespace IsntGwent.Scripts.Lobby.Client
 {
     public class LobbyClientHandler : IInitializable, IDisposable
     {
+        private const string GameSceneName = "GameScene";
+
         [Inject] private readonly MatchReconnectService _reconnect;
+        [Inject] private readonly PlaySession _play;
 
         public readonly Subject<(LobbyError error, DeckViolation[] violations)> OnError = new();
         public readonly Subject<Unit> OnJoinedLobby = new();
-        public readonly Subject<Unit> OnLobbyCreated = new();
+        public readonly Subject<Unit> OnSearchStarted = new();
+        public readonly Subject<string> OnPrivateRoomCreated = new();
+        public readonly Subject<Unit> OnMatchFound = new();
+
+        private readonly CompositeDisposable _disposables = new();
 
         public void Initialize()
         {
+            MyNetManager.ClientConnected
+                .Subscribe(_ => RegisterHandlers())
+                .AddTo(_disposables);
+
             if (NetworkClient.active)
-            {
-                NetworkClient.RegisterHandler<CreateLobbyResultMessage>(OnCreateLobbyResult);
-                NetworkClient.RegisterHandler<JoinLobbyResultMessage>(OnJoinLobbyResult);
-            }
+                RegisterHandlers();
         }
 
-        public void SendCreateLobby(string lobbyName, string password, DeckDefinition deck)
+        private void RegisterHandlers()
         {
-            NetworkClient.Send(new CreateLobbyMessage
-            {
-                Name =  lobbyName,
-                Password = password,
-                Deck = deck,
-            });
+            NetworkClient.ReplaceHandler<SearchStartedMessage>(OnSearchResult);
+            NetworkClient.ReplaceHandler<MatchFoundMessage>(OnMatchFoundResult);
+            NetworkClient.ReplaceHandler<PrivateRoomCreatedMessage>(OnPrivateRoomResult);
+            NetworkClient.ReplaceHandler<JoinByCodeResultMessage>(OnJoinByCodeResult);
         }
 
-        public void SendJoinToLobby(string lobbyId, string password, DeckDefinition deck)
+        public void SendFindMatch(DeckDefinition deck)
         {
-            NetworkClient.Send(new JoinLobbyMessage
-            {
-                LobbyId = lobbyId,
-                Password = password,
-                Deck = deck,
-            });
+            NetworkClient.Send(new FindMatchMessage { Deck = deck });
         }
 
-        private void OnJoinLobbyResult(JoinLobbyResultMessage msg)
+        public void SendCancelSearch()
         {
-            if (msg.IsSuccess)
-            {
-                _reconnect.BeginSeat(msg.SeatToken);
-                OnJoinedLobby.OnNext(Unit.Default);
-            }
-            else
+            NetworkClient.Send(new CancelSearchMessage());
+        }
+
+        public void SendCreatePrivateRoom(DeckDefinition deck)
+        {
+            NetworkClient.Send(new CreatePrivateRoomMessage { Deck = deck });
+        }
+
+        public void SendJoinByCode(string code, DeckDefinition deck)
+        {
+            NetworkClient.Send(new JoinByCodeMessage { Code = code, Deck = deck });
+        }
+
+        private void OnSearchResult(SearchStartedMessage msg)
+        {
+            if (!msg.IsSuccess)
             {
                 OnError.OnNext((msg.Error, msg.Violations));
+                return;
             }
+
+            _play.BeginSearch();
+            OnSearchStarted.OnNext(Unit.Default);
         }
 
-        private void OnCreateLobbyResult(CreateLobbyResultMessage msg)
+        private void OnMatchFoundResult(MatchFoundMessage msg)
         {
-            if (msg.IsSuccess)
+            _play.BeginMatch();
+            _reconnect.BeginSeat(msg.SeatToken);
+
+            OnMatchFound.OnNext(Unit.Default);
+
+            if (SceneManager.GetActiveScene().name == GameSceneName)
             {
-                _reconnect.BeginSeat(msg.SeatToken);
-                OnLobbyCreated.OnNext(Unit.Default);
-                OnJoinedLobby.OnNext(Unit.Default);
+                NetworkClient.Send(new Messages.ReadyMessage());
+                return;
             }
-            else
+
+            OnJoinedLobby.OnNext(Unit.Default);
+        }
+
+        private void OnPrivateRoomResult(PrivateRoomCreatedMessage msg)
+        {
+            if (!msg.IsSuccess)
             {
                 OnError.OnNext((msg.Error, msg.Violations));
+                return;
             }
+
+            _play.BeginRoom(msg.JoinCode);
+            _reconnect.BeginSeat(msg.SeatToken);
+
+            OnPrivateRoomCreated.OnNext(msg.JoinCode);
+            OnJoinedLobby.OnNext(Unit.Default);
+        }
+
+        private void OnJoinByCodeResult(JoinByCodeResultMessage msg)
+        {
+            if (!msg.IsSuccess)
+            {
+                OnError.OnNext((msg.Error, msg.Violations));
+                return;
+            }
+
+            _play.BeginMatch();
+            _reconnect.BeginSeat(msg.SeatToken);
+
+            OnJoinedLobby.OnNext(Unit.Default);
         }
 
         public void Dispose()
         {
-            NetworkClient.UnregisterHandler<CreateLobbyResultMessage>();
-            NetworkClient.UnregisterHandler<JoinLobbyResultMessage>();
+            _disposables.Dispose();
+
+            NetworkClient.UnregisterHandler<SearchStartedMessage>();
+            NetworkClient.UnregisterHandler<MatchFoundMessage>();
+            NetworkClient.UnregisterHandler<PrivateRoomCreatedMessage>();
+            NetworkClient.UnregisterHandler<JoinByCodeResultMessage>();
         }
     }
 }

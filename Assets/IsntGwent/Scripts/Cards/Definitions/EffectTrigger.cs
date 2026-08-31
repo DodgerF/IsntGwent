@@ -15,6 +15,7 @@ namespace IsntGwent.Scripts.Cards.Definitions
         OnKill,
         OnEnemyCardPlayed,
         OnUnitMoved,
-        OnWeatherTick,
+        OnWeatherEnter,
+        OnDevoured,
     }
 }

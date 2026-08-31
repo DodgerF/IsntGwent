@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Messages;
 using Mirror;
@@ -12,8 +12,10 @@ namespace IsntGwent.Scripts.Lobby.Server
     {
         [Inject] private readonly SeatRegistry _seats;
 
-        public readonly Subject<(NetworkConnectionToClient conn, CreateLobbyMessage msg)> OnCreateLobby = new();
-        public readonly Subject<(NetworkConnectionToClient conn, JoinLobbyMessage msg)> OnJoinLobby = new();
+        public readonly Subject<(NetworkConnectionToClient conn, FindMatchMessage msg)> OnFindMatch = new();
+        public readonly Subject<NetworkConnectionToClient> OnCancelSearch = new();
+        public readonly Subject<(NetworkConnectionToClient conn, CreatePrivateRoomMessage msg)> OnCreatePrivateRoom = new();
+        public readonly Subject<(NetworkConnectionToClient conn, JoinByCodeMessage msg)> OnJoinByCode = new();
         public readonly Subject<Seat> OnReady = new();
         public readonly Subject<(NetworkConnectionToClient conn, ReconnectRequestMessage msg)> OnReconnect = new();
 
@@ -21,8 +23,10 @@ namespace IsntGwent.Scripts.Lobby.Server
         {
             if (!NetworkServer.active) return;
 
-            NetworkServer.RegisterHandler<CreateLobbyMessage>((conn, msg) => OnCreateLobby.OnNext((conn, msg)));
-            NetworkServer.RegisterHandler<JoinLobbyMessage>((conn, msg) => OnJoinLobby.OnNext((conn, msg)));
+            NetworkServer.RegisterHandler<FindMatchMessage>((conn, msg) => OnFindMatch.OnNext((conn, msg)));
+            NetworkServer.RegisterHandler<CancelSearchMessage>((conn, _) => OnCancelSearch.OnNext(conn));
+            NetworkServer.RegisterHandler<CreatePrivateRoomMessage>((conn, msg) => OnCreatePrivateRoom.OnNext((conn, msg)));
+            NetworkServer.RegisterHandler<JoinByCodeMessage>((conn, msg) => OnJoinByCode.OnNext((conn, msg)));
             NetworkServer.RegisterHandler<ReadyMessage>((conn, _) => Publish(OnReady, conn));
             NetworkServer.RegisterHandler<ReconnectRequestMessage>((conn, msg) => OnReconnect.OnNext((conn, msg)));
         }
@@ -37,8 +41,10 @@ namespace IsntGwent.Scripts.Lobby.Server
 
         public void Dispose()
         {
-            NetworkServer.UnregisterHandler<CreateLobbyMessage>();
-            NetworkServer.UnregisterHandler<JoinLobbyMessage>();
+            NetworkServer.UnregisterHandler<FindMatchMessage>();
+            NetworkServer.UnregisterHandler<CancelSearchMessage>();
+            NetworkServer.UnregisterHandler<CreatePrivateRoomMessage>();
+            NetworkServer.UnregisterHandler<JoinByCodeMessage>();
             NetworkServer.UnregisterHandler<ReadyMessage>();
             NetworkServer.UnregisterHandler<ReconnectRequestMessage>();
         }

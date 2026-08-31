@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using IsntGwent.Scripts.Core;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -39,7 +40,7 @@ namespace IsntGwent.Scripts.Audio
 
                     OnLoaded.Value = true;
                 },
-                onError: err => Debug.LogError(err)
+                onError: err => Log.Error(LogTag.Data, err)
             );
         }
 
@@ -67,7 +68,7 @@ namespace IsntGwent.Scripts.Audio
                 var clip = Resources.Load<AudioClip>("Sounds/" + name);
                 if (clip == null)
                 {
-                    Debug.LogWarning("Sound clip not found: Sounds/" + name);
+                    Log.Warn(LogTag.Data, "Sound clip not found: Sounds/" + name);
                     continue;
                 }
                 clips.Add(clip);

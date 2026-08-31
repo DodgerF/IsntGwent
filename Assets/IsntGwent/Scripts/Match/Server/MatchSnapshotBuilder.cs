@@ -32,8 +32,21 @@ namespace IsntGwent.Scripts.Match.Server
                     }
                     : null,
 
+                Aim = AimFor(context, player),
                 You = Side(player),
                 Enemy = Side(opponent),
+            };
+        }
+
+        private static AimSnapshot AimFor(GameContext context, Player player)
+        {
+            var pending = context.PendingAim;
+            if (pending == null || pending.Caster != player) return null;
+
+            return new AimSnapshot
+            {
+                CardInstanceId = pending.Card.Id.ToString(),
+                TargetIds = pending.Pool.ToArray(),
             };
         }
 
@@ -47,6 +60,8 @@ namespace IsntGwent.Scripts.Match.Server
             {
                 CardsInHand = you.Hand,
                 EnemyCardAmount = enemy.HandCount,
+
+                AimTargetIds = snapshot.Aim != null ? snapshot.Aim.TargetIds : new string[0],
 
                 OwnDeck = you.Deck,
                 EnemyDeckCount = enemy.DeckCount,
@@ -134,7 +149,6 @@ namespace IsntGwent.Scripts.Match.Server
                 {
                     Row = rows[i],
                     CardId = weather != null ? weather.CardId : string.Empty,
-                    TurnsLeft = weather?.TurnsLeft ?? 0,
                 };
             }
 

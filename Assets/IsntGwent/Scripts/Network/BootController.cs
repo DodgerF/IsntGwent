@@ -1,4 +1,5 @@
 using Mirror;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -12,24 +13,19 @@ namespace IsntGwent.Scripts.Network
         {
             if (NetworkManager.singleton == null)
             {
-                Debug.LogError("No NetworkManager found");
+                Log.Error(LogTag.Net, "No NetworkManager found");
                 return;
             }
 
-            if (IsServerLaunch())
+            if (AppRole.IsServer)
             {
+                Log.Info(LogTag.Net, "starting server");
                 NetworkManager.singleton.StartServer();
                 return;
             }
             
             _connection.SetAutoReconnect(true);
             NetworkManager.singleton.StartClient();
-        }
-
-        private static bool IsServerLaunch()
-        {
-            return Application.isBatchMode ||
-                   System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg == "-server");
         }
     }
 }

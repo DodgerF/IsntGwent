@@ -5,18 +5,19 @@
   "type": "Unit",
   "power": 1,
   "rarity": "Token",
-  "description": "Deathwish: boost the strongest neighbour by 1.",
+  "description": "Deathwish: if devoured, boost the devourer by 1.",
   "isToken": true,
   "effects": [
     {
-      "effect": "NeighborTargeting",
-      "trigger": "OnDeath",
-      "relativeTo": "Source",
-      "pick": "Highest"
+      "effect": "EventTargeting",
+      "trigger": "OnDevoured",
+      "consumer": true,
+      "includeAllies": true,
+      "includeEnemies": true
     },
     {
       "effect": "BuffPower",
-      "trigger": "OnDeath",
+      "trigger": "OnDevoured",
       "amount": 1,
       "requireTargets": true
     }

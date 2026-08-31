@@ -41,10 +41,14 @@ namespace IsntGwent.Scripts.Match.Server
             var drawn = player.Hand.Count - before;
             if (drawn == 0) return;
 
-            for (var i = player.Hand.Count - drawn; i < player.Hand.Count; i++)
+            var cards = player.Hand.GetRange(player.Hand.Count - drawn, drawn);
+
+            for (var i = 0; i < cards.Count; i++)
             {
-                _notifier.NotifyCardDrawn(player, player.Hand[i]);
+                _notifier.NotifyCardDrawn(player, cards[i]);
             }
+
+            context.Journal?.Draw(player, cards);
 
             _notifier.NotifyEnemyCardDrawn(context.GetOpponent(player), player.Hand.Count);
             _notifier.NotifyDecks(context);

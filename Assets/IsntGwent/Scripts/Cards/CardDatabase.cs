@@ -6,6 +6,7 @@ using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Cards.Server.Effects;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -42,7 +43,7 @@ namespace IsntGwent.Scripts.Cards
                     
                     OnLoaded.Value = true;
                 },
-                onError: err => Debug.LogError(err)
+                onError: err => Log.Error(LogTag.Data, err)
             );
         }
 
@@ -77,6 +78,7 @@ namespace IsntGwent.Scripts.Cards
                     "AreaTargeting" => effectJson.ToObject<RowTargetingDefinition>(),
                     "DealDamage" => effectJson.ToObject<DealDamageEffectDefinition>(),
                     "BuffPower" => effectJson.ToObject<BuffPowerDefinition>(),
+                    "SetPower" => effectJson.ToObject<SetPowerDefinition>(),
                     "Devour" => effectJson.ToObject<DevourDefinition>(),
                     "Destroy" => effectJson.ToObject<DestroyEffectDefinition>(),
                     "SummonFromDeck" => effectJson.ToObject<SummonFromDeckDefinition>(),

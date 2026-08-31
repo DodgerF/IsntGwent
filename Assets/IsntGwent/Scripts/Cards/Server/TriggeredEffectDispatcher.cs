@@ -32,6 +32,7 @@ namespace IsntGwent.Scripts.Cards.Server
                     break;
 
                 case UnitDevoured devoured when devoured.Owner != null:
+                    RunConsumed(context, devoured);
                     RunOnBoard(context, gameEvent, owner => owner == devoured.Owner
                         ? EffectTrigger.OnAllyDevoured
                         : (EffectTrigger?)null);
@@ -69,6 +70,20 @@ namespace IsntGwent.Scripts.Cards.Server
                 case RoundEnded:
                     RunOnBoard(context, gameEvent, _ => EffectTrigger.OnRoundEnd);
                     break;
+            }
+        }
+
+        private void RunConsumed(GameContext context, UnitDevoured devoured)
+        {
+            var consumed = devoured.Consumed;
+            if (consumed == null) return;
+
+            foreach (var player in new[] { context.Player1, context.Player2 })
+            {
+                if (!player.MeleeRow.Contains(consumed) && !player.RangedRow.Contains(consumed)) continue;
+
+                RunCard(context, player, consumed, EffectTrigger.OnDevoured, devoured);
+                return;
             }
         }
 

@@ -16,11 +16,22 @@ namespace IsntGwent.Scripts.UI
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private Button retryButton;
         [SerializeField] private Button quitButton;
-        [SerializeField] private float unavailableAfterSeconds = 10f;
+        [SerializeField] private float unavailableAfterSeconds = 20f;
+        [SerializeField] private int unavailableAfterAttempts = 3;
         [SerializeField] private string connectingMessage = "Connecting…";
         [SerializeField] private string unavailableMessage = "Server unavailable";
 
         private readonly SerialDisposable _unavailableTimer = new();
+
+        private bool _isUnavailable;
+        private int _failedAttempts;
+
+        private void Awake()
+        {
+            panel.SetActive(true);
+            statusText.text = connectingMessage;
+            SetActionsVisible(false);
+        }
 
         private void Start()
         {
@@ -30,25 +41,33 @@ namespace IsntGwent.Scripts.UI
                 .Subscribe(_ => OnRetryClicked())
                 .AddTo(this);
 
-            _connection.IsConnected
-                .Subscribe(OnConnectionChanged)
+            ShowConnecting();
+
+            _connection.AttemptFailed
+                .Subscribe(_ => OnAttemptFailed())
                 .AddTo(this);
         }
 
-        private void OnConnectionChanged(bool isConnected)
+        private void OnAttemptFailed()
         {
-            panel.SetActive(!isConnected);
+            if (_isUnavailable) return;
 
-            if (isConnected)
-                _unavailableTimer.Disposable = null;
-            else
-                ShowConnecting();
+            _failedAttempts++;
+
+            if (_failedAttempts >= unavailableAfterAttempts)
+                ShowUnavailable();
         }
 
         private void ShowConnecting()
         {
+            _isUnavailable = false;
+            _failedAttempts = 0;
+
+            panel.SetActive(true);
             statusText.text = connectingMessage;
             SetActionsVisible(false);
+
+            _connection.SetAutoReconnect(true);
 
             _unavailableTimer.Disposable = Observable
                 .Timer(TimeSpan.FromSeconds(unavailableAfterSeconds))
@@ -57,6 +76,12 @@ namespace IsntGwent.Scripts.UI
 
         private void ShowUnavailable()
         {
+            _isUnavailable = true;
+            _unavailableTimer.Disposable = null;
+
+            _connection.SetAutoReconnect(false);
+
+            panel.SetActive(true);
             statusText.text = unavailableMessage;
             SetActionsVisible(true);
         }
@@ -71,8 +96,8 @@ namespace IsntGwent.Scripts.UI
 
         private void OnRetryClicked()
         {
-            _connection.RetryNow();
             ShowConnecting();
+            _connection.RetryNow();
         }
     }
 }

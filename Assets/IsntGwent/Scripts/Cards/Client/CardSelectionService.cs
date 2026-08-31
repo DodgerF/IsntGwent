@@ -5,6 +5,7 @@ using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Server.Effects;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Diagnostics;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match;
@@ -29,7 +30,7 @@ namespace IsntGwent.Scripts.Cards.Client
 
         public readonly Subject<RowScope> HighlightRowTargets = new();
         public readonly Subject<BoardRowView> HighlightRowHover = new();
-        public readonly Subject<Unit> HighlightFreeSlots = new();
+        public readonly Subject<bool> HighlightFreeSlots = new();
         public readonly Subject<IReadOnlyList<BoardCell>> HighlightCells = new();
         public readonly Subject<BoardCell?> HighlightPlacementCell = new();
         public readonly Subject<Unit> ClearHighlights = new();
@@ -40,6 +41,7 @@ namespace IsntGwent.Scripts.Cards.Client
         public readonly Subject<PlayPreviewQuery.Prediction> HighlightPredicted = new();
         public readonly Subject<string> TargetSelected = new();
         public readonly Subject<string> TargetDeselected = new();
+        public readonly Subject<List<string>> AimTargetsChosen = new();
 
         public readonly Subject<CardView> DragBegan = new();
         public readonly Subject<Unit> SlotHovered = new();
@@ -49,7 +51,7 @@ namespace IsntGwent.Scripts.Cards.Client
         private List<string> _selectedTargets = new();
         private int _requiredTargets;
 
-        private enum State { Idle, Picked, TargetSelection, Dragging, AimAfterPlacement }
+        private enum State { Idle, Picked, TargetSelection, Dragging, AimAfterPlacement, ServerAim }
         private enum Plan { PlaceUnit, AimUnit, ManualTargets, RowChoice, Confirm }
 
         public readonly ReactiveProperty<bool> IsChoosing = new(false);
@@ -76,6 +78,10 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private CardView _selectedCard;
         private AimedTargetingDefinition _aimDefinition;
+        private List<AimedTargetingDefinition> _aimSequence = new();
+        private int _aimIndex;
+        private List<string> _confirmedTargets = new();
+        private bool _traitor;
         private BoardRowView _stagedRow;
         private int _stagedSlot = -1;
         private bool _cardDetached;
@@ -188,7 +194,7 @@ namespace IsntGwent.Scripts.Cards.Client
             {
                 case Plan.AimUnit:
                 case Plan.PlaceUnit:
-                    HighlightFreeSlots.OnNext(Unit.Default);
+                    HighlightFreeSlots.OnNext(!_traitor);
                     break;
                 case Plan.ManualTargets:
                     HighlightTargets.OnNext(_targetPool);
@@ -228,19 +234,28 @@ namespace IsntGwent.Scripts.Cards.Client
         private Plan BuildPlan(CardDefinition definition)
         {
             _aimDefinition = null;
+            _aimSequence = new List<AimedTargetingDefinition>();
+            _aimIndex = 0;
+            _confirmedTargets = new List<string>();
             _targetPool = null;
             _allowPartial = false;
             _requiredTargets = 0;
             _rowScope = RowScope.Any;
+            _traitor = definition is UnitDefinition { Traitor: true };
 
             var isUnit = definition is UnitDefinition;
 
-            if (isUnit && _cardResolver.NeedsAimAfterPlacement(definition, out var aim, _conditions.IsMet))
+            if (isUnit)
             {
-                _aimDefinition = aim;
-                _allowPartial = aim.AllowPartial;
-                _requiredTargets = aim.Count;
-                return Plan.AimUnit;
+                _aimSequence = _cardResolver.AimSequence(definition, _conditions.IsMet).Take(1).ToList();
+
+                if (_aimSequence.Count > 0)
+                {
+                    _aimDefinition = _aimSequence[0];
+                    _allowPartial = _aimDefinition.AllowPartial;
+                    _requiredTargets = _aimDefinition.Count;
+                    return Plan.AimUnit;
+                }
             }
 
             if (_cardResolver.NeedsManualTargets(definition, out var count, _conditions.IsMet))
@@ -277,8 +292,36 @@ namespace IsntGwent.Scripts.Cards.Client
             FinishSelection();
         }
 
+        public void BeginServerAim(IReadOnlyList<string> pool)
+        {
+            ResetSelection();
+
+            if (pool == null || pool.Count == 0) return;
+
+            _targetPool = new List<string>(pool);
+            _state = State.ServerAim;
+
+            HighlightTargets.OnNext(_targetPool);
+        }
+
+        private bool TryServerAim(CardView card)
+        {
+            if (_state != State.ServerAim) return false;
+
+            var id = card?.Instance?.Id.ToString();
+
+            if (id != null && _targetPool != null && _targetPool.Contains(id))
+            {
+                ResetSelection();
+                AimTargetsChosen.OnNext(new List<string> { id });
+            }
+
+            return true;
+        }
+
         private void OnCardClicked(CardView card)
         {
+            if (TryServerAim(card)) return;
             if (_state == State.Dragging) return;
 
             if (_state != State.Idle)
@@ -343,7 +386,7 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private void PlaceOnSlot(SlotView slot)
         {
-            if (!IsOwnBoardRow(slot.Row))
+            if (!IsPlacementRow(slot.Row))
             {
                 CancelSelection();
                 return;
@@ -384,6 +427,8 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private void OnBoardCardClicked(CardView target)
         {
+            if (TryServerAim(target)) return;
+
             if (_state == State.Picked)
             {
                 switch (_plan)
@@ -430,7 +475,9 @@ namespace IsntGwent.Scripts.Cards.Client
         {
             if (_state == State.AimAfterPlacement)
             {
-                SendStagedPlay();
+                _confirmedTargets.AddRange(_selectedTargets);
+                _aimIndex++;
+                BeginAim();
                 return;
             }
 
@@ -449,20 +496,41 @@ namespace IsntGwent.Scripts.Cards.Client
             _selectedCard.SetSelected(false);
             PlacementStaged.OnNext((_selectedCard.Instance, row, slotIndex));
 
-            if (_aimDefinition == null)
+            _confirmedTargets = new List<string>();
+            _aimIndex = 0;
+
+            BeginAim();
+        }
+
+        private void BeginAim()
+        {
+            if (_aimIndex >= _aimSequence.Count)
             {
                 SendStagedPlay();
                 return;
             }
 
-            var anchor = new BoardCell(true, row.BoardRow, slotIndex);
+            _aimDefinition = _aimSequence[_aimIndex];
+
+            if (_aimDefinition.RequiredRow != RowType.None && _aimDefinition.RequiredRow != _stagedRow.BoardRow)
+            {
+                _aimIndex++;
+                BeginAim();
+                return;
+            }
+
+            _allowPartial = _aimDefinition.AllowPartial;
+            _requiredTargets = _aimDefinition.Count;
+
+            var anchor = new BoardCell(!_traitor, _stagedRow.BoardRow, _stagedSlot);
             _targetPool = _targetQuery.Targets(anchor, _aimDefinition);
 
             if (_targetPool.Count == 0)
             {
                 if (_allowPartial)
                 {
-                    SendStagedPlay();
+                    _aimIndex++;
+                    BeginAim();
                     return;
                 }
 
@@ -481,15 +549,17 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private void SendStagedPlay()
         {
-            if (_aimDefinition != null && _selectedTargets.Count < _requiredTargets)
-                UnityEngine.Debug.LogWarning(
-                    $"[Play] {_selectedCard.Instance.Definition.Id} sent with {_selectedTargets.Count}/{_requiredTargets} targets");
+            var required = _aimSequence.Sum(aim => aim.Count);
+
+            if (required > 0 && _confirmedTargets.Count < required)
+                Log.Warn(LogTag.Cards,
+                    $"{_selectedCard.Instance.Definition.Id} sent with {_confirmedTargets.Count}/{required} targets");
 
             CardPlayRequested.OnNext((
                 _selectedCard.Instance,
                 _stagedRow,
                 _stagedSlot,
-                new List<string>(_selectedTargets)));
+                new List<string>(_confirmedTargets)));
 
             FinishSelection();
         }
@@ -575,10 +645,10 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private void HoverSlot(SlotView slot)
         {
-            var overFreeSlot = slot != null && IsOwnBoardRow(slot.Row) && slot.Row.IsSlotFree(slot.Index);
+            var overFreeSlot = slot != null && IsPlacementRow(slot.Row) && slot.Row.IsSlotFree(slot.Index);
 
             var anchor = overFreeSlot
-                ? new BoardCell(true, slot.Row.BoardRow, slot.Index)
+                ? new BoardCell(!_traitor, slot.Row.BoardRow, slot.Index)
                 : default;
 
             if (_hoveredAnchorValid == overFreeSlot && (!overFreeSlot || _hoveredAnchor.Equals(anchor)))
@@ -651,9 +721,9 @@ namespace IsntGwent.Scripts.Cards.Client
         {
             var slot = hit.Slot;
 
-            if (slot == null || !IsOwnBoardRow(slot.Row) || !slot.Row.IsSlotFree(slot.Index))
+            if (slot == null || !IsPlacementRow(slot.Row) || !slot.Row.IsSlotFree(slot.Index))
             {
-                if (slot != null && IsOwnBoardRow(slot.Row))
+                if (slot != null && IsPlacementRow(slot.Row))
                     PlacementDenied.OnNext(Unit.Default);
 
                 CancelSelection();
@@ -714,8 +784,8 @@ namespace IsntGwent.Scripts.Cards.Client
             ConfirmPlay();
         }
 
-        private static bool IsOwnBoardRow(CardLaneView lane)
-            => lane is BoardRowView row && row.HasSlots && row.OwnSide;
+        private bool IsPlacementRow(CardLaneView lane)
+            => lane is BoardRowView row && row.HasSlots && row.OwnSide != _traitor;
 
         private bool IsChoosableRow(CardLaneView lane)
         {
@@ -754,8 +824,12 @@ namespace IsntGwent.Scripts.Cards.Client
             HighlightTargets.OnNext(new List<string>());
             HighlightPredicted.OnNext(PlayPreviewQuery.Prediction.Empty);
             _selectedTargets.Clear();
+            _confirmedTargets.Clear();
             _targetPool = null;
             _aimDefinition = null;
+            _aimSequence = new List<AimedTargetingDefinition>();
+            _aimIndex = 0;
+            _traitor = false;
 
             if (_selectedCard != null)
                 _selectedCard.SetSelected(false);

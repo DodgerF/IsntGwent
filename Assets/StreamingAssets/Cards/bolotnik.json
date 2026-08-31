@@ -3,7 +3,7 @@
   "name": "Bolotnik",
   "imageName": "bolotnik",
   "type": "Unit",
-  "power": 3,
+  "power": 4,
   "rarity": "Common",
   "description": "React to move: damage 1 to an enemy, boost an ally by 1.",
   "effects": [

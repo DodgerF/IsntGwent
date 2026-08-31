@@ -15,8 +15,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                 if (context.Owner.FirstFreeSlot() == null) return;
                 if (context.Game.CreateCard(definition.TokenId) is not UnitInstance token) continue;
 
-                SummonUtil.Place(context, token, definition.Placement, definition.Row, i, fromDeck: false,
-                    definition.StrictNeighbors);
+                SummonUtil.Place(context, token, definition.Placement, definition.Row, i, fromDeck: false);
             }
         }
     }
@@ -27,6 +26,5 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         public int Count;
         public RowType Row;
         public SummonPlacement Placement;
-        public bool StrictNeighbors;
     }
 }

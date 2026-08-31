@@ -6,21 +6,19 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
     {
         public override void Execute(EffectContext context)
         {
-            var definition = (ApplyWeatherDefinition)context.Definition;
-
             if (context.Owner == null || context.PlayedRow == RowType.None) return;
 
             var target = context.TargetsEnemyRow
                 ? context.Game.GetOpponent(context.Owner)
                 : context.Owner;
 
-            target.AddWeather(context.PlayedRow, context.Source, definition.Duration);
+            target.AddWeather(context.PlayedRow, context.Source);
+            context.Game.Journal?.Weather(target, context.PlayedRow, context.Source);
             context.Game.MarkBoardDirty();
         }
     }
 
     public class ApplyWeatherDefinition : EffectDefinition
     {
-        public int Duration;
     }
 }

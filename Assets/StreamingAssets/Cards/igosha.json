@@ -3,21 +3,21 @@
   "name": "Igosha",
   "imageName": "igosha",
   "type": "Unit",
-  "power": 3,
+  "power": 2,
   "rarity": "Common",
-  "description": "Deathwish: boost the strongest neighbour by 4.",
+  "traitor": true,
+  "description": "Traitor. Deathwish: damage 4 to both neighbours.",
   "effects": [
     {
       "effect": "NeighborTargeting",
       "trigger": "OnDeath",
       "relativeTo": "Source",
-      "pick": "Highest"
+      "pick": "All"
     },
     {
-      "effect": "BuffPower",
+      "effect": "DealDamage",
       "trigger": "OnDeath",
-      "amount": 4,
-      "requireTargets": true
+      "amount": 4
     }
   ]
 }

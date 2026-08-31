@@ -22,6 +22,7 @@ namespace IsntGwent.Scripts.Cards.Server
             _effects[typeof(EventTargetingDefinition)] = new EventTargetingEffect();
             _effects[typeof(DealDamageEffectDefinition)] = new DealDamageEffect();
             _effects[typeof(BuffPowerDefinition)] = new BuffPowerEffect();
+            _effects[typeof(SetPowerDefinition)] = new SetPowerEffect();
             _effects[typeof(DevourDefinition)] = new DevourEffect();
             _effects[typeof(DestroyEffectDefinition)] = new DestroyEffect();
             _effects[typeof(SummonFromDeckDefinition)] = new SummonFromDeckEffect();

@@ -1,4 +1,5 @@
 using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Server;
 using UniRx;
 using Zenject;
@@ -10,14 +11,24 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly CardResolver _cardResolver;
         [Inject] private readonly BoardSyncService _boardSync;
 
-        private static readonly RowType[] Rows = { RowType.Melee, RowType.Ranged };
-
         public void Attach(GameContext context)
         {
             context.AddDisposable(context.Events.Stream.Subscribe(gameEvent =>
             {
-                if (gameEvent is TurnEnded turnEnded)
-                    Tick(context, turnEnded.Player);
+                switch (gameEvent)
+                {
+                    case CardPlayed played:
+                        Enter(context, played.Card as UnitInstance, played.Owner, gameEvent);
+                        break;
+
+                    case UnitSummoned summoned:
+                        Enter(context, summoned.Unit, summoned.Owner, gameEvent);
+                        break;
+
+                    case UnitMoved moved when moved.FromRow != moved.ToRow:
+                        Enter(context, moved.Unit, moved.Owner, gameEvent);
+                        break;
+                }
             }));
         }
 
@@ -26,28 +37,24 @@ namespace IsntGwent.Scripts.Match.Server
             player.Weather.Clear();
         }
 
-        private void Tick(GameContext context, Player player)
+        private void Enter(GameContext context, UnitInstance unit, Player owner, IGameEvent gameEvent)
         {
-            if (player == null || player.Weather.Count == 0) return;
+            if (unit == null || owner == null) return;
 
-            var ticked = false;
+            var weather = owner.GetWeather(unit.RowType);
+            if (weather?.Source == null) return;
+            if (owner.GetRow(unit.RowType).SlotOf(unit) == null) return;
 
-            foreach (var row in Rows)
-            {
-                var weather = player.GetWeather(row);
-                if (weather == null || weather.TurnsLeft <= 0) continue;
+            if (context.FlushBoardDirty())
+                _boardSync.SyncBoard(context);
 
-                _cardResolver.RunEffects(context, player, weather.Source,
-                    EffectTrigger.OnWeatherTick, null, null, row);
+            _cardResolver.RunEffects(context, owner, weather.Source,
+                EffectTrigger.OnWeatherEnter, gameEvent, null, unit.RowType);
 
-                weather.TurnsLeft--;
-                if (weather.TurnsLeft <= 0) player.Weather.Remove(row);
+            _boardSync.Sync(context);
 
-                ticked = true;
-                _boardSync.Sync(context);
-            }
-
-            if (ticked) _boardSync.SyncBoard(context);
+            if (context.FlushBoardDirty())
+                _boardSync.SyncBoard(context);
         }
     }
 }

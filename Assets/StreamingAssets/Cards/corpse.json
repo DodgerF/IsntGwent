@@ -3,14 +3,14 @@
   "name": "Corpse",
   "imageName": "corpse",
   "type": "Unit",
-  "power": 6,
+  "power": 3,
   "rarity": "Common",
-  "description": "Turn end: damage 2 to itself and summon a Grub.",
+  "description": "Turn end: damage 1 to itself and summon a Grub.",
   "effects": [
     {
       "effect": "DealDamage",
       "trigger": "OnTurnEnd",
-      "amount": 2,
+      "amount": 1,
       "self": true
     },
     {

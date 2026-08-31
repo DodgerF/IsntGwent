@@ -91,7 +91,7 @@ namespace IsntGwent.Scripts.Decks.UI
             var violations = _validator.Validate(_draft.Build());
 
             if (sizeText != null)
-                sizeText.text = _draft.TotalCount.Value + " / " + _rules.Current.MinDeckSize;
+                sizeText.text = _draft.TotalCount.Value + " / min " + _rules.Current.MinDeckSize;
 
             saveButton.interactable = _draft.TotalCount.Value > 0;
 

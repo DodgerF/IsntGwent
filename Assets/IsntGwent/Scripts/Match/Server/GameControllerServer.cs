@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Diagnostics;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Server;
+using IsntGwent.Scripts.Messages;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Match.Server
@@ -20,21 +21,50 @@ namespace IsntGwent.Scripts.Match.Server
 
         private readonly CompositeDisposable _disposables = new();
 
-        private static void Report(string intent, IntentError error)
+        private void Report(Seat seat, string intent, IntentError error, string details = null)
         {
             if (error == IntentError.None) return;
 
-            Debug.LogWarning($"[Match] {intent} rejected: {error}");
+            var context = _lobbyManager.GetGameContext(seat);
+            var player = context?.GetPlayer(seat);
+            var nickname = player?.Seat?.Account?.Nickname ?? "?";
+            var tail = string.IsNullOrEmpty(details) ? string.Empty : " — " + details;
+
+            Log.Warn(LogTag.Match,
+                $"{intent} rejected: {error} (match {context?.MatchId ?? "?"}, {nickname}){tail}");
+
+            context?.Journal?.Rejected(player, intent, error.ToString(), details);
+        }
+
+        private static string Describe(PlayCardMessage msg)
+        {
+            var targets = msg.TargetIds == null || msg.TargetIds.Length == 0
+                ? "нет"
+                : string.Join(", ", msg.TargetIds);
+
+            return $"card {msg.CardInstanceId} → {msg.Row}[{msg.SlotIndex}]" +
+                   $"{(msg.EnemyRow ? " (чужой ряд)" : string.Empty)}, цели: {targets}";
+        }
+
+        private static string Describe(AimTargetMessage msg)
+        {
+            return "цели: " + (msg.TargetIds == null || msg.TargetIds.Length == 0
+                ? "нет"
+                : string.Join(", ", msg.TargetIds));
         }
 
         public void Initialize()
         {
             _handler.OnPlayCard
-                .Subscribe(t => Report("PlayCard", _intents.PlayCard(t.seat, t.msg)))
+                .Subscribe(t => Report(t.seat, "PlayCard", _intents.PlayCard(t.seat, t.msg), Describe(t.msg)))
+                .AddTo(_disposables);
+
+            _handler.OnAimTargets
+                .Subscribe(t => Report(t.seat, "AimTargets", _intents.AimTargets(t.seat, t.msg), Describe(t.msg)))
                 .AddTo(_disposables);
 
             _handler.OnPass
-                .Subscribe(seat => Report("Pass", _intents.Pass(seat)))
+                .Subscribe(seat => Report(seat, "Pass", _intents.Pass(seat)))
                 .AddTo(_disposables);
 
             _handler.OnLeave
@@ -42,18 +72,19 @@ namespace IsntGwent.Scripts.Match.Server
                 .AddTo(_disposables);
 
             _handler.OnRedrawCard
-                .Subscribe(t => Report("Redraw", _intents.Redraw(t.seat, t.msg.CardInstanceId)))
+                .Subscribe(t => Report(t.seat, "Redraw", _intents.Redraw(t.seat, t.msg.CardInstanceId),
+                    "card " + t.msg.CardInstanceId))
                 .AddTo(_disposables);
 
             _handler.OnRedrawReady
-                .Subscribe(seat => Report("RedrawReady", _intents.RedrawReady(seat)))
+                .Subscribe(seat => Report(seat, "RedrawReady", _intents.RedrawReady(seat)))
                 .AddTo(_disposables);
 
             _redrawService.PhaseEnded
                 .Subscribe(OnRedrawPhaseEnded)
                 .AddTo(_disposables);
         }
-        
+
         public void OnLeave(Seat seat)
         {
             if (seat == null) return;
@@ -62,7 +93,12 @@ namespace IsntGwent.Scripts.Match.Server
             var player = context?.GetPlayer(seat);
 
             if (player != null)
+            {
+                Log.Info(LogTag.Match,
+                    $"leave: {player.Seat?.Account?.Nickname} (match {context.MatchId})");
+
                 EndGameBySurrender(context, context.GetOpponent(player), notifyLoser: false);
+            }
 
             _lobbyManager.LeaveLobby(seat);
         }
@@ -90,6 +126,8 @@ namespace IsntGwent.Scripts.Match.Server
             var rnd = UnityEngine.Random.Range(0, 2);
             context.CurrentPlayer = rnd == 0 ? context.Player1 : context.Player2;
 
+            context.Journal?.Deal(context);
+
             _notifier.NotifyGameStarted(context);
             _notifier.NotifyDecks(context);
 
@@ -102,16 +140,22 @@ namespace IsntGwent.Scripts.Match.Server
 
             _notifier.NotifyGiveUp(winner, notifyLoser ? context.GetOpponent(winner) : null);
 
+            context.EndReason = "surrender";
+            context.Winner = winner;
             context.GameEnded.Value = true;
         }
 
         public void EndGameByDisconnect(GameContext context, Player winner)
         {
-            Debug.Log("EndGameByDisconnect");
             if (context.GameEnded.Value) return;
+
+            Log.Info(LogTag.Match,
+                $"ended by disconnect: {winner?.Seat?.Account?.Nickname} wins (match {context.MatchId})");
 
             _notifier.NotifyEnemyDisconnected(winner);
 
+            context.EndReason = "disconnect";
+            context.Winner = winner;
             context.GameEnded.Value = true;
         }
 

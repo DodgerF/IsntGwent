@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Server.Effects;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Server;
 using Zenject;
@@ -21,30 +23,117 @@ namespace IsntGwent.Scripts.Match.Server
             if (!fromPending && (player.PendingPlays.Count > 0 || !player.Hand.Contains(card)))
                 return;
 
-            if (!CanPlaceCard(player, card, row, slotIndex))
+            var boardOwner = IsTraitor(card) ? context.GetOpponent(player) : player;
+
+            if (!CanPlaceCard(boardOwner, card, row, slotIndex))
                 return;
 
-            if (!_cardResolver.CanPlay(context, player, card, selectedIds, row, slotIndex))
+            if (!_cardResolver.CanPlay(context, boardOwner, card, selectedIds, row, slotIndex))
                 return;
 
-            if (!PlaceCard(context, player, card, row, slotIndex))
+            if (!PlaceCard(context, boardOwner, card, row, slotIndex))
                 return;
+
+            context.Journal?.Play(context, player, boardOwner, card, row, slotIndex, selectedIds, fromPending);
 
             if (fromPending)
             {
                 player.PendingPlays.Remove(card);
-                _notifier.NotifyCardPlayed(context, player, card, row, slotIndex);
+                _notifier.NotifyCardPlayed(context, boardOwner, card, row, slotIndex);
             }
             else
             {
                 player.Hand.Remove(card);
-                _notifier.NotifyCardPlayed(context, player, card, row, slotIndex);
+                _notifier.NotifyCardPlayed(context, boardOwner, card, row, slotIndex);
                 _notifier.NotifyCardRemovedFromHand(player, card);
             }
 
-            _cardResolver.PlayCard(context, player, card, row, slotIndex, selectedIds, enemyRow);
+            var pause = _cardResolver.PlayCard(context, boardOwner, card, row, slotIndex, selectedIds, enemyRow);
             _boardSync.Sync(context);
 
+            if (pause != null)
+            {
+                BeginAim(context, player, boardOwner, card, row, slotIndex, enemyRow, fromPending, pause);
+                return;
+            }
+
+            FinishPlay(context, player, boardOwner, card, row, slotIndex, fromPending);
+        }
+
+        public void ContinueAim(GameContext context, Player player, List<string> targetIds)
+        {
+            var pending = context.PendingAim;
+            if (pending == null || pending.Caster != player) return;
+
+            context.PendingAim = null;
+
+            var chosen = FilterAimTargets(pending, targetIds);
+            pending.TargetIds.Clear();
+            pending.TargetIds.AddRange(chosen);
+
+            context.Journal?.Aim(context, pending.Caster, pending.Card, pending.TargetIds);
+
+            var pause = _cardResolver.ContinuePlay(context, pending);
+            _boardSync.Sync(context);
+
+            if (pause != null)
+            {
+                Suspend(context, pending, pause);
+                return;
+            }
+
+            FinishPlay(context, pending.Caster, pending.BoardOwner, pending.Card, pending.Row, pending.Slot,
+                pending.FromPending);
+        }
+
+        private static IEnumerable<string> FilterAimTargets(PendingAim pending, List<string> targetIds)
+        {
+            if (targetIds == null) return new List<string>();
+
+            var definition = pending.Card.Definition.Effects[pending.EffectIndex] as ManualTargetingDefinition;
+            var limit = definition?.Count ?? 0;
+
+            return targetIds.Where(pending.Pool.Contains).Distinct().Take(limit).ToList();
+        }
+
+        private void BeginAim(GameContext context, Player caster, Player boardOwner, CardInstance card,
+            RowType row, int slotIndex, bool enemyRow, bool fromPending, AimPause pause)
+        {
+            var pending = new PendingAim
+            {
+                Caster = caster,
+                BoardOwner = boardOwner,
+                Card = card,
+                Row = row,
+                Slot = slotIndex,
+                EnemyRow = enemyRow,
+                FromPending = fromPending,
+            };
+
+            Suspend(context, pending, pause);
+        }
+
+        private void Suspend(GameContext context, PendingAim pending, AimPause pause)
+        {
+            pending.EffectIndex = pause.EffectIndex;
+            pending.DestroyedPower = pause.DestroyedPower;
+            pending.KilledCount = pause.KilledCount;
+            pending.Pool.Clear();
+            pending.Pool.AddRange(pause.Pool);
+
+            context.PendingAim = pending;
+
+            if (context.FlushBoardDirty())
+                _boardSync.SyncBoard(context);
+
+            context.Journal?.AimRequest(context, pending.Caster, pending.Card, pending.Pool);
+
+            _notifier.NotifyAimRequest(pending.Caster, pending.Card, pending.Pool);
+        }
+
+        private void FinishPlay(GameContext context, Player player, Player boardOwner, CardInstance card,
+            RowType row, int slotIndex, bool fromPending)
+        {
             if (DiedInWrongRow(card))
             {
                 BoardSyncService.MoveToGraveyard(context, (UnitInstance)card);
@@ -52,7 +141,7 @@ namespace IsntGwent.Scripts.Match.Server
                 _boardSync.SyncBoard(context);
             }
 
-            context.Publish(new CardPlayed(player, card, row, slotIndex));
+            context.Publish(new CardPlayed(boardOwner, card, row, slotIndex));
             _boardSync.Sync(context);
 
             if (context.FlushBoardDirty())
@@ -112,6 +201,11 @@ namespace IsntGwent.Scripts.Match.Server
                 _boardSync.SyncBoard(context);
 
             return discarded;
+        }
+
+        public static bool IsTraitor(CardInstance card)
+        {
+            return card is UnitInstance unit && unit.UnitDefinition.Traitor;
         }
 
         private static bool DiedInWrongRow(CardInstance card)

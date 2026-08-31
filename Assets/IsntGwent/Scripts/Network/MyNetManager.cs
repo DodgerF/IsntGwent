@@ -1,5 +1,6 @@
 ﻿using Mirror;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 
 namespace IsntGwent.Scripts.Network
@@ -20,14 +21,14 @@ namespace IsntGwent.Scripts.Network
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
-            Debug.Log("OnServerDisconnect: " + conn.connectionId);
+            Log.Info(LogTag.Net, "server: connection lost " + conn.connectionId);
             ServerDisconnected.OnNext(conn);
             base.OnServerDisconnect(conn);
         }
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             base.OnServerAddPlayer(conn);
-            Debug.Log("OnServerAddPlayer: " + conn.connectionId);
+            Log.Info(LogTag.Net, "server: player added " + conn.connectionId);
         }
         public override void OnClientConnect()
         {
@@ -56,7 +57,7 @@ namespace IsntGwent.Scripts.Network
 
         public override void OnClientDisconnect()
         {
-            Debug.Log("OnClientDisconnect");
+            Log.Info(LogTag.Net, "client: disconnected");
             ClientDisconnected.OnNext(Unit.Default);
             base.OnClientDisconnect();
         }

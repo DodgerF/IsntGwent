@@ -1,4 +1,5 @@
 ﻿using Mirror;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +28,7 @@ namespace IsntGwent.Scripts.UI
         private void OnClick()
         {
             #if UNITY_EDITOR
-                Debug.Log("Quit");
+                Log.Info(LogTag.Client, "Quit");
                 if (NetworkClient.active)
                     NetworkClient.Disconnect();
             #else

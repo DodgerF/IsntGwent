@@ -50,10 +50,11 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
             return error switch
             {
-                LobbyError.InvalidPassword => "Wrong password",
-                LobbyError.LobbyFull => "Lobby is full",
-                LobbyError.LobbyNotFound => "Lobby not found",
-                LobbyError.AlreadyInLobby => "Already in a lobby",
+                LobbyError.InvalidCode => "Wrong room code",
+                LobbyError.RoomFull => "Room is full",
+                LobbyError.RoomNotFound => "Room not found",
+                LobbyError.AlreadyInLobby => "Already in a room",
+                LobbyError.NotLoggedIn => "Enter your nickname first",
                 LobbyError.DeckInvalid => "Deck is not valid",
                 _ => "Something went wrong"
             };

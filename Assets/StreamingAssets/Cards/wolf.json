@@ -5,12 +5,13 @@
   "type": "Unit",
   "power": 2,
   "rarity": "Common",
-  "description": "Deploy: damage 3 to the first creature in the line ahead. On kill: summon your copies from the deck.",
+  "description": "Deploy: damage 3 to the first creature in the line ahead. On kill: summon your copy from the deck.",
   "effects": [
     {
       "effect": "LineTargeting",
       "trigger": "OnPlay",
-      "anchor": "Source"
+      "anchor": "Source",
+      "includeEnemies": true
     },
     {
       "effect": "DealDamage",
@@ -20,7 +21,7 @@
     {
       "effect": "SummonFromDeck",
       "trigger": "OnKill",
-      "count": 0,
+      "count": 1,
       "placement": "Neighbors"
     }
   ]

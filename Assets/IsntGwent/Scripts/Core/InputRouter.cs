@@ -24,6 +24,7 @@ namespace IsntGwent.Scripts.Core
         public readonly Subject<CardView> CardHovered = new();
         public readonly Subject<Unit> HoverEnded = new();
         public readonly Subject<CardView> BoardCardPressed = new();
+        public readonly Subject<int> Swiped = new();
 
         public readonly Subject<CardView> DragCandidate = new();
         public readonly Subject<PointerHit> DragMoved = new();
@@ -52,6 +53,8 @@ namespace IsntGwent.Scripts.Core
         private const float HoldDuration = 0.3f;
         private const float DoubleClickInterval = 0.3f;
         private const float HoverMoveThreshold = 4f;
+        private const float SwipeThreshold = 60f;
+        private const float ScrollThreshold = 0.01f;
 
         private readonly List<RaycastResult> _results = new();
         private float _pressTime;
@@ -119,8 +122,13 @@ namespace IsntGwent.Scripts.Core
                 _currentHoveredCard = null;
             }
 
-            if (!wasDrag && !wasLongPress)
-                HandleClick();
+            if (!wasLongPress)
+            {
+                if (wasDrag)
+                    RaiseSwipe();
+                else
+                    HandleClick();
+            }
 
             ResetPress();
         }
@@ -137,6 +145,7 @@ namespace IsntGwent.Scripts.Core
         {
             if (!_pressing)
             {
+                UpdateScroll();
                 TrackPointer();
                 return;
             }
@@ -152,6 +161,38 @@ namespace IsntGwent.Scripts.Core
             if (_dragCaptured) return;
 
             UpdateHover();
+        }
+
+        private void RaiseSwipe()
+        {
+            var delta = GetPointerPosition() - _pressPosition;
+
+            if (Mathf.Abs(delta.y) < SwipeThreshold) return;
+            if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y)) return;
+
+            Swiped.OnNext(delta.y > 0f ? 1 : -1);
+        }
+
+        private void UpdateScroll()
+        {
+            var scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
+
+            if (Mathf.Abs(scroll) < ScrollThreshold) return;
+            if (ScrollBelongsToWidget()) return;
+
+            Swiped.OnNext(scroll > 0f ? 1 : -1);
+        }
+
+        private bool ScrollBelongsToWidget()
+        {
+            Raycast();
+
+            if (_results.Count == 0) return false;
+
+            var top = _results[0].gameObject;
+
+            return top.GetComponentInParent<ScrollRect>() != null
+                   || top.GetComponentInParent<CardPreviewWindow>() != null;
         }
 
         private void TrackPointer()

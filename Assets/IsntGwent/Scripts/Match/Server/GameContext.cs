@@ -7,6 +7,7 @@ using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Lobby.Core;
+using IsntGwent.Scripts.Match.Server.Journal;
 using UniRx;
 using Zenject;
 
@@ -39,9 +40,9 @@ namespace IsntGwent.Scripts.Match.Server
         public readonly List<CardInstance> Graveyard = new();
         public readonly Dictionary<RowType, RowWeather> Weather = new();
 
-        public void AddWeather(RowType row, CardInstance source, int duration)
+        public void AddWeather(RowType row, CardInstance source)
         {
-            if (source == null || duration <= 0) return;
+            if (source == null) return;
             if (row != RowType.Melee && row != RowType.Ranged) return;
 
             if (!Weather.TryGetValue(row, out var weather))
@@ -50,12 +51,8 @@ namespace IsntGwent.Scripts.Match.Server
                 Weather[row] = weather;
             }
 
-            if (weather.CardId != source.Definition.Id)
-                weather.TurnsLeft = 0;
-
             weather.Source = source;
             weather.CardId = source.Definition.Id;
-            weather.TurnsLeft += duration;
         }
 
         public RowWeather GetWeather(RowType row)
@@ -97,6 +94,22 @@ namespace IsntGwent.Scripts.Match.Server
         }
     }
     
+    public class PendingAim
+    {
+        public Player Caster;
+        public Player BoardOwner;
+        public CardInstance Card;
+        public RowType Row;
+        public int Slot;
+        public bool EnemyRow;
+        public bool FromPending;
+        public int EffectIndex;
+        public int DestroyedPower;
+        public int KilledCount;
+        public readonly List<string> TargetIds = new();
+        public readonly List<string> Pool = new();
+    }
+
     public class DamageRecord
     {
         public readonly CardInstance Source;
@@ -152,6 +165,15 @@ namespace IsntGwent.Scripts.Match.Server
         public int RoundNumber = 1;
         public bool IsRedrawPhase;
 
+        public bool IsRanked;
+        public Player Winner;
+        public bool IsTie;
+
+        public string MatchId;
+        public string EndReason = "normal";
+        public DateTime StartedAt = DateTime.Now;
+        public MatchJournal Journal;
+
         public readonly ReactiveProperty<bool> GameEnded = new();
 
         public readonly GameEventBus Events = new();
@@ -181,6 +203,7 @@ namespace IsntGwent.Scripts.Match.Server
 
             subscriptions.Add(unit.CurrentPower.Skip(1).Subscribe(_ => MarkChanged(unit)));
             subscriptions.Add(unit.Armor.Skip(1).Subscribe(_ => MarkChanged(unit)));
+            subscriptions.Add(unit.BasePower.Skip(1).Subscribe(_ => MarkChanged(unit)));
 
             _unitSubscriptions[unit] = subscriptions;
         }
@@ -211,7 +234,12 @@ namespace IsntGwent.Scripts.Match.Server
         {
             if (target == null || amount <= 0) return;
 
+            if (source != null && kind != DamageKind.Weather)
+                target.LastAttacker = source;
+
             _damageRecords.Add(new DamageRecord(source, target, amount, true, kind));
+
+            Journal?.Damage(this, source, target, amount, kind);
         }
 
         public void RecordKill(CardInstance source, UnitInstance target)
@@ -219,6 +247,8 @@ namespace IsntGwent.Scripts.Match.Server
             if (target == null) return;
 
             _damageRecords.Add(new DamageRecord(source, target, 0, false));
+
+            Journal?.Kill(this, source, target);
         }
 
         public void RecordLink(CardInstance source, UnitInstance target, UnitLinkKind kind,
@@ -227,6 +257,8 @@ namespace IsntGwent.Scripts.Match.Server
             if (source == null || target == null) return;
 
             _linkRecords.Add(new UnitLinkRecord(source, target, kind, targetRow, targetSlot));
+
+            Journal?.Link(this, source, target, kind);
         }
 
         public List<UnitLinkRecord> FlushLinkRecords()
@@ -356,6 +388,8 @@ namespace IsntGwent.Scripts.Match.Server
         }
 
         public Player PendingPlayNotice;
+
+        public PendingAim PendingAim;
 
         public void RequestSlotTakeover(UnitInstance unit, BoardSlot slot)
         {

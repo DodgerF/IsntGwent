@@ -3,7 +3,7 @@
   "name": "Fledgling",
   "imageName": "fledgling",
   "type": "Unit",
-  "power": 6,
+  "power": 4,
   "rarity": "Token",
   "description": "",
   "isToken": true,

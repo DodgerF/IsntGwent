@@ -3,22 +3,35 @@
   "name": "Mogol",
   "imageName": "mogol",
   "type": "Unit",
-  "power": 12,
+  "power": 8,
   "rarity": "Legendary",
-  "description": "Turn end: damage 3 to the weakest ally, or to itself if there is none.",
+  "description": "Deploy: destroy a chosen neighbour and damage a chosen enemy by its power.",
   "effects": [
     {
-      "effect": "WeakestTargeting",
-      "trigger": "OnTurnEnd",
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
       "count": 1,
+      "allowPartial": true,
       "includeAllies": true,
-      "excludeSource": true
+      "sameLine": true,
+      "width": 1,
+      "excludeAnchor": true
+    },
+    {
+      "effect": "Destroy",
+      "trigger": "OnPlay"
+    },
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeEnemies": true
     },
     {
       "effect": "DealDamage",
-      "trigger": "OnTurnEnd",
-      "amount": 3,
-      "selfIfNoTargets": true
+      "trigger": "OnPlay",
+      "amountFromDestroyed": true
     }
   ]
 }

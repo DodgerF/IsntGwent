@@ -12,7 +12,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         public override List<UnitInstance> GetPool(EffectContext context)
         {
             var definition = (EventTargetingDefinition)context.Definition;
-            var unit = UnitOf(context.Event);
+            var unit = definition.Consumer ? ConsumerOf(context.Event) : UnitOf(context.Event);
 
             if (unit == null || unit == context.Source) return new List<UnitInstance>();
 
@@ -38,9 +38,15 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                 _ => null
             };
         }
+
+        private static UnitInstance ConsumerOf(IGameEvent gameEvent)
+        {
+            return gameEvent is UnitDevoured devoured ? devoured.Consumer : null;
+        }
     }
 
     public class EventTargetingDefinition : TargetingEffectDefinition
     {
+        public bool Consumer;
     }
 }

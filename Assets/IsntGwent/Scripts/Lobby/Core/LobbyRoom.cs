@@ -5,12 +5,25 @@ namespace IsntGwent.Scripts.Lobby.Core
 {
     public class LobbyRoom
     {
-        public readonly LobbyData Data;
         public const int MaxPlayers = 2;
-        public readonly string Password;
-        private readonly List<Seat> _seats;
+
+        public readonly string Id;
+        public readonly string JoinCode;
+        public readonly bool IsRanked;
+
+        private readonly List<Seat> _seats = new();
+
+        public LobbyRoom(string id, bool isRanked, string joinCode)
+        {
+            Id = id;
+            IsRanked = isRanked;
+            JoinCode = joinCode;
+        }
 
         public IReadOnlyList<Seat> Seats => _seats;
+
+        public bool IsFull => _seats.Count == MaxPlayers;
+        public bool AllReady => _seats.Count > 0 && _seats.All(s => s.IsReady);
 
         public bool TryAddSeat(Seat seat)
         {
@@ -22,16 +35,6 @@ namespace IsntGwent.Scripts.Lobby.Core
 
             _seats.Add(seat);
             return true;
-        }
-
-        public bool IsFull => _seats.Count == MaxPlayers;
-        public bool AllReady => _seats.Count > 0 && _seats.All(s => s.IsReady);
-
-        public LobbyRoom(LobbyData data, string password)
-        {
-            Data = data;
-            Password = password;
-            _seats = new List<Seat>();
         }
 
         public bool Contains(Seat seat) => seat != null && _seats.Contains(seat);

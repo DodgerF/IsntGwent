@@ -1,0 +1,67 @@
+{
+  "Id": "started_deck",
+  "Name": "Started Deck",
+  "ContentVersion": 3,
+  "Cards": [
+    {
+      "CardId": "alkonost",
+      "Count": 1
+    },
+    {
+      "CardId": "sirin",
+      "Count": 1
+    },
+    {
+      "CardId": "rusalka",
+      "Count": 2
+    },
+    {
+      "CardId": "drowned",
+      "Count": 2
+    },
+    {
+      "CardId": "corpse",
+      "Count": 2
+    },
+    {
+      "CardId": "anchutka",
+      "Count": 2
+    },
+    {
+      "CardId": "bolotnik",
+      "Count": 2
+    },
+    {
+      "CardId": "wolf",
+      "Count": 2
+    },
+    {
+      "CardId": "omut",
+      "Count": 2
+    },
+    {
+      "CardId": "vodyanoy",
+      "Count": 2
+    },
+    {
+      "CardId": "lobasta",
+      "Count": 2
+    },
+    {
+      "CardId": "polunochnitsa",
+      "Count": 1
+    },
+    {
+      "CardId": "poludnitsa",
+      "Count": 1
+    },
+    {
+      "CardId": "igosha",
+      "Count": 2
+    },
+    {
+      "CardId": "leshy",
+      "Count": 1
+    }
+  ]
+}

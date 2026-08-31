@@ -45,7 +45,8 @@
       "id": "vfx_weather_hit_omut",
       "prefab": "WaterSplash",
       "life": 0.6,
-      "tint": "#93B457"
+      "scale": 1.2,
+      "tint": "#D8F0A4"
     },
     {
       "id": "vfx_heart_break",

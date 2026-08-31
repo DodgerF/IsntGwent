@@ -1,9 +1,11 @@
 using System;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Server;
 using IsntGwent.Scripts.Messages;
 using Mirror;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -17,6 +19,7 @@ namespace IsntGwent.Scripts.Network
 
         [Inject] private readonly ConnectionService _connection;
         [Inject] private readonly SceneService _scenes;
+        [Inject] private readonly PlaySession _play;
 
         public readonly ReactiveProperty<bool> IsReconnecting = new(false);
 
@@ -73,6 +76,8 @@ namespace IsntGwent.Scripts.Network
             _isResuming = false;
             _isConfirmed = false;
 
+            _play.Clear();
+
             PlayerPrefs.DeleteKey(TokenKey);
             PlayerPrefs.Save();
 
@@ -85,7 +90,7 @@ namespace IsntGwent.Scripts.Network
             if (!_isConfirmed) return;
             if (IsReconnecting.Value) return;
 
-            Debug.Log("Reconnecting to match");
+            Log.Info(LogTag.Net, "Reconnecting to match");
 
             IsReconnecting.Value = true;
             _connection.SetAutoReconnect(true);
@@ -126,7 +131,7 @@ namespace IsntGwent.Scripts.Network
 
         private void Fail()
         {
-            Debug.Log("Reconnect to match failed");
+            Log.Info(LogTag.Net, "Reconnect to match failed");
 
             EndSeat();
         }

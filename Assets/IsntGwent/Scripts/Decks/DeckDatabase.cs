@@ -4,6 +4,7 @@ using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Core;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -38,7 +39,7 @@ namespace IsntGwent.Scripts.Decks
                     }
                     OnLoaded.Value = true;
                 },
-                onError: err => Debug.LogError(err)
+                onError: err => Log.Error(LogTag.Data, err)
             );
         }
 

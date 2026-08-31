@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mirror.Transports::Mirror.TelepathyTransport
-  port: 25821
+  port: 7182
   NoDelay: 1
   SendTimeout: 5000
   ReceiveTimeout: 30000
@@ -314,7 +314,7 @@ MonoBehaviour:
   unreliableBaselineRate: 1
   unreliableRedundancy: 0
   transport: {fileID: 258436543}
-  networkAddress: localhost
+  networkAddress: 195.133.194.167
   maxConnections: 100
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
@@ -623,7 +623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &499847139
 RectTransform:
   m_ObjectHideFlags: 0
@@ -666,10 +666,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 1, g: 0.9529412, b: 0.8627451, a: 1}
+    m_HighlightedColor: {r: 1, g: 0.87, b: 0.62, a: 1}
     m_PressedColor: {r: 0.7882353, g: 0.6313726, b: 0.34901962, a: 1}
     m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_DisabledColor: {r: 0.41960785, g: 0.36078432, b: 0.29803923, a: 0.5019608}
+    m_DisabledColor: {r: 0.38, g: 0.36, b: 0.33, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -703,6 +703,7 @@ MonoBehaviour:
   clickSoundId: ui_click
   hoverSoundId: ui_button_hover
   hoverOutSoundId: 
+  useSharedColors: 1
 --- !u!114 &499847141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1009,10 +1010,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 1, g: 0.9529412, b: 0.8627451, a: 1}
+    m_HighlightedColor: {r: 1, g: 0.87, b: 0.62, a: 1}
     m_PressedColor: {r: 0.7882353, g: 0.6313726, b: 0.34901962, a: 1}
     m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_DisabledColor: {r: 0.41960785, g: 0.36078432, b: 0.29803923, a: 0.5019608}
+    m_DisabledColor: {r: 0.38, g: 0.36, b: 0.33, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -1034,6 +1035,7 @@ MonoBehaviour:
   clickSoundId: ui_click
   hoverSoundId: ui_button_hover
   hoverOutSoundId: 
+  useSharedColors: 1
 --- !u!114 &1079891213
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1225,7 +1227,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291224304
   m_fontColor: {r: 0.9411765, g: 0.8862745, b: 0.7764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1488,7 +1490,7 @@ MonoBehaviour:
   statusText: {fileID: 1288023517}
   retryButton: {fileID: 1843262346}
   quitButton: {fileID: 1079891212}
-  unavailableAfterSeconds: 5
+  unavailableAfterSeconds: 20
   connectingMessage: "Connecting\u2026"
   unavailableMessage: Server unavailable
 --- !u!1 &1404503980
@@ -1557,7 +1559,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
+    rgba: 4291224304
   m_fontColor: {r: 0.9411765, g: 0.8862745, b: 0.7764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1575,7 +1577,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 44
   m_fontSizeBase: 72
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1694,7 +1696,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
+    rgba: 4291224304
   m_fontColor: {r: 0.9411765, g: 0.8862745, b: 0.7764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1712,7 +1714,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 44
   m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1826,10 +1828,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 1, g: 0.9529412, b: 0.8627451, a: 1}
+    m_HighlightedColor: {r: 1, g: 0.87, b: 0.62, a: 1}
     m_PressedColor: {r: 0.7882353, g: 0.6313726, b: 0.34901962, a: 1}
     m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_DisabledColor: {r: 0.41960785, g: 0.36078432, b: 0.29803923, a: 0.5019608}
+    m_DisabledColor: {r: 0.38, g: 0.36, b: 0.33, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -1851,6 +1853,7 @@ MonoBehaviour:
   clickSoundId: ui_click
   hoverSoundId: ui_button_hover
   hoverOutSoundId: 
+  useSharedColors: 1
 --- !u!114 &1843262347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1987,6 +1990,7 @@ MonoBehaviour:
   clickSoundId: ui_click
   hoverSoundId: ui_button_hover
   hoverOutSoundId: 
+  useSharedColors: 1
 --- !u!114 &2033643659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2140,7 +2144,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
+    rgba: 4291224304
   m_fontColor: {r: 0.9411765, g: 0.8862745, b: 0.7764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2158,7 +2162,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 44
   m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 1

@@ -47,6 +47,9 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             if (definition.ExcludeSource && context.Source is UnitInstance self)
                 result = result.Where(u => u != self).ToList();
 
+            if (definition.MaxPower > 0)
+                result = result.Where(u => u.CurrentPower.Value <= definition.MaxPower).ToList();
+
             return FilterByArea(context, definition, result);
         }
 
@@ -95,6 +98,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
         public bool ExcludeAnchor;
         public bool SameLine;
         public bool ExcludeSource;
+        public int MaxPower;
         public SlotAnchor RangeAnchor;
     }
 }

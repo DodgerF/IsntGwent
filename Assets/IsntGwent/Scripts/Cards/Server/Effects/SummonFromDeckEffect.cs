@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
@@ -16,8 +17,11 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                 : definition.CardId;
             if (cardId == null && !definition.AnyCard) return;
 
-            var matches = context.Owner.Deck
+            var pile = definition.FromGraveyard ? context.Owner.Graveyard : context.Owner.Deck;
+
+            var matches = pile
                 .OfType<UnitInstance>()
+                .Where(u => u != context.Source)
                 .Where(u => definition.AnyCard || u.Definition.Id == cardId)
                 .Where(u => definition.MaxPower <= 0 || u.UnitDefinition.Power <= definition.MaxPower)
                 .ToList();
@@ -29,9 +33,8 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                 if (context.Owner.FirstFreeSlot() == null) return;
 
                 var unit = matches[i];
-                context.Owner.Deck.Remove(unit);
-                SummonUtil.Place(context, unit, definition.Placement, definition.Row, i, fromDeck: true,
-                    definition.StrictNeighbors);
+                pile.Remove(unit);
+                SummonUtil.Place(context, unit, definition.Placement, definition.Row, i, fromDeck: true);
             }
         }
     }
@@ -40,10 +43,10 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
     {
         public string CardId;
         public bool AnyCard;
+        public bool FromGraveyard;
         public int Count;
         public RowType Row;
         public int MaxPower;
         public SummonPlacement Placement;
-        public bool StrictNeighbors;
     }
 }

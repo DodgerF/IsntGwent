@@ -5,25 +5,29 @@
   "type": "Unit",
   "power": 2,
   "rarity": "Common",
-  "description": "Deploy: damage 3 to the first creature in the line ahead. On kill: summon a Corpse from your deck.",
+  "description": "Melee: damage 2 to the first creature in the line ahead. Habitat (Omut): on kill cast a Corpse from your deck.",
   "effects": [
     {
       "effect": "LineTargeting",
       "trigger": "OnPlay",
-      "anchor": "Source"
+      "requiredRow": "Melee",
+      "anchor": "Source",
+      "includeEnemies": true
     },
     {
       "effect": "DealDamage",
       "trigger": "OnPlay",
-      "amount": 3
+      "requiredRow": "Melee",
+      "amount": 2
     },
     {
-      "effect": "SummonFromDeck",
+      "effect": "CastFromDeck",
       "trigger": "OnKill",
+      "requiredRow": "Melee",
       "cardId": "corpse",
-      "count": 1,
-      "placement": "Neighbors",
-      "strictNeighbors": true
+      "condition": {
+        "environment": "omut"
+      }
     }
   ]
 }

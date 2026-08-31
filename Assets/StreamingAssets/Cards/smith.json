@@ -3,7 +3,7 @@
   "name": "Smith",
   "imageName": "smith",
   "type": "Unit",
-  "power": 4,
+  "power": 5,
   "rarity": "Common",
   "description": "Deploy: give a chosen neighbour 3 armor.",
   "effects": [

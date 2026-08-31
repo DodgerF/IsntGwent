@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsntGwent.Scripts.Accounts.Core;
 using IsntGwent.Scripts.Decks.Definitions;
 using IsntGwent.Scripts.Lobby.Core;
 using Mirror;
@@ -10,9 +11,9 @@ namespace IsntGwent.Scripts.Lobby.Server
         private readonly Dictionary<NetworkConnectionToClient, Seat> _byConnection = new();
         private readonly Dictionary<string, Seat> _byToken = new();
 
-        public Seat Create(ISeatChannel channel, DeckDefinition deck)
+        public Seat Create(ISeatChannel channel, DeckDefinition deck, AccountData account)
         {
-            var seat = new Seat(deck, channel);
+            var seat = new Seat(deck, channel, account);
 
             if (channel is MirrorSeatChannel { Connection: not null } mirror)
                 _byConnection[mirror.Connection] = seat;

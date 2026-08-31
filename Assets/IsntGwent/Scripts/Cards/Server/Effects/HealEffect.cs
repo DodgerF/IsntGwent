@@ -13,7 +13,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
 
             foreach (var target in ResolveApplyTargets(context))
             {
-                var basePower = target.UnitDefinition.Power;
+                var basePower = target.BasePower.Value;
                 if (target.CurrentPower.Value >= basePower) continue;
 
                 var restored = definition.Amount <= 0

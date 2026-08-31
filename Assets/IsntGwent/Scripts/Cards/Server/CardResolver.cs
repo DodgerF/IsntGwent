@@ -8,6 +8,14 @@ using IsntGwent.Scripts.Match.Server;
 
 namespace IsntGwent.Scripts.Cards.Server
 {
+    public class AimPause
+    {
+        public int EffectIndex;
+        public List<string> Pool;
+        public int DestroyedPower;
+        public int KilledCount;
+    }
+
     public class CardResolver
     {
         private readonly EffectRegistry _effectRegistry;
@@ -17,17 +25,31 @@ namespace IsntGwent.Scripts.Cards.Server
             _effectRegistry = effectRegistry;
         }
 
-        public bool PlayCard(GameContext context, Player caster, CardInstance card, RowType playedRow,
+        public AimPause PlayCard(GameContext context, Player caster, CardInstance card, RowType playedRow,
             int playedSlot, List<string> selectedIds, bool enemyRow = false)
         {
             var manualTargets = ResolveManualTargets(context, selectedIds);
 
             if (!ValidateManualTargets(context, caster, card, manualTargets, playedRow, playedSlot))
-                return false;
+                return null;
 
-            RunEffects(context, caster, card, EffectTrigger.OnPlay, null, manualTargets, playedRow, playedSlot,
+            var effectContext = BuildContext(context, caster, card, null, manualTargets, playedRow, playedSlot,
                 enemyRow);
-            return true;
+
+            return Run(effectContext, card, EffectTrigger.OnPlay, 0, allowPause: true);
+        }
+
+        public AimPause ContinuePlay(GameContext context, PendingAim pending)
+        {
+            var manualTargets = ResolveManualTargets(context, pending.TargetIds);
+
+            var effectContext = BuildContext(context, pending.BoardOwner, pending.Card, null, manualTargets,
+                pending.Row, pending.Slot, pending.EnemyRow);
+
+            effectContext.DestroyedPower = pending.DestroyedPower;
+            effectContext.KilledCount = pending.KilledCount;
+
+            return Run(effectContext, pending.Card, EffectTrigger.OnPlay, pending.EffectIndex, allowPause: true);
         }
 
         public bool CanPlay(GameContext context, Player caster, CardInstance card, List<string> selectedIds,
@@ -40,9 +62,12 @@ namespace IsntGwent.Scripts.Cards.Server
         private bool ValidateManualTargets(GameContext context, Player caster, CardInstance card,
             List<UnitInstance> manualTargets, RowType playedRow, int playedSlot)
         {
+            var cursor = 0;
+
             foreach (var effectDef in card.Definition.Effects)
             {
                 if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (effectDef.RequiredRow != RowType.None && effectDef.RequiredRow != playedRow) continue;
                 if (effectDef is not ManualTargetingDefinition manualDef) continue;
 
                 var effectContext = new EffectContext
@@ -60,24 +85,39 @@ namespace IsntGwent.Scripts.Cards.Server
                 var effect = (ManualTargetingEffect)_effectRegistry.Get(effectDef);
                 var pool = effect.GetPool(effectContext);
 
-                var poolIds = new HashSet<Guid>(pool.Select(u => u.Id));
-                if (manualTargets.Any(t => !poolIds.Contains(t.Id)))
-                    return false;
-
                 var maxAvailable = Math.Min(manualDef.Count, pool.Count);
                 var expected = manualDef.AllowPartial ? maxAvailable : manualDef.Count;
 
-                if (manualTargets.Count != expected) return false;
+                if (cursor + expected > manualTargets.Count)
+                    return effectDef is AimedTargetingDefinition && cursor == manualTargets.Count;
+
+                var poolIds = new HashSet<Guid>(pool.Select(u => u.Id));
+
+                for (var i = cursor; i < cursor + expected; i++)
+                {
+                    if (!poolIds.Contains(manualTargets[i].Id)) return false;
+                }
+
+                cursor += expected;
             }
 
-            return true;
+            return cursor == manualTargets.Count;
         }
         
         public void RunEffects(GameContext context, Player owner, CardInstance card,
             EffectTrigger trigger, IGameEvent gameEvent, List<UnitInstance> manualTargets,
             RowType playedRow = RowType.None, int playedSlot = -1, bool enemyRow = false)
         {
-            var effectContext = new EffectContext
+            var effectContext = BuildContext(context, owner, card, gameEvent, manualTargets, playedRow, playedSlot,
+                enemyRow);
+
+            Run(effectContext, card, trigger, 0, allowPause: false);
+        }
+
+        private static EffectContext BuildContext(GameContext context, Player owner, CardInstance card,
+            IGameEvent gameEvent, List<UnitInstance> manualTargets, RowType playedRow, int playedSlot, bool enemyRow)
+        {
+            return new EffectContext
             {
                 Game = context,
                 Source = card,
@@ -92,9 +132,17 @@ namespace IsntGwent.Scripts.Cards.Server
                 ManualTargets = manualTargets ?? new List<UnitInstance>(),
                 TargetsEnemyRow = enemyRow,
             };
+        }
 
-            foreach (var effectDef in card.Definition.Effects)
+        private AimPause Run(EffectContext effectContext, CardInstance card, EffectTrigger trigger,
+            int startIndex, bool allowPause)
+        {
+            var effects = card.Definition.Effects;
+
+            for (var i = startIndex; i < effects.Count; i++)
             {
+                var effectDef = effects[i];
+
                 if (effectDef.Trigger != trigger) continue;
                 if (effectDef.RequiredRow != RowType.None && effectDef.RequiredRow != effectContext.PlayedRow)
                     continue;
@@ -107,6 +155,21 @@ namespace IsntGwent.Scripts.Cards.Server
                 var effect = _effectRegistry.Get(effectDef);
                 if (!effect.CanTrigger(effectContext)) continue;
 
+                if (allowPause && effectDef is AimedTargetingDefinition { Count: > 0 }
+                                && effectContext.ManualCursor >= effectContext.ManualTargets.Count)
+                {
+                    var pool = ((ManualTargetingEffect)effect).GetPool(effectContext);
+
+                    if (pool.Count > 0)
+                        return new AimPause
+                        {
+                            EffectIndex = i,
+                            Pool = pool.Select(u => u.Id.ToString()).ToList(),
+                            DestroyedPower = effectContext.DestroyedPower,
+                            KilledCount = effectContext.KilledCount,
+                        };
+                }
+
                 if (effect is TargetingEffect)
                 {
                     effectContext.Targets = effect.ResolveTargets(effectContext);
@@ -115,18 +178,46 @@ namespace IsntGwent.Scripts.Cards.Server
 
                 effect.Execute(effectContext);
             }
+
+            return null;
         }
 
         private List<UnitInstance> ResolveManualTargets(GameContext context, List<string> selectedIds)
         {
             if (selectedIds == null || selectedIds.Count == 0) return new List<UnitInstance>();
 
-            return context.Player1.MeleeRow
+            var board = context.Player1.MeleeRow
                 .Concat(context.Player1.RangedRow)
                 .Concat(context.Player2.MeleeRow)
                 .Concat(context.Player2.RangedRow)
-                .Where(u => selectedIds.Contains(u.Id.ToString()))
-                .ToList();
+                .ToDictionary(u => u.Id.ToString());
+
+            var result = new List<UnitInstance>();
+
+            foreach (var id in selectedIds)
+            {
+                if (board.TryGetValue(id, out var unit) && !result.Contains(unit))
+                    result.Add(unit);
+            }
+
+            return result;
+        }
+
+        public List<AimedTargetingDefinition> AimSequence(CardDefinition definition,
+            Func<EffectDefinition, bool> conditionFilter = null)
+        {
+            var result = new List<AimedTargetingDefinition>();
+
+            foreach (var effectDef in definition.Effects)
+            {
+                if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
+                if (effectDef is not AimedTargetingDefinition aimed) continue;
+                if (conditionFilter != null && !conditionFilter(effectDef)) continue;
+
+                result.Add(aimed);
+            }
+
+            return result;
         }
 
         public bool NeedsRowChoice(CardDefinition definition)
@@ -151,23 +242,6 @@ namespace IsntGwent.Scripts.Cards.Server
                 if (effectDef is ApplyWeatherDefinition) return true;
             }
 
-            return false;
-        }
-
-        public bool NeedsAimAfterPlacement(CardDefinition definition, out AimedTargetingDefinition aim,
-            Func<EffectDefinition, bool> conditionFilter = null)
-        {
-            foreach (var effectDef in definition.Effects)
-            {
-                if (effectDef.Trigger != EffectTrigger.OnPlay) continue;
-                if (effectDef is not AimedTargetingDefinition aimed) continue;
-                if (conditionFilter != null && !conditionFilter(effectDef)) continue;
-
-                aim = aimed;
-                return true;
-            }
-
-            aim = null;
             return false;
         }
 

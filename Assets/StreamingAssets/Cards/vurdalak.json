@@ -3,7 +3,7 @@
   "name": "Vurdalak",
   "imageName": "vurdalak",
   "type": "Unit",
-  "power": 1,
+  "power": 4,
   "rarity": "Common",
   "description": "Turn end: consume the weakest neighbour.",
   "effects": [
