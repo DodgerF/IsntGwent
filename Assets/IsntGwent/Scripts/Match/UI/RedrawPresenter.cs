@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System.Collections.Generic;
 using DG.Tweening;
 using IsntGwent.Scripts.Cards.Client;
@@ -71,7 +72,7 @@ namespace IsntGwent.Scripts.Match.UI
                 .AddTo(this);
 
             _matchState.RedrawsLeft
-                .Subscribe(left => counterText.text = $"Redraws left: {left}")
+                .Subscribe(left => counterText.text = Loc.F("Redraws left: {0}", left))
                 .AddTo(this);
 
             _matchState.IsGameEnded

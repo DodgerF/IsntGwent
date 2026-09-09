@@ -35,25 +35,18 @@ namespace IsntGwent.Scripts.Cards.UI
         private bool _fanOpen = true;
         private bool _fanLowered;
         private bool _focused;
-        private Transform _raisedCard;
-        private float _raisedLift;
+        private readonly List<float> _settle = new();
 
         public int CardCount => _cards.Count;
 
         public IReadOnlyList<Transform> Cards => _cards;
 
-        public Transform RaisedCard => _raisedCard;
-
-        public void SetRaised(Transform card, bool raised, float lift)
+        public virtual float RaiseShift(Transform card, float lift, float t)
         {
-            var target = raised ? card : null;
+            var index = _cards.IndexOf(card);
+            var settle = index >= 0 && index < _settle.Count ? _settle[index] : 0f;
 
-            if (_raisedCard == target && Mathf.Approximately(_raisedLift, lift)) return;
-            if (!raised && _raisedCard != card) return;
-
-            _raisedCard = target;
-            _raisedLift = raised ? lift : 0f;
-            RefreshLayout();
+            return lift - settle * t;
         }
 
         public void SetLowered(bool lowered)
@@ -199,15 +192,15 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             _cards.RemoveAll(c => c == null || c.parent != transform);
 
-            if (_raisedCard != null && _raisedCard.parent != transform)
-                _raisedCard = null;
-
             LayoutCards();
         }
 
         protected virtual void LayoutCards()
         {
             var count = _cards.Count;
+
+            _settle.Clear();
+
             if (count == 0)
                 return;
 
@@ -228,18 +221,16 @@ namespace IsntGwent.Scripts.Cards.UI
                 var isFlight = child == _flightChild;
                 var offset = count > 1 ? i / (float)(count - 1) * 2f - 1f : 0f;
 
-                var isRaised = child == _raisedCard;
+                var settle = arc * offset * offset + lowered;
 
-                var y = isRaised
-                    ? lift + _raisedLift
-                    : arc * offset * offset + lift + lowered;
+                _settle.Add(settle);
 
                 MoveTo(
                     child,
-                    new Vector3(startX + i * spacing, y, 0f),
+                    new Vector3(startX + i * spacing, settle + lift, 0f),
                     isFlight ? _flightDuration : CardAnimConfig.RowLayoutDuration,
                     isFlight ? CardAnimConfig.FlightEase : CardAnimConfig.RowLayoutEase,
-                    isRaised ? 0f : -offset * half);
+                    -offset * half);
             }
         }
 

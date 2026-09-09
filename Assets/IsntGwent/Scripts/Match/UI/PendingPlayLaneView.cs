@@ -10,6 +10,8 @@ namespace IsntGwent.Scripts.Match.UI
 
         public bool Contains(GameObject card) => card != null && _cards.Contains(card.transform);
 
+        public override float RaiseShift(Transform card, float lift, float t) => 0f;
+
         protected override void LayoutCards()
         {
             var count = _cards.Count;

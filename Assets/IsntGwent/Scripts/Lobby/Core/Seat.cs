@@ -15,6 +15,7 @@ namespace IsntGwent.Scripts.Lobby.Core
         public ISeatChannel Channel;
         public bool IsReady;
         public bool IsConnected = true;
+        public bool IsBot;
 
         public Seat(DeckDefinition deck, ISeatChannel channel, AccountData account)
         {

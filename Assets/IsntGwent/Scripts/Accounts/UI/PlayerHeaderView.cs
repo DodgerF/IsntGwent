@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Accounts.Client;
 using IsntGwent.Scripts.Lobby.UI;
 using TMPro;
@@ -20,13 +21,13 @@ namespace IsntGwent.Scripts.Accounts.UI
         private void Start()
         {
             _account.Nickname
-                .Subscribe(nickname => nicknameText.text = string.IsNullOrEmpty(nickname) ? "No name" : nickname)
+                .Subscribe(nickname => nicknameText.text = string.IsNullOrEmpty(nickname) ? Loc.T("No name") : nickname)
                 .AddTo(this);
 
             _account.Points
                 .CombineLatest(_account.Rank, (points, rank) => rank > 0
-                    ? $"{points} pts  #{rank}"
-                    : $"{points} pts")
+                    ? Loc.F("{0} pts  #{1}", points, rank)
+                    : Loc.F("{0} pts", points))
                 .Subscribe(text => pointsText.text = text)
                 .AddTo(this);
 

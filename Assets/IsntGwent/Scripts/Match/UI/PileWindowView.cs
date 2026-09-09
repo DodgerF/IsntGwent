@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.UI;
@@ -117,7 +118,7 @@ namespace IsntGwent.Scripts.Match.UI
             var cards = Source(_kind);
 
             if (title != null)
-                title.text = $"{TitleOf(_kind)} ({cards.Count})";
+                title.text = $"{Loc.T(TitleOf(_kind))} ({cards.Count})";
 
             foreach (var card in cards)
             {

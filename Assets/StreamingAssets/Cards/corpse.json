@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 3,
   "rarity": "Common",
-  "description": "Turn end: damage 1 to itself and summon a Grub.",
+  "description": "Turn end: damage 1 to itself and summon a Grub next to it. Deathwish: summon a Grub on its cell.",
   "effects": [
     {
       "effect": "DealDamage",
@@ -18,7 +18,17 @@
       "trigger": "OnTurnEnd",
       "tokenId": "grub",
       "count": 1,
-      "placement": "Neighbors"
+      "placement": "Neighbors",
+      "condition": {
+        "minSourcePower": 1
+      }
+    },
+    {
+      "effect": "SummonToken",
+      "trigger": "OnDeath",
+      "tokenId": "grub",
+      "count": 1,
+      "placement": "OwnPosition"
     }
   ]
 }

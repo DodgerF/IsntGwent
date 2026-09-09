@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Client;
@@ -73,7 +74,7 @@ namespace IsntGwent.Scripts.Decks.UI
         private void Finish()
         {
             if (_draft.IsDirty)
-                _confirm.Ask(UnsavedMessage, () => _draft.NewDeck());
+                _confirm.Ask(Loc.T(UnsavedMessage), () => _draft.NewDeck());
             else
                 _draft.NewDeck();
         }
@@ -81,7 +82,7 @@ namespace IsntGwent.Scripts.Decks.UI
         private void Back()
         {
             if (_draft.IsDirty)
-                _confirm.Ask(UnsavedMessage, () => _scenes.LoadMenu());
+                _confirm.Ask(Loc.T(UnsavedMessage), () => _scenes.LoadMenu());
             else
                 _scenes.LoadMenu();
         }
@@ -91,7 +92,7 @@ namespace IsntGwent.Scripts.Decks.UI
             var violations = _validator.Validate(_draft.Build());
 
             if (sizeText != null)
-                sizeText.text = _draft.TotalCount.Value + " / min " + _rules.Current.MinDeckSize;
+                sizeText.text = Loc.F("{0} / min {1}", _draft.TotalCount.Value, _rules.Current.MinDeckSize);
 
             saveButton.interactable = _draft.TotalCount.Value > 0;
 

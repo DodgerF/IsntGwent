@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UniRx;
 using Zenject;
 
@@ -15,6 +15,12 @@ namespace IsntGwent.Scripts.Match.Server
 
         public void BeginPhase(GameContext context)
         {
+            if (context.IsTutorial)
+            {
+                SkipPhase(context);
+                return;
+            }
+
             var amount = context.RoundNumber == 1 ? FirstRoundRedraws : RoundRedraws;
 
             var p1 = context.Player1;
@@ -82,6 +88,18 @@ namespace IsntGwent.Scripts.Match.Server
             context.Journal?.RedrawEnd();
 
             _notifier.NotifyRedrawEnded(context);
+
+            PhaseEnded.OnNext(context);
+        }
+
+        private void SkipPhase(GameContext context)
+        {
+            Reset(context.Player1, 0);
+            Reset(context.Player2, 0);
+
+            context.Player1.IsRedrawReady = true;
+            context.Player2.IsRedrawReady = true;
+            context.IsRedrawPhase = false;
 
             PhaseEnded.OnNext(context);
         }

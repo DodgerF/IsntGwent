@@ -11,6 +11,7 @@ using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Match.Client;
 using UniRx;
+using IsntGwent.Scripts.Tutorial.Client;
 using Zenject;
 
 namespace IsntGwent.Scripts.Cards.Client
@@ -25,6 +26,7 @@ namespace IsntGwent.Scripts.Cards.Client
         [Inject] private readonly PlayPreviewQuery _playPreview;
         [Inject] private readonly ClientConditionQuery _conditions;
         [Inject] private readonly CardViewRegistry _views;
+        [InjectOptional] private readonly TutorialService _tutorial;
 
         public enum RowScope { Own, Enemy, Any }
 
@@ -92,6 +94,7 @@ namespace IsntGwent.Scripts.Cards.Client
 
         private bool _allowPartial;
         private List<string> _targetPool;
+        private CardView _hoveredTarget;
 
         private readonly CompositeDisposable _disposables = new();
 
@@ -219,6 +222,7 @@ namespace IsntGwent.Scripts.Cards.Client
             if (!_matchState.IsMyTurn.Value) return false;
             if (_matchState.IsActionPending.Value) return false;
             if (_matchState.IsMatchPaused.Value) return false;
+            if (_tutorial != null && !_tutorial.CanSelectCard(card.Instance.Definition.Id)) return false;
 
             return true;
         }
@@ -392,7 +396,7 @@ namespace IsntGwent.Scripts.Cards.Client
                 return;
             }
 
-            if (!slot.Row.IsSlotFree(slot.Index))
+            if (!slot.Row.IsSlotFree(slot.Index) || !IsTutorialSlot(slot.Row, slot.Index))
             {
                 PlacementDenied.OnNext(Unit.Default);
                 CancelSelection();
@@ -450,6 +454,12 @@ namespace IsntGwent.Scripts.Cards.Client
             if (_targetPool == null || !_targetPool.Contains(target.Instance.Id.ToString()))
             {
                 CancelSelection();
+                return;
+            }
+
+            if (!IsTutorialTarget(target))
+            {
+                PlacementDenied.OnNext(Unit.Default);
                 return;
             }
 
@@ -620,11 +630,34 @@ namespace IsntGwent.Scripts.Cards.Client
                 case Plan.AimUnit:
                     HoverSlot(hit.Slot);
                     return;
+                case Plan.ManualTargets:
+                    HoverTarget(hit.Card);
+                    return;
                 case Plan.RowChoice:
                 case Plan.Confirm:
                     HoverRow(hit.Slot != null ? hit.Slot.Row : hit.Row);
                     return;
             }
+        }
+
+        private void HoverTarget(CardView card)
+        {
+            var target = IsHoverableTarget(card) ? card : null;
+
+            if (_hoveredTarget == target) return;
+
+            _hoveredTarget = target;
+
+            HighlightPredicted.OnNext(target == null
+                ? PlayPreviewQuery.Prediction.Empty
+                : _playPreview.PredictOnTarget(_selectedCard.Instance.Definition, target.Instance));
+        }
+
+        private bool IsHoverableTarget(CardView card)
+        {
+            if (card == null || card.mode != CardMode.OnBoard || card.Instance == null) return false;
+
+            return _targetPool != null && _targetPool.Contains(card.Instance.Id.ToString());
         }
 
         private void HoverRow(CardLaneView lane)
@@ -694,6 +727,7 @@ namespace IsntGwent.Scripts.Cards.Client
 
             _hoveredAnchorValid = false;
             _hoveredRow = null;
+            _hoveredTarget = null;
             HighlightRowHover.OnNext(null);
             HighlightCells.OnNext(Array.Empty<BoardCell>());
             HighlightPlacementCell.OnNext(null);
@@ -721,7 +755,8 @@ namespace IsntGwent.Scripts.Cards.Client
         {
             var slot = hit.Slot;
 
-            if (slot == null || !IsPlacementRow(slot.Row) || !slot.Row.IsSlotFree(slot.Index))
+            if (slot == null || !IsPlacementRow(slot.Row) || !slot.Row.IsSlotFree(slot.Index)
+                || !IsTutorialSlot(slot.Row, slot.Index))
             {
                 if (slot != null && IsPlacementRow(slot.Row))
                     PlacementDenied.OnNext(Unit.Default);
@@ -741,7 +776,8 @@ namespace IsntGwent.Scripts.Cards.Client
                 || target.mode != CardMode.OnBoard
                 || target.Instance is not UnitInstance
                 || _targetPool == null
-                || !_targetPool.Contains(target.Instance.Id.ToString()))
+                || !_targetPool.Contains(target.Instance.Id.ToString())
+                || !IsTutorialTarget(target))
             {
                 CancelSelection();
                 return;
@@ -782,6 +818,20 @@ namespace IsntGwent.Scripts.Cards.Client
             }
 
             ConfirmPlay();
+        }
+
+        private bool IsTutorialSlot(BoardRowView row, int slotIndex)
+        {
+            if (_tutorial == null || row == null) return true;
+
+            return _tutorial.CanPlaceAt(row.OwnSide, row.BoardRow, slotIndex);
+        }
+
+        private bool IsTutorialTarget(CardView target)
+        {
+            if (_tutorial == null || target?.Instance == null) return true;
+
+            return _tutorial.CanTarget(target.Instance.Definition.Id);
         }
 
         private bool IsPlacementRow(CardLaneView lane)
@@ -826,6 +876,7 @@ namespace IsntGwent.Scripts.Cards.Client
             _selectedTargets.Clear();
             _confirmedTargets.Clear();
             _targetPool = null;
+            _hoveredTarget = null;
             _aimDefinition = null;
             _aimSequence = new List<AimedTargetingDefinition>();
             _aimIndex = 0;

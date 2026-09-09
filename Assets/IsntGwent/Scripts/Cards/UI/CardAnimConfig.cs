@@ -52,6 +52,8 @@ namespace IsntGwent.Scripts.Cards.UI
         public const float HandHoverLift = 89f;
         public const float HandPickedScale = 1.18f;
         public const float HandPickedLift = 95f;
+        public const float TrayHoverScale = 1.2f;
+        public const float TrayHoverLift = 10f;
         public const float HoverDuration = 0.12f;
         public const float DimAlpha = 0.45f;
         public const float DimDuration = 0.15f;

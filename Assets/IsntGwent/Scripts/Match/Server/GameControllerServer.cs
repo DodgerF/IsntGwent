@@ -4,6 +4,7 @@ using IsntGwent.Scripts.Diagnostics;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Lobby.Server;
 using IsntGwent.Scripts.Messages;
+using IsntGwent.Scripts.Tutorial;
 using UniRx;
 using Zenject;
 
@@ -18,6 +19,7 @@ namespace IsntGwent.Scripts.Match.Server
         [Inject] private readonly RedrawService _redrawService;
         [Inject] private readonly TriggeredEffectDispatcher _dispatcher;
         [Inject] private readonly WeatherService _weatherService;
+        [Inject] private readonly TutorialScriptProvider _tutorial;
 
         private readonly CompositeDisposable _disposables = new();
 
@@ -117,14 +119,22 @@ namespace IsntGwent.Scripts.Match.Server
             _dispatcher.Attach(context);
             _weatherService.Attach(context);
 
-            DeckService.Shuffle(context.Player1.Deck);
-            DeckService.Shuffle(context.Player2.Deck);
+            if (context.IsTutorial)
+            {
+                context.IsScriptPaused = true;
+                context.CurrentPlayer = FirstTutorialPlayer(context);
+            }
+            else
+            {
+                DeckService.Shuffle(context.Player1.Deck);
+                DeckService.Shuffle(context.Player2.Deck);
 
-            DeckService.DrawCards(context.Player1, 10);
-            DeckService.DrawCards(context.Player2, 10);
+                DeckService.DrawCards(context.Player1, 10);
+                DeckService.DrawCards(context.Player2, 10);
 
-            var rnd = UnityEngine.Random.Range(0, 2);
-            context.CurrentPlayer = rnd == 0 ? context.Player1 : context.Player2;
+                var rnd = UnityEngine.Random.Range(0, 2);
+                context.CurrentPlayer = rnd == 0 ? context.Player1 : context.Player2;
+            }
 
             context.Journal?.Deal(context);
 
@@ -132,6 +142,13 @@ namespace IsntGwent.Scripts.Match.Server
             _notifier.NotifyDecks(context);
 
             _redrawService.BeginPhase(context);
+        }
+
+        private Player FirstTutorialPlayer(GameContext context)
+        {
+            var human = context.Player1.Seat is { IsBot: true } ? context.Player2 : context.Player1;
+
+            return _tutorial.Script is { PlayerFirst: true } ? human : context.GetOpponent(human);
         }
 
         public void EndGameBySurrender(GameContext context, Player winner, bool notifyLoser = true)
@@ -156,6 +173,21 @@ namespace IsntGwent.Scripts.Match.Server
 
             context.EndReason = "disconnect";
             context.Winner = winner;
+            context.GameEnded.Value = true;
+        }
+
+        public void EndGameByAbandon(GameContext context)
+        {
+            if (context.GameEnded.Value) return;
+
+            Log.Info(LogTag.Match,
+                $"ended by abandon: both players left, tie (match {context.MatchId})");
+
+            _notifier.NotifyGameEnded(context, true, null, null);
+
+            context.EndReason = "abandon";
+            context.IsTie = true;
+            context.Winner = null;
             context.GameEnded.Value = true;
         }
 

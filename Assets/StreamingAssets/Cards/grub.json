@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 1,
   "rarity": "Token",
-  "description": "Deathwish: if devoured, boost the devourer by 1.",
+  "description": "Deathwish: if killed by consume, boost the devourer by 1.",
   "isToken": true,
   "effects": [
     {

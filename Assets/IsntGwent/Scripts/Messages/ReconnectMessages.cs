@@ -9,6 +9,14 @@ namespace IsntGwent.Scripts.Messages
         Match
     }
 
+    public enum MatchResult
+    {
+        None,
+        Win,
+        Loss,
+        Tie
+    }
+
     public struct ReconnectRequestMessage : NetworkMessage
     {
         public string Token;
@@ -18,6 +26,7 @@ namespace IsntGwent.Scripts.Messages
     {
         public bool IsSuccess;
         public ReconnectPhase Phase;
+        public MatchResult Result;
     }
 
     public struct OpponentReconnectingMessage : NetworkMessage

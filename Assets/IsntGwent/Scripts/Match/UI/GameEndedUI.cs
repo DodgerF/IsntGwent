@@ -1,4 +1,5 @@
-﻿using TMPro;
+using IsntGwent.Scripts.Localization;
+using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,14 +40,19 @@ namespace IsntGwent.Scripts.Match.UI
                         ShowGameState("You won");
                     else if (_matchState.MyHp.Value == 0 && _matchState.EnemyHp.Value == 0)
                         ShowGameState("Friendship won");
+                    else if (_matchState.IsTie.Value)
+                        ShowGameState("Draw");
+                    else if (_matchState.AmIWinner.Value)
+                        ShowGameState("You won");
+                    else
+                        ShowGameState("Defeat");
                 })
                 .AddTo(this);
         }
 
         private void ShowGameState(string text)
         {
-            title.text = "Game Over \n\n" +
-                         text;
+            title.text = Loc.T("Game Over") + "\n\n" + Loc.T(text);
             
             title.gameObject.SetActive(true);
             background.gameObject.SetActive(true);

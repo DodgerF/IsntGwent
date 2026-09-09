@@ -361,6 +361,7 @@ namespace IsntGwent.Scripts.Core
         {
             _results.Clear();
             var pointerData = new PointerEventData(_eventSystem) { position = GetPointerPosition() };
+
             _raycaster.Raycast(pointerData, _results);
         }
 

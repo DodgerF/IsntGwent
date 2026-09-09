@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Decks.UI;
@@ -34,7 +35,9 @@ namespace IsntGwent.Scripts.Cards.UI
             _definition = _cards?.Get(cardId);
 
             if (caption != null)
-                caption.text = _definition != null ? CaptionPrefix + "\n" + _definition.Name : CaptionPrefix;
+                caption.text = _definition != null
+                    ? Loc.T(CaptionPrefix) + "\n" + Loc.CardName(_definition)
+                    : Loc.T(CaptionPrefix);
 
             gameObject.SetActive(true);
         }

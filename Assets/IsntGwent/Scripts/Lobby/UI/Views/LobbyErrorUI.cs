@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System;
 using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Client;
@@ -35,7 +36,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Show(LobbyError error, DeckViolation[] violations)
         {
-            errorText.text = Describe(error, violations);
+            errorText.text = Loc.T(Describe(error, violations));
             panel.SetActive(true);
 
             _hideTimer.Disposable = Observable

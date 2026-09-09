@@ -6,7 +6,11 @@ using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Diagnostics;
 using IsntGwent.Scripts.Accounts.Client;
 using IsntGwent.Scripts.Lobby.Client;
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Network;
+using IsntGwent.Scripts.Tutorial;
+using IsntGwent.Scripts.Tutorial.Client;
+using IsntGwent.Scripts.Tutorial.UI;
 using IsntGwent.Scripts.Vfx;
 using Zenject;
 
@@ -34,6 +38,14 @@ namespace IsntGwent.Scripts.Installers
                 .BindInterfacesAndSelfTo<PlayerAccount>()
                 .AsSingle()
                 .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<TutorialScriptProvider>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<TutorialService>()
+                .AsSingle()
+                .NonLazy();
 
             
             Container
@@ -58,7 +70,21 @@ namespace IsntGwent.Scripts.Installers
                 .FromNewComponentOnNewGameObject()
                 .AsSingle()
                 .NonLazy();
+            Container
+                .Bind<TutorialDebugHud>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
 #endif
+            Container
+                .BindInterfacesAndSelfTo<LocalizationService>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<LocalizationBinder>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
             Container
                 .BindInterfacesAndSelfTo<CardDatabase>()
                 .AsSingle()

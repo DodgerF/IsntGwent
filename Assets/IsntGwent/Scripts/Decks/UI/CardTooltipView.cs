@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Cards.Definitions;
 using TMPro;
@@ -67,12 +68,13 @@ namespace IsntGwent.Scripts.Decks.UI
             if (definition == null || target == null) return;
 
             if (nameText != null)
-                nameText.text = definition.Name;
+                nameText.text = Loc.CardName(definition);
 
-            var hasDescription = !string.IsNullOrWhiteSpace(definition.Description);
+            var description = Loc.CardDescription(definition);
+            var hasDescription = !string.IsNullOrWhiteSpace(description);
 
             if (descriptionText != null)
-                descriptionText.text = _keywords.Format(definition.Description);
+                descriptionText.text = _keywords.Format(description);
 
             if (descriptionBlock != null)
                 descriptionBlock.SetActive(hasDescription);
@@ -80,7 +82,7 @@ namespace IsntGwent.Scripts.Decks.UI
             panel.SetActive(true);
 
             if (keywords != null)
-                keywords.Show(definition.Description);
+                keywords.Show(description);
 
             if (panelRect == null) return;
 

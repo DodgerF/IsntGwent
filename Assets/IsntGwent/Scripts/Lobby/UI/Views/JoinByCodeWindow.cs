@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Lobby.Core;
 using TMPro;
 using UniRx;
@@ -17,7 +18,7 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void Start()
         {
-            CodeInput.placeholder.GetComponent<TextMeshProUGUI>().text = "Room code";
+            CodeInput.placeholder.GetComponent<TextMeshProUGUI>().text = Loc.T("Room code");
             CodeInput.characterLimit = JoinCodes.Length;
             CodeInput.characterValidation = TMP_InputField.CharacterValidation.Alphanumeric;
 

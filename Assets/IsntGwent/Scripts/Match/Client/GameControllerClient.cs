@@ -99,11 +99,11 @@ namespace IsntGwent.Scripts.Match.Client
                 .AddTo(_disposables);
             
             _handler.OnEnemyPassed
-                .Subscribe(_ => _matchState.IsEnemyPassed.Value = true)
+                .Subscribe(_ => _coordinator.Enqueue(() => _matchState.IsEnemyPassed.Value = true))
                 .AddTo(_disposables);
 
             _handler.OnCardRemovedFromHand
-                .Subscribe(OnCardRemovedFromHand)
+                .Subscribe(msg => _coordinator.Enqueue(() => OnCardRemovedFromHand(msg)))
                 .AddTo(_disposables);
 
             _handler.OnOwnCardPlayed
@@ -328,6 +328,28 @@ namespace IsntGwent.Scripts.Match.Client
                 .Where(_ => !_reconnectService.HasSeat)
                 .Subscribe(_ => EndByConnectionLost())
                 .AddTo(_disposables);
+
+            _reconnectService.MatchFinished
+                .Subscribe(OnMatchFinished)
+                .AddTo(_disposables);
+        }
+
+        private void OnMatchFinished(MatchResult result)
+        {
+            if (_matchState.IsGameEnded.Value) return;
+
+            ClearAnimations();
+            ClearPending();
+
+            _matchState.IsSelfReconnecting.Value = false;
+            _matchState.IsOpponentReconnecting.Value = false;
+            _matchState.IsMatchPaused.Value = false;
+            _matchState.IsWaitingImageActive.Value = false;
+
+            _matchState.IsTie.Value = result == MatchResult.Tie;
+            _matchState.AmIWinner.Value = result == MatchResult.Win;
+
+            _matchState.IsGameEnded.Value = true;
         }
 
         private void OnConnectionLost()
@@ -812,7 +834,7 @@ namespace IsntGwent.Scripts.Match.Client
 
             var sequence = ++_playSequence;
 
-            _coordinator.EnqueueRoutine(() => PlayCardBeat(card, sequence, isEnemy: false, () =>
+            _coordinator.EnqueueRoutine(() => PlayCardBeat(card, sequence, isEnemy: msg.PlayedByEnemy, () =>
             {
                 if (card is UnitInstance)
                 {
@@ -825,6 +847,11 @@ namespace IsntGwent.Scripts.Match.Client
                 {
                     _matchState.OwnGraveyard.Add(card);
                 }
+            },
+            () =>
+            {
+                if (msg.PlayedByEnemy)
+                    _matchState.EnemyCardAmount.Value = msg.EnemyCardAmount;
             }));
         }
 

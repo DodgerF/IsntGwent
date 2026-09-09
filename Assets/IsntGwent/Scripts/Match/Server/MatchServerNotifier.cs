@@ -50,13 +50,15 @@ namespace IsntGwent.Scripts.Match.Server
             });
         }
 
-        public void NotifyCardPlayed(GameContext context, Player player, CardInstance card, RowType row, int slotIndex)
+        public void NotifyCardPlayed(GameContext context, Player caster, Player boardOwner, CardInstance card,
+            RowType row, int slotIndex)
         {
-            var opponent = context.GetOpponent(player);
+            var observer = context.GetOpponent(boardOwner);
+            var traitor = caster != boardOwner;
 
             if (card is UnitInstance unit)
             {
-                Send(player, new OwnCardPlayedMessage
+                Send(boardOwner, new OwnCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
                     DefinitionId = unit.Definition.Id,
@@ -64,32 +66,36 @@ namespace IsntGwent.Scripts.Match.Server
                     BasePower = unit.BasePower.Value,
                     Armor = unit.Armor.Value,
                     Row = row,
-                    SlotIndex = slotIndex
+                    SlotIndex = slotIndex,
+                    PlayedByEnemy = traitor,
+                    EnemyCardAmount = caster.Hand.Count,
                 });
-                Send(opponent, new EnemyCardPlayedMessage
+                Send(observer, new EnemyCardPlayedMessage
                 {
                     CardInstanceId = unit.Id.ToString(),
                     DefinitionId = unit.Definition.Id,
                     CurrentPower = unit.CurrentPower.Value,
                     BasePower = unit.BasePower.Value,
                     Armor = unit.Armor.Value,
-                    CardAmount = player.Hand.Count,
+                    CardAmount = boardOwner.Hand.Count,
                     Row = row,
                     SlotIndex = slotIndex,
                 });
             }
             else
             {
-                Send(player, new OwnCardPlayedMessage
+                Send(boardOwner, new OwnCardPlayedMessage
                 {
                     CardInstanceId = card.Id.ToString(),
                     DefinitionId = card.Definition.Id,
+                    PlayedByEnemy = traitor,
+                    EnemyCardAmount = caster.Hand.Count,
                 });
-                Send(opponent, new EnemyCardPlayedMessage
+                Send(observer, new EnemyCardPlayedMessage
                 {
                     CardInstanceId = card.Id.ToString(),
                     DefinitionId = card.Definition.Id,
-                    CardAmount = player.Hand.Count,
+                    CardAmount = boardOwner.Hand.Count,
                 });
             }
         }

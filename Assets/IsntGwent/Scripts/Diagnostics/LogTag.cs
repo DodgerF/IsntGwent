@@ -12,5 +12,7 @@ namespace IsntGwent.Scripts.Diagnostics
         public const string Stats = "Stats";
         public const string Journal = "Journal";
         public const string Client = "Client";
+        public const string Bot = "Bot";
+        public const string Tutorial = "Tutorial";
     }
 }

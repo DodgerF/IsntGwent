@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Decks.Definitions;
@@ -81,7 +82,7 @@ namespace IsntGwent.Scripts.Decks.UI
         private void AskIfDirty(Action action)
         {
             if (_draft.IsDirty)
-                _confirm.Ask(UnsavedMessage, action);
+                _confirm.Ask(Loc.T(UnsavedMessage), action);
             else
                 action();
         }
@@ -107,7 +108,7 @@ namespace IsntGwent.Scripts.Decks.UI
 
         private string DeleteMessage()
         {
-            return "Delete deck \"" + _draft.Name.Value + "\"?";
+            return Loc.F("Delete deck \"{0}\"?", _draft.Name.Value);
         }
 
         private void RefreshCurrent()

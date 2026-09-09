@@ -5,14 +5,13 @@
   "type": "Unit",
   "power": 4,
   "rarity": "Rare",
-  "description": "Melee: at turn start damage 2 to the creature opposite, and on enemy play step into the new creature's column.",
+  "description": "Melee: at turn start damage 2 to the creature ahead. React to enemy appear: step into its column.",
   "effects": [
     {
-      "effect": "SlotTargeting",
+      "effect": "LineTargeting",
       "trigger": "OnTurnStart",
       "requiredRow": "Melee",
       "anchor": "Source",
-      "direction": "Opposite",
       "includeEnemies": true
     },
     {

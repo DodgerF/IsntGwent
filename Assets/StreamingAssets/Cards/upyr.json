@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 3,
   "rarity": "Common",
-  "description": "Melee: damage 3 to the first creature in the line ahead, on kill cast a Corpse from your deck. Ranged: consume a chosen ally.",
+  "description": "Melee: damage 3 to the creature ahead. On kill: play a Corpse from your deck. Ranged: consume a chosen ally.",
   "effects": [
     {
       "effect": "LineTargeting",

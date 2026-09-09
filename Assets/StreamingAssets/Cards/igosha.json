@@ -6,7 +6,7 @@
   "power": 2,
   "rarity": "Common",
   "traitor": true,
-  "description": "Traitor. Deathwish: damage 4 to both neighbours.",
+  "description": "Traitor. Deathwish: damage 4 to its neighbours.",
   "effects": [
     {
       "effect": "NeighborTargeting",

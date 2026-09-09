@@ -31,9 +31,11 @@ namespace IsntGwent.Scripts.Cards.UI
         public GameObject armorRoot;
         public TextMeshProUGUI armorText;
         public Image targetHighlight;
+        public RectTransform visual;
 
         public bool hoverSfx = true;
         public bool hoverScale;
+        public bool trayHover;
         public string hoverSoundId = "ui_hover";
         public string hoverOutSoundId = "ui_hover_out";
 
@@ -43,6 +45,7 @@ namespace IsntGwent.Scripts.Cards.UI
         private readonly CompositeDisposable _cardBindings = new();
         private readonly object _scaleKey = new();
         private readonly object _dimKey = new();
+        private readonly object _raiseKey = new();
 
         private bool _hovered;
         private bool _pointerInside;
@@ -52,6 +55,11 @@ namespace IsntGwent.Scripts.Cards.UI
         private Vector3 _baseScale = Vector3.one;
         private CanvasGroup _group;
         private Image _glow;
+        private Image _frame;
+        private float _raiseT;
+        private float _raiseLift;
+        private float _raiseScale;
+        private bool _visualApplied;
 
         public CardInstance Instance { get; private set; }
 
@@ -167,7 +175,7 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             if (_glow != null) return;
 
-            _glow = GlowSprite.Create(transform, "CardGlow");
+            _glow = GlowSprite.Create(VisualRect, "CardGlow");
             GlowSprite.SetWidth(_glow, HighlightPalette.CardGlowWidth);
 
             var rt = (RectTransform)_glow.transform;
@@ -229,22 +237,28 @@ namespace IsntGwent.Scripts.Cards.UI
             var target = Vector3.one * scale;
 
             if ((_baseScale - target).sqrMagnitude <= ScaleEpsilon
-                && (transform.localScale - _baseScale * RaiseFactor()).sqrMagnitude <= ScaleEpsilon)
+                && (transform.localScale - _baseScale).sqrMagnitude <= ScaleEpsilon)
                 return;
 
             _baseScale = target;
             ApplyScale(duration, ease);
         }
 
-        private float RaiseFactor()
+        public RectTransform VisualRect => visual != null ? visual : (RectTransform)transform;
+
+        private float RaiseScale()
         {
-            if (!_raised) return 1f;
+            if (trayHover) return CardAnimConfig.TrayHoverScale;
 
             return _picked ? CardAnimConfig.HandPickedScale : CardAnimConfig.HandHoverScale;
         }
 
         private float RaiseLift()
-            => _picked ? CardAnimConfig.HandPickedLift : CardAnimConfig.HandHoverLift;
+        {
+            if (trayHover) return CardAnimConfig.TrayHoverLift;
+
+            return _picked ? CardAnimConfig.HandPickedLift : CardAnimConfig.HandHoverLift;
+        }
 
         private void ApplyRaise()
         {
@@ -257,21 +271,109 @@ namespace IsntGwent.Scripts.Cards.UI
             if (transform.parent != null)
                 transform.parent.TryGetComponent(out lane);
 
-            if (lane != null)
-                lane.SetRaised(transform, _raised, RaiseLift());
-
             if (_raised)
                 transform.SetAsLastSibling();
             else if (lane != null)
                 lane.RestoreOrder();
 
-            ApplyScale(CardAnimConfig.HoverDuration, CardAnimConfig.RowLayoutEase);
+            RaiseTo(
+                _raised ? 1f : 0f,
+                _raised ? RaiseLift() : 0f,
+                _raised ? RaiseScale() - 1f : 0f);
         }
+
+        private void RaiseTo(float t, float lift, float scale)
+        {
+            DOTween.Kill(_raiseKey);
+
+            if (!Application.isPlaying)
+            {
+                _raiseT = t;
+                _raiseLift = lift;
+                _raiseScale = scale;
+                ApplyVisual();
+                return;
+            }
+
+            DOTween.To(() => _raiseT, value => _raiseT = value, t, CardAnimConfig.HoverDuration)
+                .SetEase(CardAnimConfig.RowLayoutEase)
+                .SetTarget(_raiseKey);
+
+            DOTween.To(() => _raiseLift, value => _raiseLift = value, lift, CardAnimConfig.HoverDuration)
+                .SetEase(CardAnimConfig.RowLayoutEase)
+                .SetTarget(_raiseKey);
+
+            DOTween.To(() => _raiseScale, value => _raiseScale = value, scale, CardAnimConfig.HoverDuration)
+                .SetEase(CardAnimConfig.RowLayoutEase)
+                .SetTarget(_raiseKey);
+        }
+
+        private void LateUpdate()
+        {
+            if (!hoverScale) return;
+
+            ApplyVisual();
+        }
+
+        private void ApplyVisual()
+        {
+            var idle = _raiseT <= 0f && _raiseScale <= 0f && Mathf.Approximately(_raiseLift, 0f);
+
+            if (idle && !_visualApplied) return;
+
+            _visualApplied = !idle;
+
+            var factor = 1f + _raiseScale;
+
+            if (visual == null)
+            {
+                transform.localScale = _baseScale * factor;
+                return;
+            }
+
+            var root = transform;
+            var scale = Mathf.Approximately(_baseScale.x, 0f) ? 1f : _baseScale.x;
+            var shift = Shift() / scale;
+
+            visual.localScale = Vector3.one * factor;
+            visual.localRotation = Quaternion.Euler(0f, 0f, -SignedAngle(root.localEulerAngles.z) * _raiseT);
+            visual.localPosition = Quaternion.Inverse(root.localRotation) * new Vector3(0f, shift, 0f);
+
+            ApplyFrame(shift, factor);
+        }
+
+        private float Shift()
+        {
+            CardLaneView lane = null;
+
+            if (transform.parent != null)
+                transform.parent.TryGetComponent(out lane);
+
+            return lane != null ? lane.RaiseShift(transform, _raiseLift, _raiseT) : _raiseLift;
+        }
+
+        private void ApplyFrame(float lift, float factor)
+        {
+            if (_frame == null && !TryGetComponent(out _frame)) return;
+
+            if (!_visualApplied)
+            {
+                _frame.raycastPadding = Vector4.zero;
+                return;
+            }
+
+            var half = ((RectTransform)transform).rect.size * 0.5f;
+            var grow = half * (factor - 1f);
+
+            _frame.raycastPadding = new Vector4(-grow.x, 0f, -grow.x, -(grow.y + Mathf.Max(lift, 0f)));
+        }
+
+        private static float SignedAngle(float angle) => Mathf.Repeat(angle + 180f, 360f) - 180f;
 
         private void ApplyScale(float duration, Ease ease)
         {
             var rt = transform;
-            var target = _baseScale * RaiseFactor();
+            var target = _baseScale;
 
             DOTween.Kill(_scaleKey);
 
@@ -342,6 +444,26 @@ namespace IsntGwent.Scripts.Cards.UI
 
             DOTween.Kill(_scaleKey);
             DOTween.Kill(_dimKey);
+            DOTween.Kill(_raiseKey);
+
+            _raiseT = 0f;
+            _raiseLift = 0f;
+            _raiseScale = 0f;
+
+            if (_visualApplied)
+            {
+                _visualApplied = false;
+
+                if (visual != null)
+                {
+                    visual.localScale = Vector3.one;
+                    visual.localRotation = Quaternion.identity;
+                    visual.localPosition = Vector3.zero;
+                }
+
+                if (_frame != null)
+                    _frame.raycastPadding = Vector4.zero;
+            }
 
             if (_raised)
             {

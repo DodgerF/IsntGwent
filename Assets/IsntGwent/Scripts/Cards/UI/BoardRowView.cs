@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DG.Tweening;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Client;
@@ -20,6 +20,10 @@ namespace IsntGwent.Scripts.Cards.UI
         [InjectOptional] private VfxService _vfx;
 
         private static readonly Color RowIdle = Color.clear;
+
+        private const float RowGlowAlpha = 0.5f;
+        private const float RowPlacementGlowAlpha = 0.85f;
+        private const float RowPulseFloor = 0.55f;
 
         [SerializeField] private Vector2 cardSize = new(105.3136f, 156.434f);
         [SerializeField] private float slotOversize = 1.06f;
@@ -70,14 +74,14 @@ namespace IsntGwent.Scripts.Cards.UI
             _image = GetComponent<Image>();
             _image.color = RowIdle;
 
-            _glow = GlowSprite.Create(transform, "RowGlow");
+            _glow = GlowSprite.CreateInner(transform, "RowGlow");
             GlowSprite.SetWidth(_glow, HighlightPalette.RowGlowWidth);
 
             var glowRt = (RectTransform)_glow.transform;
             glowRt.anchorMin = Vector2.zero;
             glowRt.anchorMax = Vector2.one;
-            glowRt.offsetMin = new Vector2(-HighlightPalette.RowGlowWidth, -HighlightPalette.RowGlowWidth);
-            glowRt.offsetMax = new Vector2(HighlightPalette.RowGlowWidth, HighlightPalette.RowGlowWidth);
+            glowRt.offsetMin = new Vector2(-HighlightPalette.RowGlowBleed, -HighlightPalette.RowGlowBleed);
+            glowRt.offsetMax = new Vector2(HighlightPalette.RowGlowBleed, HighlightPalette.RowGlowBleed);
             glowRt.SetAsFirstSibling();
         }
 
@@ -115,7 +119,8 @@ namespace IsntGwent.Scripts.Cards.UI
             _selectionService?.HighlightPredicted
                 .Subscribe(prediction =>
                 {
-                    ClearTargetSlots();
+                    _damageSlots.Clear();
+                    _supportSlots.Clear();
                     MarkSlots(_damageSlots, prediction.Hostile);
                     MarkSlots(_supportSlots, prediction.Friendly);
                     RepaintSlots();
@@ -248,6 +253,14 @@ namespace IsntGwent.Scripts.Cards.UI
             AddCard(card);
 
             _pendingSlot = -1;
+        }
+
+        public RectTransform SlotTransform(int index)
+        {
+            if (_slots == null || !BoardConfig.IsValidSlot(index)) return null;
+            if (index >= _slots.Length) return null;
+
+            return (RectTransform)_slots[index].transform;
         }
 
         public bool IsSlotFree(int index)
@@ -401,17 +414,26 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             var state = _hovered && _tone != RowHighlight.None ? RowHighlight.Placement : _tone;
 
-            PaintRow(state switch
+            var light = state switch
             {
-                RowHighlight.Choosable => HighlightPalette.Choosable,
-                RowHighlight.Placement => HighlightPalette.Placement,
+                RowHighlight.Choosable => HighlightPalette.LightChoosable,
+                RowHighlight.Placement => HighlightPalette.LightPlacement,
                 _ => HighlightPalette.Hidden,
-            });
+            };
+
+            var alpha = state switch
+            {
+                RowHighlight.Choosable => RowGlowAlpha,
+                RowHighlight.Placement => RowPlacementGlowAlpha,
+                _ => 0f,
+            };
+
+            PaintRow(HighlightPalette.WithAlpha(light, alpha), alpha);
 
             RepaintSlots();
         }
 
-        private void PaintRow(Color target)
+        private void PaintRow(Color target, float alpha)
         {
             if (_glow == null) return;
 
@@ -424,6 +446,14 @@ namespace IsntGwent.Scripts.Cards.UI
             }
 
             _glow.DOColor(target, CardAnimConfig.SlotHighlightDuration);
+
+            if (alpha <= 0f) return;
+
+            _glow
+                .DOFade(alpha * RowPulseFloor, CardAnimConfig.SlotGlowPulseDuration)
+                .SetDelay(CardAnimConfig.SlotHighlightDuration)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo);
         }
 
         private void HighlightFreeSlots(bool active)

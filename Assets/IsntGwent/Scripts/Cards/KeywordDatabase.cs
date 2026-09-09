@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Localization;
 using Newtonsoft.Json;
 using UniRx;
 using IsntGwent.Scripts.Diagnostics;
@@ -26,12 +28,14 @@ namespace IsntGwent.Scripts.Cards
         public List<KeywordEntry> keywords;
     }
 
-    public class KeywordDatabase : IInitializable
+    public class KeywordDatabase : IInitializable, IDisposable
     {
         private const string Paragraph = "\n";
 
         private readonly CoroutineRunner _runner;
+        private readonly List<KeywordEntry> _base = new();
         private readonly List<KeywordEntry> _keywords = new();
+        private readonly CompositeDisposable _disposables = new();
 
         public ReactiveProperty<bool> OnLoaded = new();
 
@@ -39,7 +43,25 @@ namespace IsntGwent.Scripts.Cards
 
         public void Initialize()
         {
+            Loc.Language
+                .Subscribe(_ => Rebuild())
+                .AddTo(_disposables);
+
             _runner.StartCoroutine(LoadCoroutine());
+        }
+
+        public void Dispose()
+        {
+            _disposables.Dispose();
+        }
+
+        private void Rebuild()
+        {
+            var localized = Loc.Keywords();
+
+            _keywords.Clear();
+            _keywords.AddRange(localized is { Count: > 0 } ? localized : _base);
+            _keywords.Sort((a, b) => b.word.Length - a.word.Length);
         }
 
         private IEnumerator LoadCoroutine()
@@ -51,7 +73,7 @@ namespace IsntGwent.Scripts.Cards
                     foreach (var json in jsonList)
                         Parse(json);
 
-                    _keywords.Sort((a, b) => b.word.Length - a.word.Length);
+                    Rebuild();
                     OnLoaded.Value = true;
                 },
                 onError: err =>
@@ -66,7 +88,7 @@ namespace IsntGwent.Scripts.Cards
         {
             json = json.TrimStart('﻿', '​');
             var file = JsonConvert.DeserializeObject<KeywordFile>(json);
-            if (file?.keywords != null) _keywords.AddRange(file.keywords);
+            if (file?.keywords != null) _base.AddRange(file.keywords);
         }
 
         public string Format(string description)

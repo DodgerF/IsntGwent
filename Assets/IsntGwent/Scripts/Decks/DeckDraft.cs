@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Cards;
@@ -31,7 +32,7 @@ namespace IsntGwent.Scripts.Decks
         public void NewDeck()
         {
             Id = Guid.NewGuid().ToString();
-            Name.Value = DefaultName;
+            Name.Value = Loc.T(DefaultName);
             Cards.Clear();
             RefreshTotal();
             MarkSaved();
@@ -49,8 +50,8 @@ namespace IsntGwent.Scripts.Decks
 
             Id = asNewCopy || string.IsNullOrEmpty(deck.Id) ? Guid.NewGuid().ToString() : deck.Id;
 
-            var name = string.IsNullOrEmpty(deck.Name) ? DefaultName : deck.Name;
-            Name.Value = asNewCopy ? name + " copy" : name;
+            var name = string.IsNullOrEmpty(deck.Name) ? Loc.T(DefaultName) : deck.Name;
+            Name.Value = asNewCopy ? Loc.F("{0} copy", name) : name;
 
             if (deck.Cards != null)
             {

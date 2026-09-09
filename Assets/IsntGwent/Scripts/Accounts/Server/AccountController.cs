@@ -12,7 +12,7 @@ namespace IsntGwent.Scripts.Accounts.Server
 {
     public class AccountController : IInitializable, IDisposable
     {
-        public const int TopCount = 10;
+        public const int TopCount = 5;
 
         [Inject] private readonly AccountServerHandler _handler;
         [Inject] private readonly AccountRegistry _registry;
@@ -100,7 +100,7 @@ namespace IsntGwent.Scripts.Accounts.Server
 
             if (current != null && current.Id == id) return AccountError.None;
             if (_registry.IsOnlineElsewhere(id, conn)) return AccountError.AlreadyOnline;
-            if (_store.Find(id) != null) return AccountError.NicknameTaken;
+            if (current != null && _store.Find(id) != null) return AccountError.NicknameTaken;
 
             return AccountError.None;
         }

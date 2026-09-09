@@ -8,6 +8,9 @@ using IsntGwent.Scripts.Lobby.UI;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks.UI;
 using IsntGwent.Scripts.Match.Server;
+using IsntGwent.Scripts.Match.Server.Bot;
+using IsntGwent.Scripts.Tutorial.Server;
+using IsntGwent.Scripts.Tutorial.UI;
 using IsntGwent.Scripts.Match.Server.Journal;
 using IsntGwent.Scripts.Match.Server.Stats;
 using IsntGwent.Scripts.Lobby.Server;
@@ -91,6 +94,21 @@ namespace IsntGwent.Scripts.Installers
             Container.Bind<WeatherService>().AsSingle();
 
             Container.BindInterfacesAndSelfTo<GameControllerServer>().AsSingle().NonLazy();
+
+            Container.BindInterfacesAndSelfTo<BotProfileProvider>().AsSingle().NonLazy();
+            Container.Bind<BotMoveEnumerator>().AsSingle();
+            Container.Bind<BotForecast>().AsSingle();
+            Container.Bind<BotEvaluator>().AsSingle();
+            Container.Bind<BotRoundPolicy>().AsSingle();
+            Container.Bind<BotRedrawPolicy>().AsSingle();
+            Container.Bind<IBotBrain>().To<BotBrain>().AsSingle();
+            Container.BindInterfacesAndSelfTo<BotDirector>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<TutorialDirector>().AsSingle().NonLazy();
+            Container
+                .Bind<TutorialMenuPresenter>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
         }
     }
 }

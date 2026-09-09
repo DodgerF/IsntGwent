@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 3,
   "rarity": "Epic",
-  "description": "Deploy: damage 3 to the creature ahead. Bond (Alkonost): damage 3 to the whole opposite row instead.",
+  "description": "Deploy: damage 3 to the creature in the opposite cell. Bond (Alkonost): damage 3 to the whole opposite row instead.",
   "effects": [
     {
       "effect": "SlotTargeting",

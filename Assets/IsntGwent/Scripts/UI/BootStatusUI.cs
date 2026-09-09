@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System;
 using IsntGwent.Scripts.Network;
 using TMPro;
@@ -29,7 +30,7 @@ namespace IsntGwent.Scripts.UI
         private void Awake()
         {
             panel.SetActive(true);
-            statusText.text = connectingMessage;
+            statusText.text = Loc.T(connectingMessage);
             SetActionsVisible(false);
         }
 
@@ -64,7 +65,7 @@ namespace IsntGwent.Scripts.UI
             _failedAttempts = 0;
 
             panel.SetActive(true);
-            statusText.text = connectingMessage;
+            statusText.text = Loc.T(connectingMessage);
             SetActionsVisible(false);
 
             _connection.SetAutoReconnect(true);
@@ -82,7 +83,7 @@ namespace IsntGwent.Scripts.UI
             _connection.SetAutoReconnect(false);
 
             panel.SetActive(true);
-            statusText.text = unavailableMessage;
+            statusText.text = Loc.T(unavailableMessage);
             SetActionsVisible(true);
         }
 
