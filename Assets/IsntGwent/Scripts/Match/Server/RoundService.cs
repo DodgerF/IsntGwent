@@ -1,10 +1,11 @@
-﻿using Zenject;
+using Zenject;
 
 namespace IsntGwent.Scripts.Match.Server
 {
     public class RoundService
     {
         public const int RoundDraw = 3;
+        public const int LastRoundDraw = 2;
 
         [Inject] private readonly MatchServerNotifier _notifier;
         [Inject] private readonly BoardSyncService _boardSync;
@@ -65,8 +66,10 @@ namespace IsntGwent.Scripts.Match.Server
             p1.IsPassed = false;
             p2.IsPassed = false;
 
-            _deckService.DrawAndSync(context, p1, RoundDraw);
-            _deckService.DrawAndSync(context, p2, RoundDraw);
+            var draw = context.RoundNumber == 1 ? RoundDraw : LastRoundDraw;
+
+            _deckService.DrawAndSync(context, p1, draw);
+            _deckService.DrawAndSync(context, p2, draw);
 
             context.CurrentPlayer = isTie
                 ? context.GetOpponent(context.CurrentPlayer)

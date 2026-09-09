@@ -1,4 +1,5 @@
 using IsntGwent.Scripts.Cards.Definitions;
+using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Match.Server;
 
 namespace IsntGwent.Scripts.Cards.Server.Effects
@@ -26,6 +27,12 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             {
                 var held = context.Game != null && context.Game.HasLeadership(context.Owner, context.Source);
                 if (held != (condition.Leadership == LeadershipMode.Held)) return false;
+            }
+
+            if (condition.MinSourcePower > 0)
+            {
+                if (context.Source is not UnitInstance source) return false;
+                if (source.CurrentPower.Value < condition.MinSourcePower) return false;
             }
 
             return true;

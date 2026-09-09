@@ -5,14 +5,17 @@
   "type": "Unit",
   "power": 2,
   "rarity": "Epic",
-  "description": "Turn end: damage itself by 2. Leadership: boost the strongest ally by 2 instead.",
+  "description": "Turn end: damage 2 to the weakest ally. Leadership: boost the strongest ally by 2 instead.",
   "effects": [
     {
       "effect": "StrongestTargeting",
       "trigger": "OnTurnEnd",
       "count": 1,
       "includeAllies": true,
-      "excludeSource": true
+      "excludeSource": true,
+      "condition": {
+        "leadership": "Held"
+      }
     },
     {
       "effect": "BuffPower",
@@ -24,10 +27,20 @@
       }
     },
     {
+      "effect": "WeakestTargeting",
+      "trigger": "OnTurnEnd",
+      "count": 1,
+      "includeAllies": true,
+      "excludeSource": true,
+      "condition": {
+        "leadership": "Lost"
+      }
+    },
+    {
       "effect": "DealDamage",
       "trigger": "OnTurnEnd",
       "amount": 2,
-      "self": true,
+      "requireTargets": true,
       "condition": {
         "leadership": "Lost"
       }

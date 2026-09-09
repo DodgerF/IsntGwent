@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 5,
   "rarity": "Rare",
-  "description": "Deploy: consume a chosen ally. On kill: cast Omut from your deck.",
+  "description": "Deploy: consume a chosen ally. On kill: play an Omut from your deck.",
   "effects": [
     {
       "effect": "AimedTargeting",

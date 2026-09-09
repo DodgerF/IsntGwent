@@ -7,6 +7,7 @@ using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Vfx;
 using UnityEngine.UI;
+using IsntGwent.Scripts.Tutorial.UI;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -94,6 +95,12 @@ namespace IsntGwent.Scripts.Installers
 
             Container
                 .BindInterfacesAndSelfTo<MatchAudioBinder>()
+                .AsSingle()
+                .NonLazy();
+
+            Container
+                .Bind<TutorialMatchPresenter>()
+                .FromNewComponentOnNewGameObject()
                 .AsSingle()
                 .NonLazy();
         }

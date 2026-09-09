@@ -1,41 +1,88 @@
-using System.Collections.Generic;
+﻿using System.Collections;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace IsntGwent.Scripts.Cards.UI
 {
     [RequireComponent(typeof(CardLaneView))]
     public class HandOutlineView : MonoBehaviour
     {
-        public float glowWidth = 26f;
-        public Color color = new(0.42f, 0.76f, 1f, 0.8f);
-        public float fadeDuration = 0.2f;
-        public Material glowMaterial;
-
-        private readonly List<Image> _quads = new();
+        public float auraWidth = 56f;
+        public Color halftoneColor = new(0.88f, 0.70f, 0.38f, 0.72f);
+        public Color inkColor = new(0.97f, 0.93f, 0.80f, 0.95f);
+        public float fadeDuration = 0.25f;
+        public bool showMotes = true;
+        public int moteCount = 24;
+        public Color moteColor = new(0.96f, 0.88f, 0.66f, 0.62f);
+        public float warmupDuration = 1.5f;
 
         private CardLaneView _lane;
         private RectTransform _layer;
         private CanvasGroup _group;
+        private HandAuraGraphic _aura;
+        private HandAuraMotes _motes;
         private bool _shown;
+        private bool _wanted;
+        private bool _suppressed;
 
         private void Awake() => _lane = GetComponent<CardLaneView>();
 
+        private void Start()
+        {
+            EnsureLayer();
+            Configure();
+            StartCoroutine(Warmup());
+        }
+
+        private IEnumerator Warmup()
+        {
+            if (_shown) yield break;
+
+            _group.alpha = 0f;
+            _layer.gameObject.SetActive(true);
+            _aura.SetWarmup(true);
+
+            var until = Time.unscaledTime + warmupDuration;
+
+            while (Time.unscaledTime < until && !_shown)
+                yield return null;
+
+            _aura.SetWarmup(false);
+
+            if (!_shown)
+                _layer.gameObject.SetActive(false);
+        }
+
         public void SetShown(bool shown)
         {
+            _wanted = shown;
+
+            Apply();
+        }
+
+        public void SetSuppressed(bool suppressed)
+        {
+            _suppressed = suppressed;
+
+            Apply();
+        }
+
+        private void Apply()
+        {
+            var shown = _wanted && !_suppressed;
+
             if (_shown == shown) return;
 
             _shown = shown;
 
             EnsureLayer();
+            Configure();
 
             _group.DOKill();
 
             if (shown)
             {
                 _layer.gameObject.SetActive(true);
-                Sync();
                 _group.DOFade(1f, fadeDuration);
                 return;
             }
@@ -45,76 +92,15 @@ namespace IsntGwent.Scripts.Cards.UI
                 .OnComplete(() => _layer.gameObject.SetActive(false));
         }
 
-        private void LateUpdate()
+        private void Configure()
         {
-            if (!_shown || _layer == null) return;
+            _aura.width = auraWidth;
+            _aura.halftoneColor = halftoneColor;
+            _aura.inkColor = inkColor;
 
-            Sync();
-        }
-
-        private void Sync()
-        {
-            var cards = _lane.Cards;
-
-            for (var i = 0; i < cards.Count; i++)
-            {
-                var card = cards[i];
-                if (card == null) continue;
-
-                var quad = QuadAt(i);
-                var rect = (RectTransform)card;
-                var size = rect.rect.size;
-
-                var raised = card == _lane.RaisedCard;
-                var reach = raised ? 0f : Overlap(cards, i, rect.localScale.x);
-                var left = i == 0 || raised ? glowWidth : glowWidth + reach;
-                var right = i == cards.Count - 1 || raised ? glowWidth : glowWidth + reach;
-
-                quad.rectTransform.sizeDelta =
-                    new Vector2(size.x + left + right, size.y + glowWidth * 2f);
-                quad.rectTransform.localRotation = rect.localRotation;
-                quad.rectTransform.localScale = rect.localScale;
-                quad.rectTransform.localPosition = rect.localPosition
-                    + rect.localRotation * new Vector3((right - left) * 0.5f * rect.localScale.x, 0f, 0f);
-
-                if (!quad.gameObject.activeSelf)
-                    quad.gameObject.SetActive(true);
-            }
-
-            for (var i = cards.Count; i < _quads.Count; i++)
-                if (_quads[i].gameObject.activeSelf)
-                    _quads[i].gameObject.SetActive(false);
-        }
-
-        private static float Overlap(IReadOnlyList<Transform> cards, int index, float scale)
-        {
-            if (cards.Count < 2 || Mathf.Approximately(scale, 0f)) return 0f;
-
-            var neighbour = cards[index > 0 ? index - 1 : index + 1];
-            if (neighbour == null) return 0f;
-
-            return Mathf.Abs(neighbour.localPosition.x - cards[index].localPosition.x) / scale;
-        }
-
-        private Image QuadAt(int index)
-        {
-            while (_quads.Count <= index)
-                _quads.Add(BuildQuad());
-
-            var quad = _quads[index];
-
-            quad.color = color;
-            GlowSprite.SetWidth(quad, glowWidth);
-
-            return quad;
-        }
-
-        private Image BuildQuad()
-        {
-            var image = GlowSprite.Create(_layer, "Glow", glowMaterial);
-            image.color = color;
-
-            return image;
+            _motes.gameObject.SetActive(showMotes);
+            _motes.maxMotes = moteCount;
+            _motes.moteColor = moteColor;
         }
 
         private void EnsureLayer()
@@ -137,7 +123,28 @@ namespace IsntGwent.Scripts.Cards.UI
             _group.blocksRaycasts = false;
             _group.interactable = false;
 
+            _aura = Attach<HandAuraGraphic>("Aura", Vector2.zero);
+            _aura.Bind(_lane);
+
+            _motes = Attach<HandAuraMotes>("Motes", new Vector2(4000f, 2000f));
+            _motes.Bind(_aura);
+
             go.SetActive(false);
+        }
+
+        private T Attach<T>(string name, Vector2 size) where T : MonoBehaviour
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(T));
+            var rt = (RectTransform)go.transform;
+
+            rt.SetParent(_layer, false);
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = size;
+
+            return go.GetComponent<T>();
         }
 
         private void OnDestroy()

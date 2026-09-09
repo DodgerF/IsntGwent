@@ -18,6 +18,7 @@ namespace IsntGwent.Scripts.Cards.UI
         public const float SlotGlowWidth = 18f;
         public const float SlotGlowBleed = 4f;
         public const float RowGlowWidth = 34f;
+        public const float RowGlowBleed = 6f;
         public const float CardGlowWidth = 22f;
 
         private const float SelectedBoost = 1.9f;

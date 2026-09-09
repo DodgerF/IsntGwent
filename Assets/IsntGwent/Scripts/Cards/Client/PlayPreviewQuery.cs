@@ -69,6 +69,95 @@ namespace IsntGwent.Scripts.Cards.Client
             return new Prediction(hostile, friendly);
         }
 
+        public Prediction PredictOnTarget(CardDefinition definition, CardInstance target)
+        {
+            if (definition == null || target == null) return Prediction.Empty;
+
+            var cell = CellOf(target);
+            if (!cell.IsValid) return Prediction.Empty;
+
+            List<string> hostile = null;
+            List<string> friendly = null;
+            List<CardInstance> targets = null;
+
+            foreach (var effect in definition.Effects)
+            {
+                if (effect.Trigger != EffectTrigger.OnPlay) continue;
+                if (!_conditions.IsMet(effect)) continue;
+
+                if (effect is ManualTargetingDefinition)
+                {
+                    targets = One(target);
+                    continue;
+                }
+
+                if (effect is TargetingEffectDefinition targeting)
+                {
+                    targets = ResolveFromTarget(targeting, cell);
+                    continue;
+                }
+
+                if (targets == null || targets.Count == 0) continue;
+
+                switch (SentimentOf(effect))
+                {
+                    case Sentiment.Hostile:
+                        Collect(ref hostile, targets);
+                        break;
+                    case Sentiment.Friendly:
+                        Collect(ref friendly, targets);
+                        break;
+                }
+            }
+
+            return new Prediction(hostile, friendly);
+        }
+
+        private List<CardInstance> ResolveFromTarget(TargetingEffectDefinition definition, BoardCell cell)
+        {
+            return definition switch
+            {
+                NeighborTargetingDefinition neighbor when neighbor.RelativeTo == NeighborRelativeTo.ManualTarget
+                    => Neighbors(neighbor, cell),
+                SlotTargetingDefinition slot when slot.Anchor == SlotAnchor.ManualTarget
+                    => SlotFromTarget(slot, cell),
+                _ => null
+            };
+        }
+
+        private List<CardInstance> SlotFromTarget(SlotTargetingDefinition definition, BoardCell cell)
+        {
+            var opposite = new BoardCell(!cell.OwnSide, cell.Row, cell.Index);
+
+            var target = definition.Direction switch
+            {
+                SlotDirection.Opposite => opposite,
+                SlotDirection.Left => new BoardCell(cell.OwnSide, cell.Row, cell.Index - 1),
+                SlotDirection.Right => new BoardCell(cell.OwnSide, cell.Row, cell.Index + 1),
+                SlotDirection.OppositeLeft => new BoardCell(opposite.OwnSide, opposite.Row, opposite.Index - 1),
+                SlotDirection.OppositeRight => new BoardCell(opposite.OwnSide, opposite.Row, opposite.Index + 1),
+                _ => default
+            };
+
+            var card = At(target);
+            if (card == null) return null;
+
+            return TargetingEffect.MatchesSide(definition, target.OwnSide) ? One(card) : null;
+        }
+
+        private BoardCell CellOf(CardInstance card)
+        {
+            foreach (var ownSide in new[] { true, false })
+            foreach (var row in new[] { RowType.Melee, RowType.Ranged })
+            {
+                var index = Row(ownSide, row).IndexOf(card);
+
+                if (index >= 0) return new BoardCell(ownSide, row, index);
+            }
+
+            return default;
+        }
+
         private static void Collect(ref List<string> bucket, List<CardInstance> targets)
         {
             bucket ??= new List<string>();

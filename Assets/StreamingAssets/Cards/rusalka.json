@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 5,
   "rarity": "Common",
-  "description": "Deploy: pull a chosen creature one line closer. Habitat (Omut): damage 3 to it as well.",
+  "description": "Deploy: pull a chosen creature one row closer. Habitat (Omut): damage 3 to it as well.",
   "effects": [
     {
       "effect": "AimedTargeting",

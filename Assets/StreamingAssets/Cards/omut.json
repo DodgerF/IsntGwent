@@ -4,7 +4,7 @@
   "imageName": "omut",
   "type": "Spell",
   "rarity": "Rare",
-  "description": "Weather: a creature entering the row takes 1 damage.",
+  "description": "Weather: damage 1 to creatures entering this row.",
   "effects": [
     {
       "effect": "ApplyWeather",

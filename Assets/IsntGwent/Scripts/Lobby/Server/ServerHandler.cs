@@ -18,6 +18,8 @@ namespace IsntGwent.Scripts.Lobby.Server
         public readonly Subject<(NetworkConnectionToClient conn, JoinByCodeMessage msg)> OnJoinByCode = new();
         public readonly Subject<Seat> OnReady = new();
         public readonly Subject<(NetworkConnectionToClient conn, ReconnectRequestMessage msg)> OnReconnect = new();
+        public readonly Subject<NetworkConnectionToClient> OnStartTutorial = new();
+        public readonly Subject<(Seat seat, TutorialActionMessage msg)> OnTutorialAction = new();
 
         public void Initialize()
         {
@@ -29,6 +31,16 @@ namespace IsntGwent.Scripts.Lobby.Server
             NetworkServer.RegisterHandler<JoinByCodeMessage>((conn, msg) => OnJoinByCode.OnNext((conn, msg)));
             NetworkServer.RegisterHandler<ReadyMessage>((conn, _) => Publish(OnReady, conn));
             NetworkServer.RegisterHandler<ReconnectRequestMessage>((conn, msg) => OnReconnect.OnNext((conn, msg)));
+            NetworkServer.RegisterHandler<StartTutorialMessage>((conn, _) => OnStartTutorial.OnNext(conn));
+            NetworkServer.RegisterHandler<TutorialActionMessage>(PublishTutorialAction);
+        }
+
+        private void PublishTutorialAction(NetworkConnectionToClient conn, TutorialActionMessage msg)
+        {
+            var seat = _seats.Resolve(conn);
+            if (seat == null) return;
+
+            OnTutorialAction.OnNext((seat, msg));
         }
 
         private void Publish(Subject<Seat> subject, NetworkConnectionToClient conn)
@@ -47,6 +59,8 @@ namespace IsntGwent.Scripts.Lobby.Server
             NetworkServer.UnregisterHandler<JoinByCodeMessage>();
             NetworkServer.UnregisterHandler<ReadyMessage>();
             NetworkServer.UnregisterHandler<ReconnectRequestMessage>();
+            NetworkServer.UnregisterHandler<StartTutorialMessage>();
+            NetworkServer.UnregisterHandler<TutorialActionMessage>();
         }
     }
 }

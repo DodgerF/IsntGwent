@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 8,
   "rarity": "Legendary",
-  "description": "Deploy: destroy a chosen neighbour and damage a chosen enemy by its power.",
+  "description": "Deploy: destroy a chosen neighbour, damage a chosen enemy by the destroyed power.",
   "effects": [
     {
       "effect": "AimedTargeting",

@@ -5,17 +5,14 @@
   "type": "Unit",
   "power": 5,
   "rarity": "Common",
-  "description": "Deploy: give a chosen neighbour 3 armor.",
+  "description": "Deploy: give a chosen ally 3 armor.",
   "effects": [
     {
       "effect": "AimedTargeting",
       "trigger": "OnPlay",
       "count": 1,
       "allowPartial": true,
-      "includeAllies": true,
-      "sameLine": true,
-      "width": 1,
-      "excludeAnchor": true
+      "includeAllies": true
     },
     {
       "effect": "GainArmor",

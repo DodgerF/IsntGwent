@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 3,
   "rarity": "Common",
-  "description": "Deathwish: summon its copy from your graveyard onto this cell.",
+  "description": "Deathwish: summon its copy from the graveyard onto this cell.",
   "effects": [
     {
       "effect": "SummonFromDeck",

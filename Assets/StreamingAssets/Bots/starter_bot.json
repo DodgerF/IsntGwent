@@ -1,0 +1,81 @@
+{
+  "id": "starter_bot",
+  "deckId": "started_deck",
+  "nickname": "Соперник",
+  "searchWaitMin": 10.0,
+  "searchWaitMax": 15.0,
+  "turnDelayMin": 2.2,
+  "turnDelayMax": 4.0,
+  "aimDelay": 1.2,
+  "redrawDelay": 0.9,
+  "finishDelay": 0.5,
+  "weatherCardId": "omut",
+  "weatherCasterId": "vodyanoy",
+  "sweeperCardId": "leshy",
+  "smallGap": 5,
+  "firstRoundPassHand": 7,
+  "sweeperMinKills": 2,
+  "weights": {
+    "enemyDamage": 1.0,
+    "allyDamage": 1.3,
+    "enemyKill": 4.0,
+    "allyKill": 5.0,
+    "bodyPower": 1.0,
+    "weatherOnEnemyMelee": 60.0,
+    "weatherOnEnemyRanged": 12.0,
+    "weatherOnOwnRow": -25.0,
+    "vodyanoyPrep": 18.0,
+    "pullUnderWeather": 14.0,
+    "bondKill": 8.0,
+    "deathwishPenalty": 7.0,
+    "hatchGain": 14.0,
+    "backRow": 4.0,
+    "frontRowPassive": 3.0,
+    "shield": 3.0,
+    "leshyPrep": 2.5,
+    "badExchange": 12.0,
+    "summonRoom": 5.0,
+    "noSummonRoom": 14.0,
+    "traitorNeighbor": 7.0,
+    "traitorDevourer": 12.0,
+    "sweeperHold": 30.0,
+    "noGain": 25.0,
+    "traitorCombo": 26.0,
+    "weatherRow": 9.0,
+    "killValuePower": 4.0,
+    "idleDeathwishKill": 0.25,
+    "traitorKill": 10.0,
+    "traitorSnipe": 16.0,
+    "wastedAim": 14.0,
+    "moveIntoWeather": 10.0,
+    "rowSweep": 3.0,
+    "traitorBait": 12.0,
+    "traitorAdjacency": 12.0
+  },
+  "redraw": {
+    "discardDuplicates": [
+      "wolf"
+    ],
+    "discardAlways": [
+      "corpse"
+    ],
+    "discardWith": [
+      {
+        "card": "omut",
+        "with": "vodyanoy"
+      }
+    ],
+    "seek": [
+      "vodyanoy",
+      "omut"
+    ]
+  },
+  "thinkChance": 0.25,
+  "thinkBonusMin": 1.0,
+  "thinkBonusMax": 2.5,
+  "maxCardsToChase": 2,
+  "strategicScore": 20.0,
+  "endgameHand": 2,
+  "leadToPass": 9,
+  "saveHand": 6
+}

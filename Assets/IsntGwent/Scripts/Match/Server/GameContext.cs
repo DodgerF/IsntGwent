@@ -166,6 +166,9 @@ namespace IsntGwent.Scripts.Match.Server
         public bool IsRedrawPhase;
 
         public bool IsRanked;
+        public bool IsTutorial;
+        public bool IsScriptPaused;
+        public bool IsVsBot => Player1?.Seat is { IsBot: true } || Player2?.Seat is { IsBot: true };
         public Player Winner;
         public bool IsTie;
 
@@ -291,7 +294,7 @@ namespace IsntGwent.Scripts.Match.Server
             return null;
         }
 
-        public bool IsPaused => !Player1.IsConnected || !Player2.IsConnected;
+        public bool IsPaused => IsScriptPaused || !Player1.IsConnected || !Player2.IsConnected;
 
         public Player CurrentPlayer;
 

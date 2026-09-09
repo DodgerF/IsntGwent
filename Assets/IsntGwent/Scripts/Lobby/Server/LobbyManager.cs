@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using IsntGwent.Scripts.Accounts.Core;
 using IsntGwent.Scripts.Accounts.Server;
 using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
@@ -13,6 +14,7 @@ using IsntGwent.Scripts.Match.Server.Journal;
 using IsntGwent.Scripts.Match.Server.Stats;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
+using IsntGwent.Scripts.Tutorial;
 using Mirror;
 using UniRx;
 using UnityEngine;
@@ -35,12 +37,16 @@ namespace IsntGwent.Scripts.Lobby.Server
         [Inject] private readonly MatchStatsRecorder _stats;
         [Inject] private readonly MatchJournalFactory _journals;
         [Inject] private readonly CardStatsStore _cardStats;
+        [Inject] private readonly TutorialScriptProvider _tutorial;
 
         public static readonly TimeSpan MatchGracePeriod = TimeSpan.FromSeconds(90);
         public static readonly TimeSpan LobbyGracePeriod = TimeSpan.FromSeconds(180);
         public static readonly TimeSpan PrivateRoomTtl = TimeSpan.FromMinutes(10);
+        public static readonly TimeSpan FinishedMatchTtl = TimeSpan.FromMinutes(5);
 
         private static readonly DeckViolation[] NoViolations = new DeckViolation[0];
+
+        private const string GuestNickname = "Player";
 
         private readonly Dictionary<string, LobbyRoom> _rooms = new();
         private readonly Dictionary<Seat, string> _seatLobbyMap = new();
@@ -50,8 +56,12 @@ namespace IsntGwent.Scripts.Lobby.Server
         private readonly Dictionary<string, IDisposable> _graceTimers = new();
         private readonly Dictionary<string, IDisposable> _roomTimers = new();
         private readonly HashSet<Seat> _pendingResume = new();
+        private readonly Dictionary<string, FinishedMatch> _finished = new();
 
         private readonly CompositeDisposable _disposables = new();
+
+        public readonly Subject<Seat> SearchStarted = new();
+        public readonly Subject<Seat> TutorialRequested = new();
 
         public void Initialize()
         {
@@ -79,6 +89,9 @@ namespace IsntGwent.Scripts.Lobby.Server
             _serverHandler.OnReconnect
                 .Subscribe(t => OnReconnectRequested(t.conn, t.msg))
                 .AddTo(_disposables);
+            _serverHandler.OnStartTutorial
+                .Subscribe(OnStartTutorialRequested)
+                .AddTo(_disposables);
         }
 
         private void OnFindMatchRequested(NetworkConnectionToClient conn, FindMatchMessage msg)
@@ -95,6 +108,89 @@ namespace IsntGwent.Scripts.Lobby.Server
             if (result != LobbyError.None) return;
 
             TryPair();
+
+            var seat = _seats.Resolve(conn);
+            if (seat != null && _queue.Contains(seat))
+                SearchStarted.OnNext(seat);
+        }
+
+        public bool IsSearching(Seat seat) => _queue.Contains(seat);
+
+        private void OnStartTutorialRequested(NetworkConnectionToClient conn)
+        {
+            var result = TryStartTutorial(conn, out var seat);
+
+            conn.Send(new TutorialStartResultMessage
+            {
+                IsSuccess = result == LobbyError.None,
+                Error = result,
+                SeatToken = seat?.Token ?? string.Empty,
+            });
+        }
+
+        private LobbyError TryStartTutorial(NetworkConnectionToClient conn, out Seat seat)
+        {
+            seat = null;
+
+            var deck = _tutorial.PlayerDeck();
+
+            if (deck?.Cards == null || deck.Cards.Length == 0)
+            {
+                Log.Warn(LogTag.Lobby, "tutorial script is not loaded");
+                return LobbyError.Unknown;
+            }
+
+            if (_seats.Resolve(conn) != null)
+                return LobbyError.AlreadyInLobby;
+
+            var account = _accounts.Resolve(conn) ?? new AccountData
+            {
+                Id = "guest:" + Guid.NewGuid(),
+                Nickname = GuestNickname,
+            };
+
+            seat = _seats.Create(new MirrorSeatChannel(conn), deck, account);
+
+            var room = CreateRoom(false, string.Empty);
+            room.IsTutorial = true;
+
+            PlaceSeat(room, seat);
+
+            TutorialRequested.OnNext(seat);
+
+            if (room.IsFull) return LobbyError.None;
+
+            RemoveFromRoom(room.Id, room, seat);
+            seat = null;
+
+            return LobbyError.Unknown;
+        }
+
+        public bool SeatTutorialBot(Seat player, Seat bot)
+        {
+            if (player == null || bot == null) return false;
+            if (!_seatLobbyMap.TryGetValue(player, out var lobbyId)) return false;
+            if (!_rooms.TryGetValue(lobbyId, out var room)) return false;
+            if (room.IsFull) return false;
+
+            PlaceSeat(room, bot);
+
+            return true;
+        }
+
+        public bool PairWithBot(Seat player, Seat bot)
+        {
+            if (player == null || bot == null) return false;
+            if (!_queue.Remove(player)) return false;
+
+            var room = CreateRoom(true, string.Empty);
+
+            PlaceSeat(room, player);
+            PlaceSeat(room, bot);
+
+            player.Send(new MatchFoundMessage { SeatToken = player.Token });
+
+            return true;
         }
 
         private LobbyError TryFindMatch(NetworkConnectionToClient conn, DeckDefinition deck,
@@ -331,6 +427,12 @@ namespace IsntGwent.Scripts.Lobby.Server
 
         private void OnReconnectRequested(NetworkConnectionToClient conn, ReconnectRequestMessage msg)
         {
+            if (TryTakeFinished(msg.Token, out var finished))
+            {
+                conn.Send(new ReconnectResultMessage { IsSuccess = false, Result = finished });
+                return;
+            }
+
             var seat = _seats.GetByToken(msg.Token);
 
             if (seat == null || !_tokenLobbyMap.TryGetValue(msg.Token, out var lobbyId))
@@ -487,6 +589,7 @@ namespace IsntGwent.Scripts.Lobby.Server
             var gc = _container.Instantiate<GameContext>();
             gc.SetPlayers(room.Seats.First(), room.Seats.Last());
             gc.IsRanked = room.IsRanked;
+            gc.IsTutorial = room.IsTutorial;
             _games.Add(lobbyId, gc);
 
             var journal = _journals.Create(gc, lobbyId);
@@ -509,8 +612,10 @@ namespace IsntGwent.Scripts.Lobby.Server
 
                     gc.Journal?.End(gc, gc.EndReason);
 
-                    if (gc.Journal != null)
+                    if (gc.Journal != null && !gc.IsVsBot)
                         _cardStats.Apply(gc, gc.Journal.Tally);
+
+                    RememberOutcome(gc);
 
                     DropGame(lobbyId);
                 })
@@ -541,7 +646,13 @@ namespace IsntGwent.Scripts.Lobby.Server
                 var leavingPlayer = context.GetPlayer(seat);
                 if (leavingPlayer != null && !context.GameEnded.Value)
                 {
-                    BeginMatchGrace(context, leavingPlayer);
+                    var opponent = context.GetOpponent(leavingPlayer);
+
+                    if (opponent == null || !opponent.IsConnected)
+                        _gameController.EndGameByAbandon(context);
+                    else
+                        BeginMatchGrace(context, leavingPlayer);
+
                     return;
                 }
             }
@@ -621,6 +732,70 @@ namespace IsntGwent.Scripts.Lobby.Server
             return player?.Seat?.Account?.Nickname ?? "?";
         }
 
+        private void RememberOutcome(GameContext context)
+        {
+            if (context == null) return;
+
+            PruneFinished();
+
+            var expiresAt = DateTime.UtcNow + FinishedMatchTtl;
+
+            RememberOutcome(context, context.Player1, expiresAt);
+            RememberOutcome(context, context.Player2, expiresAt);
+        }
+
+        private void RememberOutcome(GameContext context, Player player, DateTime expiresAt)
+        {
+            var token = player?.Seat?.Token;
+            if (string.IsNullOrEmpty(token)) return;
+
+            _finished[token] = new FinishedMatch(ResultFor(context, player), expiresAt);
+        }
+
+        private static MatchResult ResultFor(GameContext context, Player player)
+        {
+            if (context.IsTie || context.Winner == null) return MatchResult.Tie;
+
+            return context.Winner == player ? MatchResult.Win : MatchResult.Loss;
+        }
+
+        private bool TryTakeFinished(string token, out MatchResult result)
+        {
+            result = MatchResult.None;
+
+            if (string.IsNullOrEmpty(token)) return false;
+            if (!_finished.TryGetValue(token, out var finished)) return false;
+
+            _finished.Remove(token);
+
+            if (finished.ExpiresAt <= DateTime.UtcNow) return false;
+
+            result = finished.Result;
+            return true;
+        }
+
+        private void PruneFinished()
+        {
+            if (_finished.Count == 0) return;
+
+            var now = DateTime.UtcNow;
+
+            foreach (var token in _finished.Where(p => p.Value.ExpiresAt <= now).Select(p => p.Key).ToArray())
+                _finished.Remove(token);
+        }
+
+        private readonly struct FinishedMatch
+        {
+            public readonly MatchResult Result;
+            public readonly DateTime ExpiresAt;
+
+            public FinishedMatch(MatchResult result, DateTime expiresAt)
+            {
+                Result = result;
+                ExpiresAt = expiresAt;
+            }
+        }
+
         private void DropGame(string lobbyId)
         {
             if (!_games.TryGetValue(lobbyId, out var context)) return;
@@ -675,8 +850,11 @@ namespace IsntGwent.Scripts.Lobby.Server
             _tokenLobbyMap.Clear();
             _seatLobbyMap.Clear();
             _pendingResume.Clear();
+            _finished.Clear();
             _queue.Clear();
             _seats.Clear();
+
+            SearchStarted.Dispose();
 
             _disposables.Dispose();
         }

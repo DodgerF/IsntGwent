@@ -51,6 +51,9 @@ namespace IsntGwent.Scripts.Match.UI
 
             cardTransform.SetParent(transform, false);
 
+            if (card.TryGetComponent<CardView>(out var view))
+                view.trayHover = true;
+
             TakeSlot(cardTransform);
 
             if (hasFlight)
@@ -73,6 +76,9 @@ namespace IsntGwent.Scripts.Match.UI
             var cardTransform = card.transform;
 
             cardTransform.DOKill();
+
+            if (card.TryGetComponent<CardView>(out var view))
+                view.trayHover = false;
 
             FreeSlot(cardTransform);
         }
@@ -99,9 +105,13 @@ namespace IsntGwent.Scripts.Match.UI
         private static void ResetScale(Transform card)
         {
             if (card.TryGetComponent<CardView>(out var view))
+            {
+                view.trayHover = false;
                 view.SetBaseScale(1f);
-            else
-                card.localScale = Vector3.one;
+                return;
+            }
+
+            card.localScale = Vector3.one;
         }
 
         private void TakeSlot(Transform card)

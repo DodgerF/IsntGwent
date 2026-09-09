@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Server;
@@ -22,6 +22,8 @@ namespace IsntGwent.Scripts.Network
         [Inject] private readonly PlaySession _play;
 
         public readonly ReactiveProperty<bool> IsReconnecting = new(false);
+        public readonly Subject<MatchResult> MatchFinished = new();
+        public readonly Subject<Unit> SeatDropped = new();
 
         private readonly CompositeDisposable _disposables = new();
         private readonly SerialDisposable _timeout = new();
@@ -82,6 +84,8 @@ namespace IsntGwent.Scripts.Network
             PlayerPrefs.Save();
 
             Stop();
+
+            SeatDropped.OnNext(Unit.Default);
         }
 
         private void OnLost()
@@ -119,6 +123,9 @@ namespace IsntGwent.Scripts.Network
 
             if (!msg.IsSuccess || msg.Phase == ReconnectPhase.None)
             {
+                if (msg.Result != MatchResult.None)
+                    MatchFinished.OnNext(msg.Result);
+
                 Fail();
                 return;
             }

@@ -12,6 +12,8 @@ namespace IsntGwent.Scripts.Messages
         public int Armor;
         public RowType Row;
         public int SlotIndex;
+        public int EnemyCardAmount;
+        public bool PlayedByEnemy;
     }
 
     public struct EnemyCardPlayedMessage : NetworkMessage

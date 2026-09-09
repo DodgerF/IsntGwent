@@ -51,19 +51,29 @@ namespace IsntGwent.Scripts.Match.Server
                 return;
             }
 
+            var firstIsBot = first?.Seat is { IsBot: true };
+            var secondIsBot = second?.Seat is { IsBot: true };
+
+            if (firstIsBot && secondIsBot)
+            {
+                Log.Info(LogTag.Stats, "skipped: bots only");
+                return;
+            }
+
             if (context.IsTie)
             {
-                ApplyTie(firstAccount);
-                ApplyTie(secondAccount);
+                if (!firstIsBot) ApplyTie(firstAccount);
+                if (!secondIsBot) ApplyTie(secondAccount);
             }
             else
             {
-                Apply(firstAccount, true);
-                Apply(secondAccount, false);
+                if (!firstIsBot) Apply(firstAccount, true);
+                if (!secondIsBot) Apply(secondAccount, false);
             }
 
-            _store.Save(firstAccount);
-            _store.Save(secondAccount);
+            if (!firstIsBot) _store.Save(firstAccount);
+            if (!secondIsBot) _store.Save(secondAccount);
+
             _leaderboard.Touch();
 
             Log.Info(LogTag.Stats, $"{(context.IsTie ? "tie" : "win")}: " +

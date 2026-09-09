@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Match.Client;
 using TMPro;
 using UniRx;
@@ -32,9 +33,9 @@ namespace IsntGwent.Scripts.Match.UI
                     }
 
                     if (state.self)
-                        Show(selfMessage);
+                        Show(Loc.T(selfMessage));
                     else if (state.opponent)
-                        Show(opponentMessage);
+                        Show(Loc.T(opponentMessage));
                     else
                         Hide();
                 })

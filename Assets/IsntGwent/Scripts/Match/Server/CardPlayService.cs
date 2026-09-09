@@ -39,12 +39,12 @@ namespace IsntGwent.Scripts.Match.Server
             if (fromPending)
             {
                 player.PendingPlays.Remove(card);
-                _notifier.NotifyCardPlayed(context, boardOwner, card, row, slotIndex);
+                _notifier.NotifyCardPlayed(context, player, boardOwner, card, row, slotIndex);
             }
             else
             {
                 player.Hand.Remove(card);
-                _notifier.NotifyCardPlayed(context, boardOwner, card, row, slotIndex);
+                _notifier.NotifyCardPlayed(context, player, boardOwner, card, row, slotIndex);
                 _notifier.NotifyCardRemovedFromHand(player, card);
             }
 

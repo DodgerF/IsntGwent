@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 4,
   "rarity": "Epic",
-  "description": "Deploy: move a chosen creature to the other row. Bond (Sirin): move its whole row instead.",
+  "description": "Deploy: move a chosen creature to the other row. Bond (Sirin): move its whole row to the opposite one instead.",
   "effects": [
     {
       "effect": "AimedTargeting",

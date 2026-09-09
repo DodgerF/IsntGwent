@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsntGwent.Scripts.Localization;
 
 namespace IsntGwent.Scripts.Decks.Validation
 {
@@ -13,14 +14,14 @@ namespace IsntGwent.Scripts.Decks.Validation
         {
             return violation.Code switch
             {
-                DeckViolationCode.DeckTooSmall => "Not finished: " + (violation.Expected - violation.Actual) + " cards missing",
-                DeckViolationCode.TooManyCopies => "Too many copies of " + violation.CardId + " (max " + violation.Expected + ")",
-                DeckViolationCode.UnknownCard => "Unknown card: " + violation.CardId,
-                DeckViolationCode.BadCount => "Bad card count: " + violation.CardId,
-                DeckViolationCode.DuplicateEntry => "Duplicate entry: " + violation.CardId,
-                DeckViolationCode.ContentMismatch => "Deck was built for another card set",
-                DeckViolationCode.MalformedDeck => violation.Field == "cards" ? "Deck is empty" : "Deck is malformed",
-                _ => "Deck is malformed"
+                DeckViolationCode.DeckTooSmall => Loc.F("Not finished: {0} cards missing", violation.Expected - violation.Actual),
+                DeckViolationCode.TooManyCopies => Loc.F("Too many copies of {0} (max {1})", violation.CardId, violation.Expected),
+                DeckViolationCode.UnknownCard => Loc.F("Unknown card: {0}", violation.CardId),
+                DeckViolationCode.BadCount => Loc.F("Bad card count: {0}", violation.CardId),
+                DeckViolationCode.DuplicateEntry => Loc.F("Duplicate entry: {0}", violation.CardId),
+                DeckViolationCode.ContentMismatch => Loc.T("Deck was built for another card set"),
+                DeckViolationCode.MalformedDeck => violation.Field == "cards" ? Loc.T("Deck is empty") : Loc.T("Deck is malformed"),
+                _ => Loc.T("Deck is malformed")
             };
         }
     }

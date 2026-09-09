@@ -74,6 +74,17 @@ namespace IsntGwent.Scripts.Match.UI
 
             for (var i = 0; i < count; i++)
                 _hearts[i].transform.localPosition = new Vector3(startX + i * heartSpacing, 0f, 0f);
+
+            Fit(totalWidth);
+        }
+
+        private void Fit(float totalWidth)
+        {
+            if (_hearts.Count == 0 || _hearts[0] == null) return;
+
+            var heart = ((RectTransform)_hearts[0].transform).rect.size;
+
+            ((RectTransform)transform).sizeDelta = new Vector2(totalWidth + heart.x, heart.y);
         }
 
         private void Restore(int index, bool alive)

@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 2,
   "rarity": "Epic",
-  "description": "Deploy: damage 5 to the strongest creature. Bond (Polunochnitsa): destroy it instead.",
+  "description": "Deploy: damage 5 to the strongest creature. Bond (Polunochnitsa): destroy the strongest creature instead.",
   "effects": [
     {
       "effect": "StrongestTargeting",

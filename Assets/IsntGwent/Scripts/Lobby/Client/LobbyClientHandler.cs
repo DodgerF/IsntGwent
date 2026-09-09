@@ -42,11 +42,22 @@ namespace IsntGwent.Scripts.Lobby.Client
             NetworkClient.ReplaceHandler<MatchFoundMessage>(OnMatchFoundResult);
             NetworkClient.ReplaceHandler<PrivateRoomCreatedMessage>(OnPrivateRoomResult);
             NetworkClient.ReplaceHandler<JoinByCodeResultMessage>(OnJoinByCodeResult);
+            NetworkClient.ReplaceHandler<TutorialStartResultMessage>(OnTutorialStartResult);
         }
 
         public void SendFindMatch(DeckDefinition deck)
         {
             NetworkClient.Send(new FindMatchMessage { Deck = deck });
+        }
+
+        public void SendStartTutorial()
+        {
+            NetworkClient.Send(new StartTutorialMessage());
+        }
+
+        public void SendTutorialAction(string action)
+        {
+            NetworkClient.Send(new TutorialActionMessage { Action = action });
         }
 
         public void SendCancelSearch()
@@ -107,6 +118,20 @@ namespace IsntGwent.Scripts.Lobby.Client
             OnJoinedLobby.OnNext(Unit.Default);
         }
 
+        private void OnTutorialStartResult(TutorialStartResultMessage msg)
+        {
+            if (!msg.IsSuccess)
+            {
+                OnError.OnNext((msg.Error, Array.Empty<DeckViolation>()));
+                return;
+            }
+
+            _play.BeginMatch();
+            _reconnect.BeginSeat(msg.SeatToken);
+
+            OnJoinedLobby.OnNext(Unit.Default);
+        }
+
         private void OnJoinByCodeResult(JoinByCodeResultMessage msg)
         {
             if (!msg.IsSuccess)
@@ -129,6 +154,7 @@ namespace IsntGwent.Scripts.Lobby.Client
             NetworkClient.UnregisterHandler<MatchFoundMessage>();
             NetworkClient.UnregisterHandler<PrivateRoomCreatedMessage>();
             NetworkClient.UnregisterHandler<JoinByCodeResultMessage>();
+            NetworkClient.UnregisterHandler<TutorialStartResultMessage>();
         }
     }
 }

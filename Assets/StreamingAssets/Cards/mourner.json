@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 4,
   "rarity": "Common",
-  "description": "React to ally death: boost by 1.",
+  "description": "React to ally death: boost itself by 1.",
   "effects": [
     {
       "effect": "BuffPower",

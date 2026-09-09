@@ -44,6 +44,8 @@ namespace IsntGwent.Scripts.Match.Server
                 var dead = changed.Where(u => u.CurrentPower.Value <= 0).ToList();
                 if (dead.Count == 0) return;
 
+                var funerals = new List<UnitDied>(dead.Count);
+
                 foreach (var unit in dead)
                 {
                     var slot = context.FindSlot(unit);
@@ -55,8 +57,11 @@ namespace IsntGwent.Scripts.Match.Server
                     var owner = MoveToGraveyard(context, unit);
                     unit.ResetToBase();
 
-                    context.Publish(new UnitDied(unit, owner, left, right, row, index, killer));
+                    funerals.Add(new UnitDied(unit, owner, left, right, row, index, killer));
                 }
+
+                foreach (var funeral in funerals)
+                    context.Publish(funeral);
 
                 ApplySlotTakeovers(context);
             }

@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
+﻿using System.Collections.Generic;
+using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Match;
 using IsntGwent.Scripts.Match.Server;
@@ -19,9 +20,12 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             }
 
             var anchor = context.Anchor(definition.Anchor);
+            var moves = new List<UnitMoved>();
 
             foreach (var target in context.Targets)
-                Move(context, target, definition, anchor);
+                Move(context, target, definition, anchor, moves);
+
+            Publish(context, moves);
         }
 
         private static void MoveSource(EffectContext context, MoveEffectDefinition definition)
@@ -34,11 +38,20 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             if (from == null || target == null) return;
 
             var to = from.Owner.GetRow(from.Row).Slots[target.Index];
-            Place(context, source, from, to);
+
+            var moves = new List<UnitMoved>();
+            Place(context, source, from, to, moves);
+            Publish(context, moves);
+        }
+
+        private static void Publish(EffectContext context, List<UnitMoved> moves)
+        {
+            foreach (var moved in moves)
+                context.Game.Publish(moved);
         }
 
         private static void Move(EffectContext context, UnitInstance target,
-            MoveEffectDefinition definition, BoardSlot anchor)
+            MoveEffectDefinition definition, BoardSlot anchor, List<UnitMoved> moves)
         {
             var from = context.Game.FindSlot(target);
             if (from == null) return;
@@ -48,14 +61,15 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
                 : RowDestination(definition, from, anchor);
 
             var destination = to;
-            if (!Place(context, target, from, to)) return;
+            if (!Place(context, target, from, to, moves)) return;
 
             if (from.Owner != context.Owner)
                 context.Game.RecordLink(context.Source, target, UnitLinkKind.Lure,
                     destination.Row, destination.Index);
         }
 
-        private static bool Place(EffectContext context, UnitInstance unit, BoardSlot from, BoardSlot to)
+        private static bool Place(EffectContext context, UnitInstance unit, BoardSlot from, BoardSlot to,
+            List<UnitMoved> moves)
         {
             if (to == null || !to.IsEmpty || to == from) return false;
 
@@ -64,7 +78,7 @@ namespace IsntGwent.Scripts.Cards.Server.Effects
             unit.RowType = to.Row;
 
             context.Game.MarkBoardDirty();
-            context.Game.Publish(new UnitMoved(unit, to.Owner, from.Row, from.Index, to.Row, to.Index));
+            moves.Add(new UnitMoved(unit, to.Owner, from.Row, from.Index, to.Row, to.Index));
             return true;
         }
 

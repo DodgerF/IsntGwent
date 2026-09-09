@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Core;
 using IsntGwent.Scripts.Decks;
 using IsntGwent.Scripts.Lobby.Client;
@@ -12,8 +13,6 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 {
     public class MenuUI : MonoBehaviour
     {
-        private const string PlayLabel = "Play";
-        private const string CancelLabel = "Cancel search";
         private const string SearchingLabel = "Looking for an opponent...";
 
         [Inject] private LobbyViewModel _vm;
@@ -22,7 +21,6 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
         [Inject] private DeckDatabase _deckDatabase;
 
         [SerializeField] private Button playButton;
-        [SerializeField] private TextMeshProUGUI playButtonLabel;
         [SerializeField] private Button privateRoomButton;
         [SerializeField] private Button joinByCodeButton;
         [SerializeField] private Button deckBuilderButton;
@@ -81,12 +79,9 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 
         private void OnSearchingChanged(bool isSearching)
         {
-            if (playButtonLabel != null)
-                playButtonLabel.text = isSearching ? CancelLabel : PlayLabel;
-
             if (searchStatus == null) return;
 
-            searchStatus.text = isSearching ? SearchingLabel : string.Empty;
+            searchStatus.text = isSearching ? Loc.T(SearchingLabel) : string.Empty;
             searchStatus.gameObject.SetActive(isSearching);
         }
 

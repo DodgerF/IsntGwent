@@ -4,7 +4,7 @@
   "imageName": "thunderbolt",
   "type": "Spell",
   "rarity": "Rare",
-  "description": "Deploy: damage 4 to the chosen creature and 2 to its neighbours.",
+  "description": "Deploy: damage 4 to the chosen creature and 1 to its neighbours.",
   "effects": [
     {
       "effect": "ManualTargeting",
@@ -27,7 +27,7 @@
     {
       "effect": "DealDamage",
       "trigger": "OnPlay",
-      "amount": 2
+      "amount": 1
     }
   ]
 }

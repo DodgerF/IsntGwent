@@ -11,6 +11,8 @@ namespace IsntGwent.Scripts.Lobby.Core
         public readonly string JoinCode;
         public readonly bool IsRanked;
 
+        public bool IsTutorial;
+
         private readonly List<Seat> _seats = new();
 
         public LobbyRoom(string id, bool isRanked, string joinCode)

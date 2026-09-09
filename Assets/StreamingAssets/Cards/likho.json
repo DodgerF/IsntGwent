@@ -6,7 +6,7 @@
   "power": 6,
   "rarity": "Rare",
   "maxCopies": 1,
-  "description": "Deploy: damage 4 to itself. Leadership: damage 4 to the first creature in the line ahead instead.",
+  "description": "Deploy: damage 4 to itself. Leadership: damage 4 to the creature ahead instead.",
   "effects": [
     {
       "effect": "DealDamage",

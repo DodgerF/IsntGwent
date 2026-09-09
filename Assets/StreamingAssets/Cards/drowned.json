@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 2,
   "rarity": "Common",
-  "description": "Melee: damage 2 to the first creature in the line ahead. Habitat (Omut): on kill cast a Corpse from your deck.",
+  "description": "Melee: damage 2 to the creature ahead. Habitat (Omut): on kill play a Corpse from your deck.",
   "effects": [
     {
       "effect": "LineTargeting",

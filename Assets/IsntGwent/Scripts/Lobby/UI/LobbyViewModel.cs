@@ -5,6 +5,7 @@ using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Core;
 using IsntGwent.Scripts.Network;
+using IsntGwent.Scripts.Tutorial.Client;
 using UniRx;
 using Zenject;
 
@@ -18,6 +19,7 @@ namespace IsntGwent.Scripts.Lobby.UI
         [Inject] private DeckValidator _validator;
         [Inject] private ConnectionService _connection;
         [Inject] private PlayerAccount _account;
+        [InjectOptional] private TutorialService _tutorial;
 
         public readonly ReactiveProperty<bool> IsJoinCodeWindowOpen = new(false);
         public readonly ReactiveProperty<bool> IsNicknameWindowOpen = new(false);
@@ -34,11 +36,16 @@ namespace IsntGwent.Scripts.Lobby.UI
         {
             _requestTimeout.AddTo(_disposables);
 
+            var tutorialPassed = _tutorial == null
+                ? Observable.Return(true)
+                : _tutorial.State.Select(state => state == TutorialState.Done);
+
             _deckSelect.SelectedDeck
                 .CombineLatest(_connection.IsConnected, _isRequestPending, _rules.OnLoaded, _account.IsLoggedIn,
                     (deck, isConnected, isPending, rulesLoaded, isLoggedIn) =>
                         deck != null && isConnected && !isPending && rulesLoaded && isLoggedIn &&
                         _validator.IsValid(deck))
+                .CombineLatest(tutorialPassed, (canPlay, isPassed) => canPlay && isPassed)
                 .Subscribe(canPlay => CanPlay.Value = canPlay)
                 .AddTo(_disposables);
 
@@ -75,12 +82,15 @@ namespace IsntGwent.Scripts.Lobby.UI
                 .AddTo(_disposables);
 
             _account.OnLoginFailed
+                .Where(_ => WantsNickname)
                 .Subscribe(_ => IsNicknameWindowOpen.Value = true)
                 .AddTo(_disposables);
 
-            if (!_account.HasNickname)
+            if (!_account.HasNickname && WantsNickname)
                 IsNicknameWindowOpen.Value = true;
         }
+
+        private bool WantsNickname => _tutorial == null || _tutorial.WantsNickname;
 
         public void TogglePlay()
         {

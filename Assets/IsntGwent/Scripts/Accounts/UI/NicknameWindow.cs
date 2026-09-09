@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using System;
 using IsntGwent.Scripts.Accounts.Client;
 using IsntGwent.Scripts.Accounts.Core;
@@ -26,10 +27,11 @@ namespace IsntGwent.Scripts.Accounts.UI
 
         private string _checkedNickname;
         private AccountError _checkedError;
+        private string _submitted;
 
         private void Start()
         {
-            nicknameInput.placeholder.GetComponent<TextMeshProUGUI>().text = "Your nickname";
+            nicknameInput.placeholder.GetComponent<TextMeshProUGUI>().text = Loc.T("Your nickname");
             nicknameInput.characterLimit = NicknameRules.MaxLength;
 
             _vm.IsNicknameWindowOpen
@@ -51,7 +53,7 @@ namespace IsntGwent.Scripts.Accounts.UI
                 .AddTo(this);
 
             confirmButton.OnClickAsObservable()
-                .Subscribe(_ => _account.SetNickname(nicknameInput.text))
+                .Subscribe(_ => Submit())
                 .AddTo(this);
 
             _account.OnLoginFailed
@@ -83,9 +85,16 @@ namespace IsntGwent.Scripts.Accounts.UI
                 cancelButton.gameObject.SetActive(_account.HasNickname);
         }
 
+        private void Submit()
+        {
+            _submitted = NicknameRules.Trim(nicknameInput.text);
+            _account.SetNickname(nicknameInput.text);
+        }
+
         private void OnTyped()
         {
             _checkedNickname = null;
+            _submitted = null;
             Refresh();
         }
 
@@ -144,6 +153,8 @@ namespace IsntGwent.Scripts.Accounts.UI
 
         private void ShowError(AccountError error)
         {
+            if (_submitted != NicknameRules.Trim(nicknameInput.text)) return;
+
             errorText.text = Describe(error);
         }
 
@@ -151,10 +162,10 @@ namespace IsntGwent.Scripts.Accounts.UI
         {
             return error switch
             {
-                AccountError.BadNickname => $"Nickname must be {NicknameRules.MinLength} to {NicknameRules.MaxLength} characters",
-                AccountError.AlreadyOnline => "This nickname is already in use. Pick another one",
-                AccountError.NicknameTaken => "This nickname is already registered. Pick another one",
-                _ => "Could not sign in"
+                AccountError.BadNickname => Loc.F("Nickname must be {0} to {1} characters", NicknameRules.MinLength, NicknameRules.MaxLength),
+                AccountError.AlreadyOnline => Loc.T("This nickname is already in use. Pick another one"),
+                AccountError.NicknameTaken => Loc.T("Another account already uses this nickname. Pick another one"),
+                _ => Loc.T("Could not sign in")
             };
         }
     }

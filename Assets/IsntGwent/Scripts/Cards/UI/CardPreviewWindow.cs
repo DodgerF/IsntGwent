@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Cards.Runtime;
 using IsntGwent.Scripts.Cards.Client;
 using TMPro;
@@ -56,7 +57,7 @@ namespace IsntGwent.Scripts.Cards.UI
         {
             cardView.Setup(card);
 
-            var text = card.Definition.Description;
+            var text = Loc.CardDescription(card.Definition);
 
             description.text = _keywords.Format(text);
             descriptionBackground.SetActive(!string.IsNullOrWhiteSpace(text));
@@ -71,7 +72,7 @@ namespace IsntGwent.Scripts.Cards.UI
             }
 
             if (title != null)
-                title.text = card.Definition.Name;
+                title.text = Loc.CardName(card.Definition);
 
             if (stats != null)
             {

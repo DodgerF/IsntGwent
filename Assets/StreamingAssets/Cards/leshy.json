@@ -5,7 +5,7 @@
   "type": "Unit",
   "power": 5,
   "rarity": "Epic",
-  "description": "Deploy: damage 1 to every creature and boost itself by 1 for each one killed.",
+  "description": "Deploy: damage 1 to every creature, boost itself by 1 for each one killed.",
   "effects": [
     {
       "effect": "RowTargeting",

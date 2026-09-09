@@ -1,3 +1,4 @@
+using IsntGwent.Scripts.Localization;
 using IsntGwent.Scripts.Lobby.Client;
 using TMPro;
 using UniRx;
@@ -15,7 +16,8 @@ namespace IsntGwent.Scripts.Match.UI
         private void Start()
         {
             _play.Phase
-                .Subscribe(phase => statusText.text = Describe(phase))
+                .Where(phase => phase != PlayPhase.None)
+                .Subscribe(phase => statusText.text = Loc.T(Describe(phase)))
                 .AddTo(this);
         }
 
