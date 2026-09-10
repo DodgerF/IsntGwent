@@ -1,0 +1,16 @@
+{
+  "id": "mourner",
+  "name": "Mourner",
+  "imageName": "plakalshchitsa",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "React to ally death: boost itself by 1.",
+  "effects": [
+    {
+      "effect": "BuffPower",
+      "trigger": "OnAllyDied",
+      "amount": 1
+    }
+  ]
+}

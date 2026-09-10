@@ -1,0 +1,431 @@
+{
+  "code": "ru",
+  "name": "Русский",
+  "order": 2,
+  "strings": {
+    "Menu": "Меню",
+    "Settings": "Настройки",
+    "Sound": "Общий звук",
+    "Music": "Музыка",
+    "Sfx": "Эффекты",
+    "UI": "Интерфейс",
+    "Language": "Язык",
+    "Quit the Game": "Выйти из игры",
+    "Quit": "Выход",
+    "Play": "Играть",
+    "Create room": "Создать комнату",
+    "Join by code": "Войти по коду",
+    "Leaderboard": "Лучшие",
+    "Create Deck": "Создать колоду",
+    "Change name": "Сменить имя",
+    "Player": "Игрок",
+    "No name": "Без имени",
+    "Points": "Очки",
+    "{0} pts": "{0} очк",
+    "{0} pts  #{1}": "{0} очк  #{1}",
+    "W / L / T": "Поб / Пор / Нич",
+    "W / L / T  -  wins / losses / ties        win +25    tie +10    loss -15": "Поб / Пор / Нич  -  победы / поражения / ничьи        победа +25    ничья +10    поражение -15",
+    "Enter name...": "Введи имя...",
+    "Enter text...": "Введи текст...",
+    "Your nickname": "Твоё прозвище",
+    "Room code": "Код комнаты",
+    "Confirm": "Принять",
+    "Cancel": "Отмена",
+    "Back": "Назад",
+    "Undo": "Вернуть",
+    "Save": "Сохранить",
+    "Delete": "Удалить",
+    "Retry": "Ещё раз",
+    "Server": "Сервер",
+    "Client": "Клиент",
+    "Connecting…": "Соединение…",
+    "Server unavailable": "Сервер недоступен",
+    "Reconnecting to server...": "Переподключение к серверу...",
+    "Looking for an opponent...": "Поиск противника...",
+    "Waiting for a friend...": "Ожидание друга...",
+    "Loading Match...": "Загрузка матча...",
+    "Waiting opponent": "Ждём противника",
+    "Copy": "Копировать",
+    "Hide": "Скрыть",
+    "Pass": "Пас",
+    "Passed": "Спасовал",
+    "Enemy Turn": "Ход врага",
+    "Leave": "Выйти",
+    "Done": "Готово",
+    "Back to mulligan": "Назад к обмену",
+    "Redraw 2 cards": "Обменять 2 карты",
+    "Redraws left: {0}": "Обменов: {0}",
+    "ENEMY POWER": "СИЛА ВРАГА",
+    "YOUR POWER": "ТВОЯ СИЛА",
+    "ENEMY CARDS": "КАРТЫ ВРАГА",
+    "CARDS IN HAND": "КАРТЫ В РУКЕ",
+    "Deck": "Колода",
+    "Graveyard": "Сброс",
+    "Opponent's Graveyard": "Сброс противника",
+    "Weather:": "Погода:",
+    "Game Ended": "Игра окончена",
+    "Game Over": "Матч завершен",
+    "You won": "Ты победил",
+    "Defeat": "Поражение",
+    "Draw": "Ничья",
+    "Friendship won": "Победила дружба",
+    "Enemy left": "Враг вышел",
+    "Enemy surrendered": "Враг сдался",
+    "Connection lost": "Связь потеряна",
+    "Opponent lost connection\n\nWaiting for reconnect...": "Связь с противником потеряна\n\nЖдём его возвращения...",
+    "Connection lost\n\nReconnecting...": "Связь потеряна\n\nПереподключение...",
+    "New Deck": "Новая колода",
+    "Started Deck": "Начальная колода",
+    "Deck name": "Имя колоды",
+    "Unfinished Deck": "Незаконченная колода",
+    "{0} copy": "{0} копия",
+    "{0} / min {1}": "{0} / мин {1}",
+    "Delete deck \"{0}\"?": "Удалить колоду «{0}»?",
+    "Unsaved changes will be lost. Continue?": "Несохранённые изменения будут потеряны. Продолжить?",
+    "Name": "Имя",
+    "Description": "Описание",
+    "Message text": "Текст сообщения",
+    "Error text": "Текст ошибки",
+    "Not finished: {0} cards missing": "Не хватает {0} карт",
+    "Too many copies of {0} (max {1})": "Слишком много копий {0} (макс {1})",
+    "Unknown card: {0}": "Неизвестная карта: {0}",
+    "Bad card count: {0}": "Неверное число карт: {0}",
+    "Duplicate entry: {0}": "Повторная запись: {0}",
+    "Deck was built for another card set": "Колода собрана под другой набор карт",
+    "Deck is empty": "Колода пуста",
+    "Deck is malformed": "Колода повреждена",
+    "Deck is not valid": "Колода не подходит",
+    "Wrong room code": "Неверный код комнаты",
+    "Room is full": "Комната заполнена",
+    "Room not found": "Комната не найдена",
+    "Already in a room": "Ты уже в комнате",
+    "Enter your nickname first": "Сначала введи ник",
+    "Something went wrong": "Что-то пошло не так",
+    "Nickname must be {0} to {1} characters": "Ник должно быть от {0} до {1} знаков",
+    "This nickname is already in use. Pick another one": "Этот ник уже занято. Выбери другое",
+    "Another account already uses this nickname. Pick another one": "Другой аккаунт уже использует этот никнейм. Выбери другое",
+    "Could not sign in": "Не удалось войти",
+    "First time here? Let us play a match, I will explain along the way.": "Первый раз здесь? Сыграем партию, расскажу по ходу.",
+    "These are your life points. To win the match you must win two rounds.": "Это ваши очки жизни. Чтобы победить в матче, нужно победить в двух раундах.",
+    "A round ends the moment both players pass.": "Раунд заканчивается, как только спасовали оба игрока.",
+    "These are the card counters. One card is one move. With an empty hand you pass on your own.": "Это счётчики карт. Одна карта, один ход. С пустой рукой пас нажимается сам.",
+    "These are the power counters. Playing a card, buffing or weakening creatures, you change the total power on the table. The round goes to the side that ends it with more.": "Это счётчики силы. Разыгрывая карту, усиливая или ослабляя существ ты влияешь на общую силу стола. Раунд забирает тот, у кого её окажется в конце больше.",
+    "Here are your cards. Your opponent moves first.": "Вот твои карты. Первым ходит соперник.",
+    "Every card carries an effect and its conditions - hold a card to read it.": "У каждой карты есть эффект и его условия, зажми карту, чтобы прочитать.",
+    "Play the Wolf onto the lit cell to trigger its effect.": "Сыграй Волка в подсвеченную клетку, для реализации его эффекта.",
+    "Now it is time to play the Bear. For that you need to pick a victim - luckily, you have a <i>choice</i>.": "Теперь самое время сыграть Медведя, для этого тебе надо выбрать жертву, благо, <i>выбор</i> у тебя есть.",
+    "Your opponent has built a strong combination: the Vurdalak eats its neighbour, and the Vila comes back again.": "Соперник собрал сильную комбинацию: Вурдалак поедает соседа, а Вила возвращается снова.",
+    "You can break the synergy by moving one of those cards with the Rusalka.": "Ты можешь сломать синергию, передвинув одну из этих карт Русалкой.",
+    "You have already noticed that cards in hand are the most moves you have left. The more of them you keep, the better your chances of winning.": "Ты уже заметил, что карты на руках это максимальное количество ваших ходов. Чем больше их осталось, тем выше шансы на победу.",
+    "To improve them you have to make your opponent spend more cards than you do, and to find the moments for a pass.": "Чтобы увеличить свои шансы, нужно уметь заставлять противника тратить больше карт, чем ты, и находить моменты для паса.",
+    "This is one of them! You have already won a round, and giving this one away improves your odds. Let us do exactly that.": "Сейчас один из них! Ты уже победил в одном раунде и можешь увеличить шансы на победу, отдав текущий раунд. Давай так и сделаем.",
+    "A plan for this round. First set the weather on their front row.": "План на раунд. Сперва выставь погоду на его ближний ряд.",
+    "Then lure his creatures into the Omut.": "Потом замани в омут его существ.",
+    "Then finish off everything that is left.": "А потом добей всё, что осталось.",
+    "The rest is yours. Good luck!": "Дальше сам. Удачи!",
+    "Time to pick a name. Other players will see it, and your wins are counted under it.": "Пора выбрать имя. Его увидят другие игроки, и победы считаются на него.",
+    "You can play with a ready deck or build your own.": "Можно играть готовой колодой, а можно собрать свою.",
+    "To start a match, first choose a deck, and only then press Play.": "Чтобы начать партию, сначала выбери колоду и только потом жми «Играть».",
+    "Passing now risks giving the round away - play your cards first.": "Пас сейчас рискован, сначала разыграй карты."
+  },
+  "cards": {
+    "alkonost": {
+      "name": "Алконост",
+      "description": "Розыгрыш: поставить выбранное существо в другой ряд. Союз (Сирин): вместо этого переставить весь ряд в противоположный."
+    },
+    "anchutka": {
+      "name": "Анчутка",
+      "description": "Розыгрыш: урон 4 слабейшему врагу в противоположном ряду."
+    },
+    "bayun": {
+      "name": "Кот Баюн",
+      "description": "Конец хода: урон 2 по слабейшему союзнику. Лидерство: вместо этого усиление 2 сильнейшему союзнику."
+    },
+    "bear": {
+      "name": "Медведь",
+      "description": "Розыгрыш: жор выбранного союзника, вместо силы получает броня. Встаёт на его клетку."
+    },
+    "bolotnik": {
+      "name": "Болотник",
+      "description": "Отклик на перемещение: если это враг урон 1, если союзник усиление 1."
+    },
+    "corpse": {
+      "name": "Труп",
+      "description": "Конец хода: урон 1 себе и призыв Личинки по соседству. Последнее слово: призыв Личинки на его клетку."
+    },
+    "drowned": {
+      "name": "Утопленник",
+      "description": "Ближний ряд: урон 2 напротив. Среда (Омут): добыча - розыгрыш Трупа из колоды."
+    },
+    "egg": {
+      "name": "Яйцо",
+      "description": "Последнее слово: призыв Птенца на его клетку."
+    },
+    "fledgling": {
+      "name": "Птенец",
+      "description": ""
+    },
+    "giant": {
+      "name": "Великан",
+      "description": "Розыгрыш: урон 4 выбранному союзнику, если таков есть, иначе себе."
+    },
+    "grub": {
+      "name": "Личинка",
+      "description": "Последнее слово: если был убит эффектом жор, усиление 1 поедателю"
+    },
+    "igosha": {
+      "name": "Игоша",
+      "description": "Предатель. Последнее слово: урон 4 соседям."
+    },
+    "leper": {
+      "name": "Прокажённый",
+      "description": "Последнее слово: урон 4 слабейшему врагу."
+    },
+    "leshy": {
+      "name": "Леший",
+      "description": "Розыгрыш: урон 1 каждому существу, усиление 1 себе за каждого убитого."
+    },
+    "likho": {
+      "name": "Лихо",
+      "description": "Розыгрыш: урон 4 себе. Лидерство: вместо этого урон 4 напротив."
+    },
+    "lobasta": {
+      "name": "Лобаста",
+      "description": "Ближний ряд: в начале хода урон 2 напротив. Отклик на появление врага: перемещается в его столбец"
+    },
+    "mogol": {
+      "name": "Могол",
+      "description": "Розыгрыш: убивает выбранного соседа, урон выбранному врагу равный силе убитого."
+    },
+    "mourner": {
+      "name": "Плакальщица",
+      "description": "Отклик на смерть союзника: усиление 1 себе."
+    },
+    "omut": {
+      "name": "Омут",
+      "description": "Погода: урон 1 появляющимся существам в этом ряду"
+    },
+    "poludnitsa": {
+      "name": "Полудница",
+      "description": "Розыгрыш: урон 5 сильнейшему существу. Союз (Полуночница): убивает сильнейшее существо."
+    },
+    "polunochnitsa": {
+      "name": "Полуночница",
+      "description": "Розыгрыш: урон 4 слабейшему существу. Союз (Полудница): убивает всех слабейших существ."
+    },
+    "rusalka": {
+      "name": "Русалка",
+      "description": "Розыгрыш: тянет на ряд ближе выбранное существо. Среда (Омут): ему же урон 3."
+    },
+    "sirin": {
+      "name": "Сирин",
+      "description": "Розыгрыш: урон 3 существу в противоположной ячейке. Союз (Алконост): вместо этого урон 3 всему противоположному ряду."
+    },
+    "smith": {
+      "name": "Кузнец",
+      "description": "Розыгрыш: броня 3 выбранному существу."
+    },
+    "thunderbolt": {
+      "name": "Молния Перуна",
+      "description": "Розыгрыш: урон 4 выбранному существу и 1 его соседям."
+    },
+    "upyr": {
+      "name": "Упырь",
+      "description": "Ближний ряд: урон 3 напротив. Добыча: розыгрыш Трупа из колоды. Дальний ряд: жор выбранного союзника."
+    },
+    "verlioka": {
+      "name": "Верлиока",
+      "description": "Розыгрыш: урон 2 обоим соседям. За каждую отсутствующую цель урон 2 себе."
+    },
+    "vila": {
+      "name": "Вила",
+      "description": "Последнее слово: призыв своей копии из сброса на эту клетку."
+    },
+    "vodyanoy": {
+      "name": "Водяной",
+      "description": "Розыгрыш: жор выбранного союзника. Добыча: розыгрыш Омута из колоды."
+    },
+    "vurdalak": {
+      "name": "Вурдалак",
+      "description": "Конец хода: жор слабейшего соседа."
+    },
+    "wisewoman": {
+      "name": "Знахарка",
+      "description": "Розыгрыш: лечение выбранного союзника."
+    },
+    "wolf": {
+      "name": "Волк",
+      "description": "Розыгрыш: урон 3 напротив. Добыча: призыв своей копии из колоды."
+    }
+  },
+  "keywords": [
+    {
+      "word": "Розыгрыш:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Розыгрыш",
+      "description": "Срабатывает один раз, когда карту выкладывают на стол."
+    },
+    {
+      "word": "Последнее слово:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Последнее слово",
+      "description": "Срабатывает, когда это существо умирает."
+    },
+    {
+      "word": "Добыча:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Добыча",
+      "description": "Срабатывает, когда это существо убило кого-то своим эффектом."
+    },
+    {
+      "word": "Начало хода:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Начало хода",
+      "description": "Срабатывает в начале каждого своего хода."
+    },
+    {
+      "word": "Конец хода:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Конец хода",
+      "description": "Срабатывает в конце каждого своего хода."
+    },
+    {
+      "word": "Отклик на",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Отклик",
+      "description": "Карта реагирует на названное событие: срабатывает каждый раз, когда оно случается."
+    },
+    {
+      "word": "Ближний ряд:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Ближний ряд",
+      "description": "Работает, только пока эта карта стоит в ближнем ряду."
+    },
+    {
+      "word": "Дальний ряд:",
+      "category": "trigger",
+      "color": "#E06C75",
+      "title": "Дальний ряд",
+      "description": "Работает, только пока эта карта стоит в дальнем ряду."
+    },
+    {
+      "word": "Союз",
+      "category": "condition",
+      "color": "#61AFEF",
+      "title": "Союз",
+      "description": "Эффект работает, только если названная карта уже стоит на твоём столе."
+    },
+    {
+      "word": "Лидерство",
+      "category": "condition",
+      "color": "#61AFEF",
+      "title": "Лидерство",
+      "description": "Эффект работает, только если игрок владеет сильнейшим существом или одним из сильнейших."
+    },
+    {
+      "word": "Погода",
+      "category": "condition",
+      "color": "#61AFEF",
+      "title": "Погода",
+      "description": "Погода ложится на весь ряд до конца раунда. Новая погода на том же ряду заменяет старую."
+    },
+    {
+      "word": "Среда",
+      "category": "condition",
+      "color": "#61AFEF",
+      "title": "Среда",
+      "description": "Эффект работает, только пока названная погода лежит на одном из рядов противника."
+    },
+    {
+      "word": "напротив",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Напротив",
+      "description": "Первое существо впереди по своему столбцу."
+    },
+    {
+      "word": "по соседству",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "По соседству",
+      "description": "Клетка слева или справа от этого существа."
+    },
+    {
+      "word": "Предатель",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Предатель",
+      "description": "Существо разыгрывается на сторону противника."
+    },
+    {
+      "word": "жор",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Жор",
+      "description": "Съесть своего: он умирает, а едок забирает его силу."
+    },
+    {
+      "word": "призыв",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Призыв",
+      "description": "Ставит существо на стол не из руки. Призванный свой Розыгрыш не запускает."
+    },
+    {
+      "word": "розыгрыш",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Розыгрыш из колоды",
+      "description": "Карта достаётся из колоды, но ставит её на стол сам игрок: ряд и клетку выбирает он, а не сервер."
+    },
+    {
+      "word": "удалить из сброса",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Удаление из сброса",
+      "description": "Убирает карту из сброса насовсем: ни последнего слова, ни возврата."
+    },
+    {
+      "word": "установка силы",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Установка силы",
+      "description": "Переписывает печатную силу существа. Лечение вернёт её только до нового значения."
+    },
+    {
+      "word": "усиление",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Усиление",
+      "description": "Добавляет силы. Держится до конца раунда и лечением обратно не снимается."
+    },
+    {
+      "word": "броня",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Броня",
+      "description": "Вторая полоска существа: поглощает урон раньше силы и уменьшается. В счёт силы не идёт."
+    },
+    {
+      "word": "лечение",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Лечение",
+      "description": "Выставляет силу в максимальное значение. Накопленные усиления не восстанавливаются."
+    },
+    {
+      "word": "тянет на ряд ближе",
+      "category": "mechanic",
+      "color": "#E5C07B",
+      "title": "Притяжение",
+      "description": "Переставляет существо на ряд ближе к тебе, если клетка не занята."
+    }
+  ]
+}

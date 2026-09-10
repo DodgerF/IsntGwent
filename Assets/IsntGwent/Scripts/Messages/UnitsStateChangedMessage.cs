@@ -11,6 +11,8 @@ namespace IsntGwent.Scripts.Messages
     {
         public string InstanceId;
         public int CurrentPower;
+        public int BasePower;
+        public int Armor;
         public bool IsDead;
     }
 }

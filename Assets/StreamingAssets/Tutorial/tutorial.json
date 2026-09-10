@@ -1,0 +1,195 @@
+{
+  "id": "tutorial_1",
+  "startingHand": 3,
+  "playerFirst": false,
+  "passWarning": "Passing now risks giving the round away - play your cards first.",
+
+  "playerDeck": [
+    "wolf", "bear", "rusalka", "omut", "rusalka", "leshy", "alkonost", "sirin",
+
+    "wolf", "drowned", "drowned", "corpse", "corpse", "anchutka", "anchutka", "bolotnik", "bolotnik", "vodyanoy", "vodyanoy", "lobasta", "lobasta", "egg", "egg", "polunochnitsa", "poludnitsa"
+  ],
+  "botDeck": [
+    "vila", "vila", "vurdalak", "bear", "giant", "verlioka", "corpse", "corpse",
+
+    "vurdalak", "verlioka", "bear", "giant", "upyr", "upyr", "leper", "leper", "mourner", "mourner", "smith", "smith", "wisewoman", "wisewoman", "igosha", "igosha", "mogol"
+  ],
+
+  "botMoves": [
+    { "card": "vila", "row": "Ranged", "slot": 3 },
+    { "card": "vila", "row": "Ranged", "slot": 4 },
+    { "card": "vurdalak", "row": "Ranged", "slot": 5 },
+
+    { "card": "bear", "row": "Melee", "slot": 3 },
+    { "pass": true },
+
+    { "card": "giant", "row": "Ranged", "slot": 3 },
+    { "card": "verlioka", "row": "Ranged", "slot": 0 },
+    { "card": "corpse", "row": "Ranged", "slot": 6 },
+    { "card": "corpse", "row": "Ranged", "slot": 5 }
+  ],
+
+  "introSteps": [
+    {
+      "id": "greeting",
+      "text": "First time here? Let us play a match, I will explain along the way.",
+      "advance": "tap"
+    }
+  ],
+
+  "steps": [
+    {
+      "id": "settle",
+      "text": "",
+      "advance": "delay:1.2"
+    },
+    {
+      "id": "hp",
+      "text": "These are your life points. To win the match you must win two rounds.",
+      "highlight": ["own_hp", "enemy_hp"],
+      "advance": "tap"
+    },
+    {
+      "id": "pass",
+      "text": "A round ends the moment both players pass.",
+      "highlight": ["pass_button"],
+      "advance": "tap"
+    },
+    {
+      "id": "hand",
+      "text": "These are the card counters. One card is one move. With an empty hand you pass on your own.",
+      "highlight": ["own_card_counter"],
+      "advance": "tap"
+    },
+    {
+      "id": "power",
+      "text": "These are the power counters. Playing a card, buffing or weakening creatures, you change the total power on the table. The round goes to the side that ends it with more.",
+      "highlight": ["own_power", "enemy_power"],
+      "advance": "tap"
+    },
+    {
+      "id": "deal",
+      "text": "Here are your cards. Your opponent moves first.",
+      "action": "deal",
+      "highlight": ["hand:wolf", "hand:bear", "hand:rusalka"],
+      "advance": "enemyPlayed:vila"
+    },
+    {
+      "id": "effects",
+      "text": "Every card carries an effect and its conditions - hold a card to read it.",
+      "advance": "tap"
+    },
+    {
+      "id": "wolf",
+      "text": "Play the Wolf onto the lit cell to trigger its effect.",
+      "highlight": ["hand:wolf", "slot:OwnMelee:3"],
+      "allow": { "cards": ["wolf"], "rows": ["OwnMelee"], "slots": [3], "pass": false },
+      "advance": "cardPlayed:wolf"
+    },
+    {
+      "id": "wait_vila",
+      "text": "",
+      "advance": "enemyPlayed:vila"
+    },
+    {
+      "id": "bear",
+      "text": "Now it is time to play the Bear. For that you need to pick a victim - luckily, you have a <i>choice</i>.",
+      "highlight": ["hand:bear", "board:wolf"],
+      "allow": { "cards": ["bear"], "targets": ["wolf"], "pass": false },
+      "advance": "cardPlayed:bear"
+    },
+    {
+      "id": "wait_vurdalak",
+      "text": "",
+      "advance": "enemyPlayed:vurdalak"
+    },
+    {
+      "id": "pair",
+      "text": "Your opponent has built a strong combination: the Vurdalak eats its neighbour, and the Vila comes back again.",
+      "highlight": ["cell:vila", "cell:vurdalak"],
+      "advance": "tap"
+    },
+    {
+      "id": "rusalka",
+      "text": "You can break the synergy by moving one of those cards with the Rusalka.",
+      "highlight": ["hand:rusalka", "cell:vila", "cell:vurdalak"],
+      "allow": { "cards": ["rusalka"], "targets": ["vila", "vurdalak"], "pass": false },
+      "advance": "cardPlayed:rusalka"
+    },
+    {
+      "id": "wait_round",
+      "text": "",
+      "advance": "roundEnd"
+    },
+    {
+      "id": "tempo",
+      "text": "You have already noticed that cards in hand are the most moves you have left. The more of them you keep, the better your chances of winning.",
+      "highlight": ["own_card_counter"],
+      "advance": "tap"
+    },
+    {
+      "id": "tempo_spend",
+      "text": "To improve them you have to make your opponent spend more cards than you do, and to find the moments for a pass.",
+      "advance": "tap"
+    },
+    {
+      "id": "tempo_pass",
+      "text": "This is one of them! You have already won a round, and giving this one away improves your odds. Let us do exactly that.",
+      "highlight": ["pass_button"],
+      "allow": { "cards": [], "pass": true },
+      "advance": "pass"
+    },
+    {
+      "id": "wait_giant",
+      "text": "",
+      "advance": "enemyPlayed:giant"
+    },
+    {
+      "id": "plan_weather",
+      "text": "A plan for this round. First set the weather on their front row.",
+      "highlight": ["hand:omut"],
+      "advance": "tap"
+    },
+    {
+      "id": "plan_pull",
+      "text": "Then lure his creatures into the Omut.",
+      "highlight": ["hand:rusalka", "hand:alkonost"],
+      "advance": "tap"
+    },
+    {
+      "id": "plan_finish",
+      "text": "Then finish off everything that is left.",
+      "highlight": ["hand:sirin", "hand:leshy"],
+      "advance": "tap"
+    },
+    {
+      "id": "plan_luck",
+      "text": "The rest is yours. Good luck!",
+      "advance": "tap"
+    }
+  ],
+
+  "menuSteps": [
+    {
+      "id": "nickname",
+      "text": "Time to pick a name. Other players will see it, and your wins are counted under it.",
+      "action": "openNickname",
+      "highlight": ["nickname_window"],
+      "aura": false,
+      "advance": "nickname"
+    },
+    {
+      "id": "decks",
+      "text": "You can play with a ready deck or build your own.",
+      "highlight": ["deck_list", "create_deck_button"],
+      "panel": ["play_button"],
+      "advance": "tap"
+    },
+    {
+      "id": "play",
+      "text": "To start a match, first choose a deck, and only then press Play.",
+      "highlight": ["deck_list", "play_button"],
+      "advance": "tap"
+    }
+  ]
+}

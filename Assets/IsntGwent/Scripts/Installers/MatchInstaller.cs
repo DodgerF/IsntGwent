@@ -1,8 +1,13 @@
-﻿using IsntGwent.Scripts.Cards;
-using IsntGwent.Scripts.Cards.Services;
-using IsntGwent.Scripts.Match;
+﻿using IsntGwent.Scripts.Cards.Server;
+using IsntGwent.Scripts.Cards.Client;
+using IsntGwent.Scripts.Decks.UI;
+using IsntGwent.Scripts.Match.Client;
 using UnityEngine.EventSystems;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Audio;
+using IsntGwent.Scripts.Vfx;
 using UnityEngine.UI;
+using IsntGwent.Scripts.Tutorial.UI;
 using Zenject;
 
 namespace IsntGwent.Scripts.Installers
@@ -18,15 +23,45 @@ namespace IsntGwent.Scripts.Installers
                 .Bind<CardResolver>()
                 .AsSingle();
             Container
-                .BindInterfacesAndSelfTo<CardPreviewService>()
-                .AsSingle()
-                .NonLazy();
+                .Bind<CardPreviewService>()
+                .AsSingle();
+            Container
+                .Bind<BoardTargetQuery>()
+                .AsSingle();
+            Container
+                .Bind<PlayPreviewQuery>()
+                .AsSingle();
+            Container
+                .Bind<ClientConditionQuery>()
+                .AsSingle();
             Container
                 .BindInterfacesAndSelfTo<CardSelectionService>()
                 .AsSingle()
                 .NonLazy();
             Container
+                .Bind<CardTooltipView>()
+                .FromComponentInHierarchy()
+                .AsSingle()
+                .Lazy();
+            Container
+                .BindInterfacesAndSelfTo<CardInfoPresenter>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .Bind<CardViewRegistry>()
+                .AsSingle();
+            Container
+                .Bind<CardInstanceRegistry>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<TargetHighlightPresenter>()
+                .AsSingle()
+                .NonLazy();
+            Container
                 .Bind<MatchState>()
+                .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<AnimationCoordinator>()
                 .AsSingle();
             Container
                 .BindInterfacesAndSelfTo<GameControllerClient>()
@@ -49,8 +84,23 @@ namespace IsntGwent.Scripts.Installers
             Container
                 .BindInterfacesAndSelfTo<MatchClientHandler>()
                 .AsSingle();
+
             Container
-                .BindInterfacesAndSelfTo<MatchViewModel>()
+                .Bind<VfxLayer>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+            Container
+                .Bind<VfxService>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<MatchAudioBinder>()
+                .AsSingle()
+                .NonLazy();
+
+            Container
+                .Bind<TutorialMatchPresenter>()
+                .FromNewComponentOnNewGameObject()
                 .AsSingle()
                 .NonLazy();
         }

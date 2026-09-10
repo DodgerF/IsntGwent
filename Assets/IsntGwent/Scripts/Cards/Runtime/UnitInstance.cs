@@ -1,4 +1,5 @@
-﻿using IsntGwent.Scripts.Cards.Definitions;
+﻿using System;
+using IsntGwent.Scripts.Cards.Definitions;
 using UniRx;
 
 namespace IsntGwent.Scripts.Cards.Runtime
@@ -6,25 +7,52 @@ namespace IsntGwent.Scripts.Cards.Runtime
     public class UnitInstance : CardInstance
     {
         public RowType RowType;
-        
+
         public UnitDefinition UnitDefinition => (UnitDefinition)Definition;
-        
-        public readonly Subject<Unit> OnDead = new();
+
         public readonly ReactiveProperty<int> CurrentPower = new();
+        public readonly ReactiveProperty<int> Armor = new();
+
+        public CardInstance LastAttacker;
+
+        public readonly ReactiveProperty<int> BasePower = new();
+
         public UnitInstance(UnitDefinition definition) : base(definition)
         {
+            BasePower.Value = definition.Power;
             CurrentPower.Value = definition.Power;
         }
 
         public void GetDamage(int damage)
         {
+            if (damage <= 0) return;
+
+            if (Armor.Value > 0)
+            {
+                var absorbed = Math.Min(Armor.Value, damage);
+                Armor.Value -= absorbed;
+                damage -= absorbed;
+            }
+
+            if (damage <= 0) return;
+
             CurrentPower.Value -= damage;
 
             if (CurrentPower.Value <= 0)
-            {
                 CurrentPower.Value = 0;
-                OnDead.OnNext(Unit.Default);
-            }
+        }
+
+        public void Kill()
+        {
+            Armor.Value = 0;
+            CurrentPower.Value = 0;
+        }
+
+        public void ResetToBase()
+        {
+            CurrentPower.Value = BasePower.Value;
+            Armor.Value = 0;
+            LastAttacker = null;
         }
     }
 }

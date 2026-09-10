@@ -1,39 +1,47 @@
-﻿using IsntGwent.Scripts.Cards;
-using IsntGwent.Scripts.Decks;
+using System.Collections.Generic;
+using IsntGwent.Scripts.Cards.UI;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Decks.UI;
+using IsntGwent.Scripts.Decks.Validation;
+using IsntGwent.Scripts.Lobby.Client;
 using UniRx;
 using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Lobby.UI.Views
 {
-    public class DecksViewLoader : MonoBehaviour
+    public class DecksViewLoader : DeckListViewBase
     {
-        public Transform parent;
-        public DeckSelectionView deckViewPrefab;
-        
-        [Inject] private DeckDatabase _deckDatabase;
-        [Inject] private CardDatabase _cardDatabase;
-        [Inject] private DiContainer _container;
+        [Inject] private readonly DeckSelectService _deckSelect;
+        [Inject] private readonly SceneService _scenes;
+        [InjectOptional] private readonly CardsViewLoader _cards;
 
-        private void Start()
+        protected override void Start()
         {
-            Observable.CombineLatest(_deckDatabase.OnLoaded, _cardDatabase.OnLoaded)
-                .Where(values => values[0] && values[1])
-                .Take(1)
-                .Subscribe(_ => Populate())
+            base.Start();
+
+            _deckSelect.SelectedDeck
+                .Subscribe(deck => SetSelected(deck?.Id))
                 .AddTo(this);
         }
-        
-        private void Populate()
-        {
-            foreach (var deckDefinition in _deckDatabase.GetAll())
-            {
-                var instance = _container.InstantiatePrefabForComponent<DeckSelectionView>(deckViewPrefab, parent);
-                var firstCardId = deckDefinition.Cards[0].CardId;
-                var spritePath = "Sprites/Cards/" + _cardDatabase.Get(firstCardId).ImageName;
 
-                instance.Setup(Resources.Load<Sprite>(spritePath), deckDefinition);
-            }
+        protected override void OnDeckClicked(DeckDefinition deck, bool isBuiltIn, DeckSelectionView view)
+        {
+            _cards?.SpawnFrom(view != null ? (RectTransform)view.transform : null);
+            _deckSelect.SelectedDeck.Value = deck;
+            _cards?.SpawnFrom(null);
+        }
+
+        protected override void OnNewDeckClicked()
+        {
+            _deckSelect.RequestNewDeck();
+            _scenes.LoadDeckBuilder();
+        }
+
+        protected override void ConfigureView(DeckSelectionView view, DeckDefinition deck, IReadOnlyList<DeckViolation> violations)
+        {
+            view.SetInteractable(violations.Count == 0);
         }
     }
 }

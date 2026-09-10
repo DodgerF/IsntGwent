@@ -1,0 +1,33 @@
+{
+  "id": "drowned",
+  "name": "Drowned",
+  "imageName": "drowned",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "description": "Melee: damage 2 to the creature ahead. Habitat (Omut): on kill play a Corpse from your deck.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "anchor": "Source",
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "amount": 2
+    },
+    {
+      "effect": "CastFromDeck",
+      "trigger": "OnKill",
+      "requiredRow": "Melee",
+      "cardId": "corpse",
+      "condition": {
+        "environment": "omut"
+      }
+    }
+  ]
+}

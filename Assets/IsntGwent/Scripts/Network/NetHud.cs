@@ -7,8 +7,10 @@ namespace IsntGwent.Scripts.Network
     {
         public void OnClickServer()
         {
+            if (NetworkClient.active)
+                NetworkManager.singleton.StopClient();
+
             NetworkManager.singleton.StartServer();
-            NetworkManager.singleton.ServerChangeScene("Menu");
         }
         
         public void OnClickClient()

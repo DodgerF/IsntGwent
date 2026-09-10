@@ -5,7 +5,7 @@ namespace IsntGwent.Scripts.Decks.Definitions
     {
         public string Id;
         public string Name;
-        public string ImagePath;
+        public int ContentVersion;
 
         public DeckCardEntry[] Cards;
     }

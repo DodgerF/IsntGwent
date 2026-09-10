@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unityMCP": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp"
+    },
+    "blender": {
+      "command": "C:\\Users\\pro10\\AppData\\Local\\hermes\\bin\\uvx.exe",
+      "args": ["blender-mcp"]
+    }
+  }
+}

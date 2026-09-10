@@ -11,7 +11,11 @@ namespace IsntGwent.Scripts.Cards.Definitions
         public CardType Type;
         public string Description;
         public string ImageName;
-        
+        public string SoundId;
+        public CardRarity Rarity;
+        public int MaxCopies;
+        public bool IsToken;
+
         [JsonIgnore]
         public List<EffectDefinition> Effects = new();
         [JsonProperty("effects")]

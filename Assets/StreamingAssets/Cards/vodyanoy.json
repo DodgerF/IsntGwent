@@ -1,0 +1,27 @@
+{
+  "id": "vodyanoy",
+  "name": "Vodyanoy",
+  "imageName": "vodyanoy",
+  "type": "Unit",
+  "power": 5,
+  "rarity": "Rare",
+  "description": "Deploy: consume a chosen ally. On kill: play an Omut from your deck.",
+  "effects": [
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay"
+    },
+    {
+      "effect": "CastFromDeck",
+      "trigger": "OnKill",
+      "cardId": "omut"
+    }
+  ]
+}

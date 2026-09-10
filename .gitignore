@@ -76,3 +76,7 @@ crashlytics-build.properties
 # IDE folder
 .vscode
 .idea
+
+
+*.md
+.claude

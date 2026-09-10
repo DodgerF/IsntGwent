@@ -1,0 +1,36 @@
+{
+  "id": "poludnitsa",
+  "name": "Poludnitsa",
+  "imageName": "poludnitsa",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Epic",
+  "description": "Deploy: damage 5 to the strongest creature. Bond (Polunochnitsa): destroy the strongest creature instead.",
+  "effects": [
+    {
+      "effect": "StrongestTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "includeAllies": true,
+      "includeEnemies": true,
+      "excludeSource": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 5,
+      "condition": {
+        "allyOnBoard": "polunochnitsa",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "Destroy",
+      "trigger": "OnPlay",
+      "condition": {
+        "allyOnBoard": "polunochnitsa",
+        "allyAbsent": false
+      }
+    }
+  ]
+}
