@@ -1,0 +1,25 @@
+{
+  "id": "grub",
+  "name": "Grub",
+  "imageName": "grub",
+  "type": "Unit",
+  "power": 1,
+  "rarity": "Token",
+  "description": "Deathwish: if killed by consume, boost the devourer by 1.",
+  "isToken": true,
+  "effects": [
+    {
+      "effect": "EventTargeting",
+      "trigger": "OnDevoured",
+      "consumer": true,
+      "includeAllies": true,
+      "includeEnemies": true
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnDevoured",
+      "amount": 1,
+      "requireTargets": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "vurdalak",
+  "name": "Vurdalak",
+  "imageName": "vurdalak",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "Turn end: consume the weakest neighbour.",
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnTurnEnd",
+      "relativeTo": "Source",
+      "pick": "Lowest"
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnTurnEnd"
+    }
+  ]
+}

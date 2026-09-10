@@ -1,6 +1,11 @@
-﻿using System;
+using System;
+using IsntGwent.Scripts.Accounts.Client;
+using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Decks.Validation;
+using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.Core;
-using IsntGwent.Scripts.Lobby.Network;
+using IsntGwent.Scripts.Network;
+using IsntGwent.Scripts.Tutorial.Client;
 using UniRx;
 using Zenject;
 
@@ -8,62 +13,152 @@ namespace IsntGwent.Scripts.Lobby.UI
 {
     public class LobbyViewModel : IInitializable, IDisposable
     {
-        [Inject] private LobbyStore _lobbyStore;
         [Inject] private LobbyClientHandler _handler;
         [Inject] private DeckSelectService _deckSelect;
-        public readonly ReactiveProperty<bool> IsCreateLobbyWindowOpen = new(false);
-        public readonly ReactiveProperty<bool> IsPasswordWindowOpen = new(false);
-        public readonly ReactiveProperty<bool> CanCreateOrJoinLobby = new(false);
-        private LobbyData? _selectedLobby;
-        public IReadOnlyReactiveCollection<LobbyData> Lobbies => _lobbyStore.Lobbies;
-        private readonly CompositeDisposable _disposables = new CompositeDisposable();
-        
+        [Inject] private DeckRulesProvider _rules;
+        [Inject] private DeckValidator _validator;
+        [Inject] private ConnectionService _connection;
+        [Inject] private PlayerAccount _account;
+        [InjectOptional] private TutorialService _tutorial;
+
+        public readonly ReactiveProperty<bool> IsJoinCodeWindowOpen = new(false);
+        public readonly ReactiveProperty<bool> IsNicknameWindowOpen = new(false);
+        public readonly ReactiveProperty<bool> IsSearching = new(false);
+        public readonly ReactiveProperty<bool> CanPlay = new(false);
+
+        private readonly CompositeDisposable _disposables = new();
+
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+        private readonly ReactiveProperty<bool> _isRequestPending = new(false);
+        private readonly SerialDisposable _requestTimeout = new();
+
         public void Initialize()
         {
+            _requestTimeout.AddTo(_disposables);
+
+            var tutorialPassed = _tutorial == null
+                ? Observable.Return(true)
+                : _tutorial.State.Select(state => state == TutorialState.Done);
+
             _deckSelect.SelectedDeck
-                .Subscribe(deck => CanCreateOrJoinLobby.Value = deck != null)
+                .CombineLatest(_connection.IsConnected, _isRequestPending, _rules.OnLoaded, _account.IsLoggedIn,
+                    (deck, isConnected, isPending, rulesLoaded, isLoggedIn) =>
+                        deck != null && isConnected && !isPending && rulesLoaded && isLoggedIn &&
+                        _validator.IsValid(deck))
+                .CombineLatest(tutorialPassed, (canPlay, isPassed) => canPlay && isPassed)
+                .Subscribe(canPlay => CanPlay.Value = canPlay)
                 .AddTo(_disposables);
-        }
-        
-        public void CreateLobby(string name, string password)
-        {
-            _handler.SendCreateLobby(name, password, _deckSelect.SelectedDeck.Value);
+
+            _handler.OnJoinedLobby
+                .Subscribe(_ => ClearPending())
+                .AddTo(_disposables);
+
+            _handler.OnSearchStarted
+                .Subscribe(_ =>
+                {
+                    ClearPending();
+                    IsSearching.Value = true;
+                })
+                .AddTo(_disposables);
+
+            _handler.OnError
+                .Subscribe(_ =>
+                {
+                    ClearPending();
+                    IsSearching.Value = false;
+                })
+                .AddTo(_disposables);
+
+            _connection.IsConnected
+                .Where(isConnected => !isConnected)
+                .Subscribe(_ => IsSearching.Value = false)
+                .AddTo(_disposables);
+
+            _account.IsLoggedIn
+                .Where(isLoggedIn => isLoggedIn)
+                .Select(_ => Unit.Default)
+                .Merge(_account.OnLoggedIn)
+                .Subscribe(_ => IsNicknameWindowOpen.Value = false)
+                .AddTo(_disposables);
+
+            _account.OnLoginFailed
+                .Where(_ => WantsNickname)
+                .Subscribe(_ => IsNicknameWindowOpen.Value = true)
+                .AddTo(_disposables);
+
+            if (!_account.HasNickname && WantsNickname)
+                IsNicknameWindowOpen.Value = true;
         }
 
-        public void JoinLobby(string lobbyId, string password)
-        {
-            _selectedLobby = null;
-            _handler.SendJoinToLobby(lobbyId, password, _deckSelect.SelectedDeck.Value);
-        }
+        private bool WantsNickname => _tutorial == null || _tutorial.WantsNickname;
 
-        public void SelectLobby(LobbyData lobby)
+        public void TogglePlay()
         {
-            _selectedLobby = lobby;
-
-            if (lobby.IsPrivate)
-            {
-                IsPasswordWindowOpen.Value = true;
-            }
+            if (IsSearching.Value)
+                CancelSearch();
             else
-            {
-                JoinLobby(lobby.LobbyId, "");
-            }
+                FindMatch();
         }
 
-        public void ClosePasswordWindow()
+        public void FindMatch()
         {
-            IsPasswordWindowOpen.Value = false;
+            _handler.SendFindMatch(_deckSelect.SelectedDeck.Value);
+            BeginPending();
         }
-        public void ConfirmJoinWithPassword(string password)
-        {
-            if (_selectedLobby == null)
-                return;
 
-            JoinLobby(_selectedLobby.Value.LobbyId, password);
-            
-            IsPasswordWindowOpen.Value = false;
+        public void CancelSearch()
+        {
+            IsSearching.Value = false;
+            _handler.SendCancelSearch();
         }
-        
+
+        public void CreatePrivateRoom()
+        {
+            _handler.SendCreatePrivateRoom(_deckSelect.SelectedDeck.Value);
+            BeginPending();
+        }
+
+        public void OpenJoinCodeWindow()
+        {
+            IsJoinCodeWindowOpen.Value = true;
+        }
+
+        public void CloseJoinCodeWindow()
+        {
+            IsJoinCodeWindowOpen.Value = false;
+        }
+
+        public void ConfirmJoinByCode(string code)
+        {
+            _handler.SendJoinByCode(JoinCodes.Normalize(code), _deckSelect.SelectedDeck.Value);
+            BeginPending();
+
+            IsJoinCodeWindowOpen.Value = false;
+        }
+
+        public void OpenNicknameWindow()
+        {
+            IsNicknameWindowOpen.Value = true;
+        }
+
+        public void CloseNicknameWindow()
+        {
+            IsNicknameWindowOpen.Value = false;
+        }
+
+        private void BeginPending()
+        {
+            _isRequestPending.Value = true;
+            _requestTimeout.Disposable = Observable
+                .Timer(RequestTimeout)
+                .Subscribe(_ => _isRequestPending.Value = false);
+        }
+
+        private void ClearPending()
+        {
+            _requestTimeout.Disposable = null;
+            _isRequestPending.Value = false;
+        }
 
         public void Dispose()
         {

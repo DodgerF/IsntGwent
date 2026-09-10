@@ -6,15 +6,25 @@ namespace IsntGwent.Scripts.Messages
     public struct OwnCardPlayedMessage : NetworkMessage
     {
         public string CardInstanceId;
+        public string DefinitionId;
+        public int CurrentPower;
+        public int BasePower;
+        public int Armor;
         public RowType Row;
+        public int SlotIndex;
+        public int EnemyCardAmount;
+        public bool PlayedByEnemy;
     }
-    
+
     public struct EnemyCardPlayedMessage : NetworkMessage
     {
         public string CardInstanceId;
         public string DefinitionId;
         public int CurrentPower;
+        public int BasePower;
+        public int Armor;
         public RowType Row;
+        public int SlotIndex;
         public int CardAmount;
     }
 

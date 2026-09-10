@@ -10,5 +10,7 @@ namespace IsntGwent.Scripts.Messages
         public CardData[] EnemyRangedRow;
         public CardData[] OwnGraveyard;
         public CardData[] EnemyGraveyard;
+        public RowStatusData[] OwnRowStatus;
+        public RowStatusData[] EnemyRowStatus;
     }
 }

@@ -1,0 +1,37 @@
+{
+  "id": "mogol",
+  "name": "Mogol",
+  "imageName": "mogol",
+  "type": "Unit",
+  "power": 8,
+  "rarity": "Legendary",
+  "description": "Deploy: destroy a chosen neighbour, damage a chosen enemy by the destroyed power.",
+  "effects": [
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true,
+      "sameLine": true,
+      "width": 1,
+      "excludeAnchor": true
+    },
+    {
+      "effect": "Destroy",
+      "trigger": "OnPlay"
+    },
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amountFromDestroyed": true
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using IsntGwent.Scripts.Decks.Definitions;
+using IsntGwent.Scripts.Core;
 using Newtonsoft.Json;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using Zenject;
 
@@ -38,13 +39,18 @@ namespace IsntGwent.Scripts.Decks
                     }
                     OnLoaded.Value = true;
                 },
-                onError: err => Debug.LogError(err)
+                onError: err => Log.Error(LogTag.Data, err)
             );
         }
 
         public DeckDefinition Get(string id)
         {
             return _decks[id];
+        }
+
+        public bool Contains(string id)
+        {
+            return !string.IsNullOrEmpty(id) && _decks.ContainsKey(id);
         }
 
         public IReadOnlyCollection<DeckDefinition> GetAll()

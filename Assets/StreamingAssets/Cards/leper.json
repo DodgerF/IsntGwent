@@ -1,0 +1,22 @@
+{
+  "id": "leper",
+  "name": "Leper",
+  "imageName": "leper",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "Deathwish: damage 4 to the weakest enemy.",
+  "effects": [
+    {
+      "effect": "WeakestTargeting",
+      "trigger": "OnDeath",
+      "count": 1,
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnDeath",
+      "amount": 4
+    }
+  ]
+}

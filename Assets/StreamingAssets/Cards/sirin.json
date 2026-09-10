@@ -1,0 +1,50 @@
+{
+  "id": "sirin",
+  "name": "Sirin",
+  "imageName": "sirin",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Epic",
+  "description": "Deploy: damage 3 to the creature in the opposite cell. Bond (Alkonost): damage 3 to the whole opposite row instead.",
+  "effects": [
+    {
+      "effect": "SlotTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source",
+      "direction": "Opposite",
+      "includeEnemies": true,
+      "condition": {
+        "allyOnBoard": "alkonost",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 3,
+      "condition": {
+        "allyOnBoard": "alkonost",
+        "allyAbsent": true
+      }
+    },
+    {
+      "effect": "RowTargeting",
+      "trigger": "OnPlay",
+      "sameRowAsSource": true,
+      "includeEnemies": true,
+      "condition": {
+        "allyOnBoard": "alkonost",
+        "allyAbsent": false
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 3,
+      "condition": {
+        "allyOnBoard": "alkonost",
+        "allyAbsent": false
+      }
+    }
+  ]
+}

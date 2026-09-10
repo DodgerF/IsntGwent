@@ -1,0 +1,43 @@
+{
+  "id": "upyr",
+  "name": "Upyr",
+  "imageName": "upyr",
+  "type": "Unit",
+  "power": 3,
+  "rarity": "Common",
+  "description": "Melee: damage 3 to the creature ahead. On kill: play a Corpse from your deck. Ranged: consume a chosen ally.",
+  "effects": [
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "anchor": "Source",
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "requiredRow": "Melee",
+      "amount": 3
+    },
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "requiredRow": "Ranged",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay",
+      "requiredRow": "Ranged"
+    },
+    {
+      "effect": "CastFromDeck",
+      "trigger": "OnKill",
+      "requiredRow": "Melee",
+      "cardId": "corpse"
+    }
+  ]
+}

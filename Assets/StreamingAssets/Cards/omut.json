@@ -1,0 +1,24 @@
+{
+  "id": "omut",
+  "name": "Omut",
+  "imageName": "omut",
+  "type": "Spell",
+  "rarity": "Rare",
+  "description": "Weather: damage 1 to creatures entering this row.",
+  "effects": [
+    {
+      "effect": "ApplyWeather",
+      "trigger": "OnPlay"
+    },
+    {
+      "effect": "EventTargeting",
+      "trigger": "OnWeatherEnter",
+      "includeAllies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnWeatherEnter",
+      "amount": 1
+    }
+  ]
+}

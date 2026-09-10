@@ -1,0 +1,23 @@
+{
+  "id": "igosha",
+  "name": "Igosha",
+  "imageName": "igosha",
+  "type": "Unit",
+  "power": 2,
+  "rarity": "Common",
+  "traitor": true,
+  "description": "Traitor. Deathwish: damage 4 to its neighbours.",
+  "effects": [
+    {
+      "effect": "NeighborTargeting",
+      "trigger": "OnDeath",
+      "relativeTo": "Source",
+      "pick": "All"
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnDeath",
+      "amount": 4
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "leshy",
+  "name": "Leshy",
+  "imageName": "leshy",
+  "type": "Unit",
+  "power": 5,
+  "rarity": "Epic",
+  "description": "Deploy: damage 1 to every creature, boost itself by 1 for each one killed.",
+  "effects": [
+    {
+      "effect": "RowTargeting",
+      "trigger": "OnPlay",
+      "includeAllies": true,
+      "includeEnemies": true,
+      "excludeSource": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 1
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnPlay",
+      "amount": 1,
+      "perKill": true,
+      "self": true
+    }
+  ]
+}

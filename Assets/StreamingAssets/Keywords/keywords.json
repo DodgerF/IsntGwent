@@ -1,0 +1,28 @@
+{
+  "keywords": [
+    { "word": "Deploy:", "category": "trigger", "color": "#E06C75", "title": "Deploy", "description": "Fires once, right after the card is put on the board." },
+    { "word": "Deathwish:", "category": "trigger", "color": "#E06C75", "title": "Deathwish", "description": "Fires when this unit dies, wherever the damage came from." },
+    { "word": "On kill:", "category": "trigger", "color": "#E06C75", "title": "On kill", "description": "Fires when this unit finishes off a creature with its own effect." },
+    { "word": "Turn start:", "category": "trigger", "color": "#E06C75", "title": "Turn start", "description": "Fires at the start of every turn of this card's owner." },
+    { "word": "Turn end:", "category": "trigger", "color": "#E06C75", "title": "Turn end", "description": "Fires at the end of every turn of this card's owner." },
+    { "word": "React to", "category": "trigger", "color": "#E06C75", "title": "React", "description": "The card reacts to the named event: it fires every time that event happens." },
+    { "word": "Melee:", "category": "trigger", "color": "#E06C75", "title": "Melee row", "description": "Works only while this card stands in the near row." },
+    { "word": "Ranged:", "category": "trigger", "color": "#E06C75", "title": "Ranged row", "description": "Works only while this card stands in the far row." },
+    { "word": "Bond", "category": "condition", "color": "#61AFEF", "title": "Bond", "description": "The effect only happens if the named card is already on your side." },
+    { "word": "Leadership", "category": "condition", "color": "#61AFEF", "title": "Leadership", "description": "The effect only happens while the strongest creature on the board is yours. A tie counts in your favour." },
+    { "word": "Weather", "category": "condition", "color": "#61AFEF", "title": "Weather", "description": "Weather sits on a whole row until the round ends. Playing weather on the same row replaces what was there." },
+    { "word": "Habitat", "category": "condition", "color": "#61AFEF", "title": "Habitat", "description": "The effect only happens while the named weather sits on one of the opponent's rows." },
+    { "word": "Traitor", "category": "mechanic", "color": "#E5C07B", "title": "Traitor", "description": "This unit is placed on the opponent's side and counts as theirs from that moment on." },
+    { "word": "the creature ahead", "category": "mechanic", "color": "#E5C07B", "title": "Ahead", "description": "The first body straight ahead along the column: empty cells are transparent, the first body stops the shot." },
+    { "word": "next to it", "category": "mechanic", "color": "#E5C07B", "title": "Next to it", "description": "The cell to the left or right of this creature. Both taken means there is nowhere to put it." },
+    { "word": "consume", "category": "mechanic", "color": "#E5C07B", "title": "Consume", "description": "Eats one of your own: it dies and the eater takes its power." },
+    { "word": "summon", "category": "mechanic", "color": "#E5C07B", "title": "Summon", "description": "Puts a creature on the board, not from your hand. A summoned unit does not run its own Deploy." },
+    { "word": "play", "category": "mechanic", "color": "#E5C07B", "title": "Play from deck", "description": "The card is taken out of your deck, but you put it on the board yourself: the row and the cell are your call, not the server's." },
+    { "word": "banish", "category": "mechanic", "color": "#E5C07B", "title": "Banish", "description": "Removes the card from the game: no graveyard, no deathwish." },
+    { "word": "set", "category": "mechanic", "color": "#E5C07B", "title": "Set power", "description": "Rewrites the base power of a creature. Healing brings it back only to the new value." },
+    { "word": "boost", "category": "mechanic", "color": "#E5C07B", "title": "Boost", "description": "Adds power. It lasts until the end of the round and healing does not take it away." },
+    { "word": "armor", "category": "mechanic", "color": "#E5C07B", "title": "Armor", "description": "A second bar: it soaks damage before power does and burns down. It does not count towards your power." },
+    { "word": "heal", "category": "mechanic", "color": "#E5C07B", "title": "Heal", "description": "Restores power to the printed value. Boosts collected on top are not restored." },
+    { "word": "pull", "category": "mechanic", "color": "#E5C07B", "title": "Pull", "description": "Moves the creature one row closer to you, if the cell is free." }
+  ]
+}

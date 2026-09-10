@@ -1,0 +1,38 @@
+{
+  "id": "likho",
+  "name": "Likho",
+  "imageName": "likho",
+  "type": "Unit",
+  "power": 6,
+  "rarity": "Rare",
+  "maxCopies": 1,
+  "description": "Deploy: damage 4 to itself. Leadership: damage 4 to the creature ahead instead.",
+  "effects": [
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4,
+      "self": true,
+      "condition": {
+        "leadership": "Lost"
+      }
+    },
+    {
+      "effect": "LineTargeting",
+      "trigger": "OnPlay",
+      "anchor": "Source",
+      "includeEnemies": true,
+      "condition": {
+        "leadership": "Held"
+      }
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnPlay",
+      "amount": 4,
+      "condition": {
+        "leadership": "Held"
+      }
+    }
+  ]
+}

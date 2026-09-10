@@ -1,0 +1,24 @@
+{
+  "id": "bear",
+  "name": "Bear",
+  "imageName": "bear",
+  "type": "Unit",
+  "power": 8,
+  "rarity": "Rare",
+  "description": "Deploy: consume a chosen ally as armor and take its cell.",
+  "effects": [
+    {
+      "effect": "AimedTargeting",
+      "trigger": "OnPlay",
+      "count": 1,
+      "allowPartial": true,
+      "includeAllies": true
+    },
+    {
+      "effect": "Devour",
+      "trigger": "OnPlay",
+      "asArmor": true,
+      "takeSlot": true
+    }
+  ]
+}

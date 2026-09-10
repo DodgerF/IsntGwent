@@ -1,0 +1,32 @@
+{
+  "id": "bolotnik",
+  "name": "Bolotnik",
+  "imageName": "bolotnik",
+  "type": "Unit",
+  "power": 4,
+  "rarity": "Common",
+  "description": "React to move: damage 1 if it is an enemy, boost 1 if it is an ally.",
+  "effects": [
+    {
+      "effect": "EventTargeting",
+      "trigger": "OnUnitMoved",
+      "includeEnemies": true
+    },
+    {
+      "effect": "DealDamage",
+      "trigger": "OnUnitMoved",
+      "amount": 1
+    },
+    {
+      "effect": "EventTargeting",
+      "trigger": "OnUnitMoved",
+      "includeAllies": true
+    },
+    {
+      "effect": "BuffPower",
+      "trigger": "OnUnitMoved",
+      "amount": 1,
+      "requireTargets": true
+    }
+  ]
+}

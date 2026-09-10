@@ -1,42 +1,56 @@
-﻿using System.Collections.Generic;
-using IsntGwent.Scripts.Match;
-using Mirror;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace IsntGwent.Scripts.Lobby.Core
 {
     public class LobbyRoom
     {
-        public readonly LobbyData Data;
         public const int MaxPlayers = 2;
-        public readonly string Password;
-        private readonly HashSet<PlayerLobby> _players;
 
-        public IReadOnlyCollection<PlayerLobby> Players => _players;
-        public bool TryAddPlayer(PlayerLobby playerLobby)
+        public readonly string Id;
+        public readonly string JoinCode;
+        public readonly bool IsRanked;
+
+        public bool IsTutorial;
+
+        private readonly List<Seat> _seats = new();
+
+        public LobbyRoom(string id, bool isRanked, string joinCode)
         {
-            if (_players.Count >= MaxPlayers)
+            Id = id;
+            IsRanked = isRanked;
+            JoinCode = joinCode;
+        }
+
+        public IReadOnlyList<Seat> Seats => _seats;
+
+        public bool IsFull => _seats.Count == MaxPlayers;
+        public bool AllReady => _seats.Count > 0 && _seats.All(s => s.IsReady);
+
+        public bool TryAddSeat(Seat seat)
+        {
+            if (_seats.Count >= MaxPlayers)
                 return false;
 
-            return _players.Add(playerLobby);
+            if (_seats.Contains(seat))
+                return false;
+
+            _seats.Add(seat);
+            return true;
         }
-        public bool IsFull => Players.Count == MaxPlayers;
-        public LobbyRoom(LobbyData data, string password)
+
+        public bool Contains(Seat seat) => seat != null && _seats.Contains(seat);
+
+        public Seat GetOpponent(Seat seat)
         {
-            Data = data;
-            Password = password;
-            _players = new HashSet<PlayerLobby>();
+            return _seats.FirstOrDefault(s => s != seat);
         }
-        
-        public void RemovePlayer(NetworkConnectionToClient conn)
+
+        public void RemoveSeat(Seat seat)
         {
-            foreach (var playerLobby in _players)
-            {
-                if (playerLobby.Connection != conn) continue;
-                _players.Remove(playerLobby);
-                return;
-            }
-            
+            if (seat == null) return;
+
+            _seats.Remove(seat);
         }
-        
     }
 }

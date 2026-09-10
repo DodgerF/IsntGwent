@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
-using IsntGwent.Scripts.Lobby.Core;
+using IsntGwent.Scripts.Localization;
+using IsntGwent.Scripts.Core;
+using IsntGwent.Scripts.Decks;
+using IsntGwent.Scripts.Lobby.Client;
+using TMPro;
 using UniRx;
+using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -9,70 +13,83 @@ namespace IsntGwent.Scripts.Lobby.UI.Views
 {
     public class MenuUI : MonoBehaviour
     {
+        private const string SearchingLabel = "Looking for an opponent...";
+
         [Inject] private LobbyViewModel _vm;
-        [Inject] private DiContainer _container;
-        [SerializeField] private Button createButton;
-        [SerializeField] private Transform parent;
-        [SerializeField] private LobbyEntryView prefab;
-        
-        private readonly Dictionary<string, GameObject> _lobbyEntries = new();
+        [Inject] private SceneService _scenes;
+        [Inject] private DeckSelectService _deckSelect;
+        [Inject] private DeckDatabase _deckDatabase;
+
+        [SerializeField] private Button playButton;
+        [SerializeField] private Button privateRoomButton;
+        [SerializeField] private Button joinByCodeButton;
+        [SerializeField] private Button deckBuilderButton;
+        [SerializeField] private TextMeshProUGUI searchStatus;
 
         private void Start()
         {
-            foreach (var lobby in _vm.Lobbies)
-                CreateEntry(lobby);
-            
-            _vm.Lobbies.ObserveAdd()
-                .Subscribe(addEvent => CreateEntry(addEvent.Value))
-                .AddTo(this);
-            _vm.Lobbies.ObserveRemove()
-                .Subscribe(removeEvent => RemoveEntry(removeEvent.Value))
-                .AddTo(this);
-            _vm.CanCreateOrJoinLobby
-                .Subscribe(canCreate =>  
-                {  
-                    createButton.interactable = canCreate;
-                })  
-                .AddTo(this);
-            
-            foreach (var lobby in _vm.Lobbies)
+            if (playButton == null)
             {
-                CreateEntry(lobby);
+                Log.Error(LogTag.Client, "MenuUI: playButton is not assigned");
+                return;
             }
-            
-            createButton.OnClickAsObservable()
-                .Subscribe(_ =>
+
+            _vm.CanPlay
+                .CombineLatest(_vm.IsSearching, (canPlay, isSearching) => canPlay || isSearching)
+                .Subscribe(canPress => playButton.interactable = canPress)
+                .AddTo(this);
+
+            _vm.CanPlay
+                .Subscribe(canPlay =>
                 {
-                    _vm.IsCreateLobbyWindowOpen.Value = true;
-                    //createButton.gameObject.SetActive(false);
+                    if (privateRoomButton != null) privateRoomButton.interactable = canPlay;
+                    if (joinByCodeButton != null) joinByCodeButton.interactable = canPlay;
                 })
                 .AddTo(this);
-            
-            // _vm.IsCreateLobbyWindowOpen
-            //     .Subscribe(isOpen =>
-            //     {
-            //         if (!isOpen) createButton.gameObject.SetActive(true);
-            //     })
-            //     .AddTo(this);
-        }
 
-        private void RemoveEntry(LobbyData data)
-        {
-            if (_lobbyEntries.Remove(data.LobbyId, out var entry))
+            _vm.IsSearching
+                .Subscribe(OnSearchingChanged)
+                .AddTo(this);
+
+            playButton.OnClickAsObservable()
+                .Subscribe(_ => _vm.TogglePlay())
+                .AddTo(this);
+
+            if (privateRoomButton != null)
             {
-                Destroy(entry);
+                privateRoomButton.OnClickAsObservable()
+                    .Subscribe(_ => _vm.CreatePrivateRoom())
+                    .AddTo(this);
+            }
+
+            if (joinByCodeButton != null)
+            {
+                joinByCodeButton.OnClickAsObservable()
+                    .Subscribe(_ => _vm.OpenJoinCodeWindow())
+                    .AddTo(this);
+            }
+
+            if (deckBuilderButton != null)
+            {
+                deckBuilderButton.OnClickAsObservable()
+                    .Subscribe(_ => EditSelectedDeck())
+                    .AddTo(this);
             }
         }
 
-        private void CreateEntry(LobbyData data)
+        private void OnSearchingChanged(bool isSearching)
         {
-            if (_lobbyEntries.ContainsKey(data.LobbyId)) return;
-            
-            var instance = _container.InstantiatePrefabForComponent<LobbyEntryView>(prefab, parent);
-            instance.Setup(data);
-            
-            _lobbyEntries.Add(data.LobbyId, instance.gameObject);
-            LayoutRebuilder.ForceRebuildLayoutImmediate(parent as RectTransform);
+            if (searchStatus == null) return;
+
+            searchStatus.text = isSearching ? Loc.T(SearchingLabel) : string.Empty;
+            searchStatus.gameObject.SetActive(isSearching);
+        }
+
+        private void EditSelectedDeck()
+        {
+            var deck = _deckSelect.SelectedDeck.Value;
+            _deckSelect.RequestEdit(deck, deck != null && _deckDatabase.Contains(deck.Id));
+            _scenes.LoadDeckBuilder();
         }
     }
 }

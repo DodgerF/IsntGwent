@@ -3,22 +3,22 @@
   "name": "Giant",
   "imageName": "giant",
   "type": "Unit",
-  "row": "Ranged",
-  "power": 10,
-  "description": "Deals 4 damage to an ally if possible",
+  "power": 9,
+  "rarity": "Rare",
+  "description": "Deploy: damage 4 to a chosen ally, or to itself if there is none.",
   "effects": [
     {
-      "effect": "ManualTargeting",
+      "effect": "AimedTargeting",
       "trigger": "OnPlay",
       "count": 1,
       "allowPartial": true,
-      "includeEnemies": false,
       "includeAllies": true
     },
     {
       "effect": "DealDamage",
       "trigger": "OnPlay",
-      "amount": 4
+      "amount": 4,
+      "selfIfNoTargets": true
     }
-    ]
-} 
+  ]
+}
