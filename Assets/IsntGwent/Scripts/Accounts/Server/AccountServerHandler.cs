@@ -6,25 +6,23 @@ using Zenject;
 
 namespace IsntGwent.Scripts.Accounts.Server
 {
+    /// <summary>
+    /// Только транспорт. Вход сюда больше не приходит: личность ставит AccountAuthenticator
+    /// на рукопожатии соединения, а здесь остаётся таблица лучших.
+    /// </summary>
     public class AccountServerHandler : IInitializable, IDisposable
     {
-        public readonly Subject<(NetworkConnectionToClient conn, LoginMessage msg)> OnLogin = new();
-        public readonly Subject<(NetworkConnectionToClient conn, NicknameCheckMessage msg)> OnNicknameCheck = new();
         public readonly Subject<NetworkConnectionToClient> OnLeaderboardRequested = new();
 
         public void Initialize()
         {
             if (!NetworkServer.active) return;
 
-            NetworkServer.RegisterHandler<LoginMessage>((conn, msg) => OnLogin.OnNext((conn, msg)));
-            NetworkServer.RegisterHandler<NicknameCheckMessage>((conn, msg) => OnNicknameCheck.OnNext((conn, msg)));
             NetworkServer.RegisterHandler<LeaderboardRequestMessage>((conn, _) => OnLeaderboardRequested.OnNext(conn));
         }
 
         public void Dispose()
         {
-            NetworkServer.UnregisterHandler<LoginMessage>();
-            NetworkServer.UnregisterHandler<NicknameCheckMessage>();
             NetworkServer.UnregisterHandler<LeaderboardRequestMessage>();
         }
     }

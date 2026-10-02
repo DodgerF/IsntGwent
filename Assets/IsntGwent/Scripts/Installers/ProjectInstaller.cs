@@ -1,4 +1,4 @@
-﻿using IsntGwent.Scripts.Cards;
+using IsntGwent.Scripts.Cards;
 using IsntGwent.Scripts.Decks;
 using IsntGwent.Scripts.Decks.Validation;
 using IsntGwent.Scripts.Core;
@@ -32,6 +32,10 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             Container
                 .BindInterfacesAndSelfTo<AccountClientHandler>()
+                .AsSingle()
+                .NonLazy();
+            Container
+                .BindInterfacesAndSelfTo<ItchLoginService>()
                 .AsSingle()
                 .NonLazy();
             Container

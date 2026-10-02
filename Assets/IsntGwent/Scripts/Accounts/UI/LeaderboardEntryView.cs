@@ -14,7 +14,7 @@ namespace IsntGwent.Scripts.Accounts.UI
 
         public void Setup(LeaderboardEntry entry, int rank, bool isMe)
         {
-            rankText.text = rank > 0 ? rank.ToString() : "—";
+            rankText.text = rank > 0 ? rank.ToString() : "-";
             nicknameText.text = entry.Nickname;
             pointsText.text = entry.Points.ToString();
 

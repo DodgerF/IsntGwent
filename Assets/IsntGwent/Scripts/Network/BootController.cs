@@ -1,6 +1,5 @@
-using Mirror;
 using IsntGwent.Scripts.Diagnostics;
-using UnityEngine;
+using Mirror;
 using Zenject;
 
 namespace IsntGwent.Scripts.Network
@@ -17,13 +16,18 @@ namespace IsntGwent.Scripts.Network
                 return;
             }
 
+            ServerEndpoint.Apply();
+
             if (AppRole.IsServer)
             {
                 Log.Info(LogTag.Net, "starting server");
                 NetworkManager.singleton.StartServer();
                 return;
             }
-            
+
+            // Соединяемся всегда, даже без сессии itch: сцена меню приезжает от сервера,
+            // и без соединения игрок не увидел бы вовсе ни меню, ни окна входа.
+            // Без сессии он войдёт гостем, а меню сразу покажет вход и не пустит играть.
             _connection.SetAutoReconnect(true);
             NetworkManager.singleton.StartClient();
         }

@@ -79,25 +79,6 @@ namespace IsntGwent.Scripts.Accounts.Server
             Write(account);
         }
 
-        public bool Rename(AccountData account, string newId, string newNickname)
-        {
-            if (account == null || string.IsNullOrEmpty(newId)) return false;
-            if (_accounts.ContainsKey(newId)) return false;
-
-            var oldId = account.Id;
-
-            _accounts.Remove(oldId);
-
-            account.Id = newId;
-            account.Nickname = newNickname;
-
-            _accounts[newId] = account;
-            Write(account);
-            Erase(oldId);
-
-            return true;
-        }
-
         private static AccountData Read(string path)
         {
             try
@@ -123,21 +104,6 @@ namespace IsntGwent.Scripts.Accounts.Server
             catch (Exception e)
             {
                 Log.Error(LogTag.Accounts, "Failed to save account " + account.Id + ": " + e.Message);
-            }
-        }
-
-        private void Erase(string id)
-        {
-            if (string.IsNullOrEmpty(_directory) || string.IsNullOrEmpty(id)) return;
-
-            try
-            {
-                var path = FilePath(id);
-                if (File.Exists(path)) File.Delete(path);
-            }
-            catch (Exception e)
-            {
-                Log.Error(LogTag.Accounts, "Failed to delete account " + id + ": " + e.Message);
             }
         }
 

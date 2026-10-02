@@ -4,48 +4,53 @@ using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
 using Mirror;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Accounts.Client
 {
+    /// <summary>
+    /// Личность игрока на клиенте. Сама она ничего не решает: и ник, и очки, и место приезжают
+    /// с сервера в ответе на рукопожатие — клиент только показывает то, что ему сказали.
+    /// </summary>
     public class PlayerAccount : IInitializable, IDisposable
     {
-        private const string NicknameKey = "account.nick";
-
-        private static readonly TimeSpan TakenRetryInterval = TimeSpan.FromSeconds(5);
-
         [Inject] private readonly AccountClientHandler _handler;
+        [Inject] private readonly ItchLoginService _login;
+        [Inject] private readonly ConnectionService _connection;
 
         public readonly ReactiveProperty<string> Nickname = new(string.Empty);
         public readonly ReactiveProperty<int> Points = new(0);
         public readonly ReactiveProperty<int> Rank = new(0);
         public readonly ReactiveProperty<bool> IsLoggedIn = new(false);
+        public readonly ReactiveProperty<bool> IsGuest = new(false);
         public readonly Subject<AccountError> OnLoginFailed = new();
         public readonly Subject<Unit> OnLoggedIn = new();
-        public readonly Subject<NicknameCheckResultMessage> OnNicknameChecked = new();
 
         private readonly CompositeDisposable _disposables = new();
-        private readonly SerialDisposable _retry = new();
 
-        private string _pending;
-
-        public bool HasNickname => !string.IsNullOrEmpty(Nickname.Value);
+        /// Браузерному игроку без сессии itch нужен вход: соединение он поднимет гостем,
+        /// но в меню его встретит окно входа, и играть его не пустят.
+        public readonly ReactiveProperty<bool> NeedsItchLogin = new(false);
 
         public void Initialize()
         {
             if (NetworkServer.active) return;
 
-            _retry.AddTo(_disposables);
+            // Чем представляемся при рукопожатии. Пусто = гость (редактор и десктоп).
+            AccountAuthenticator.ClientToken = () => _login.Session;
 
-            Nickname.Value = PlayerPrefs.GetString(NicknameKey, string.Empty);
-
-            _handler.OnLoginResult
-                .Subscribe(OnResult)
+            _login.SessionToken
+                .Subscribe(token => NeedsItchLogin.Value = ItchLoginService.IsRequired && string.IsNullOrEmpty(token))
                 .AddTo(_disposables);
 
-            _handler.OnNicknameChecked
-                .Subscribe(msg => OnNicknameChecked.OnNext(msg))
+            AccountAuthenticator.ClientResult
+                .Subscribe(OnAuthResult)
+                .AddTo(_disposables);
+
+            // Вошли через itch — соединение переподнимается уже с сессией: личность живёт
+            // на соединении, поменять её на лету нельзя.
+            _login.OnSession
+                .Subscribe(_ => _connection.Restart())
                 .AddTo(_disposables);
 
             _handler.OnLeaderboard
@@ -53,52 +58,38 @@ namespace IsntGwent.Scripts.Accounts.Client
                 .Subscribe(OnLeaderboard)
                 .AddTo(_disposables);
 
-            MyNetManager.ClientConnected
-                .Subscribe(_ => TryLogin())
-                .AddTo(_disposables);
-
             MyNetManager.ClientDisconnected
                 .Subscribe(_ => IsLoggedIn.Value = false)
                 .AddTo(_disposables);
-
-            TryLogin();
         }
 
-        public void SetNickname(string nickname)
+        public void SignIn()
         {
-            _retry.Disposable = null;
-            _pending = NicknameRules.Trim(nickname);
+            _login.Begin();
+        }
 
-            if (!NicknameRules.IsValid(_pending))
+        private void OnAuthResult(AuthResponseMessage msg)
+        {
+            if (!msg.IsSuccess)
             {
-                OnLoginFailed.OnNext(AccountError.BadNickname);
+                IsLoggedIn.Value = false;
+
+                // Сервера, который знал бы эту сессию, больше нет: стираем токен и возвращаемся
+                // гостем, чтобы игрок попал в меню и увидел там предложение войти заново.
+                if (msg.Error == AccountError.BadSession)
+                    _login.Forget();
+
+                OnLoginFailed.OnNext(msg.Error);
                 return;
             }
 
-            _handler.SendLogin(_pending);
-        }
+            Nickname.Value = msg.Nickname ?? string.Empty;
+            Points.Value = msg.Points;
+            Rank.Value = msg.Rank;
+            IsGuest.Value = msg.IsGuest;
+            IsLoggedIn.Value = true;
 
-        public bool CheckNickname(string nickname)
-        {
-            if (!NetworkClient.isConnected) return false;
-
-            _handler.SendNicknameCheck(NicknameRules.Trim(nickname));
-            return true;
-        }
-
-        private void ScheduleRetry()
-        {
-            _retry.Disposable = Observable
-                .Timer(TakenRetryInterval)
-                .Subscribe(_ => TryLogin());
-        }
-
-        private void TryLogin()
-        {
-            var nickname = string.IsNullOrEmpty(_pending) ? Nickname.Value : _pending;
-            if (string.IsNullOrEmpty(nickname)) return;
-
-            _handler.SendLogin(nickname);
+            OnLoggedIn.OnNext(Unit.Default);
         }
 
         private void OnLeaderboard(LeaderboardResultMessage msg)
@@ -109,37 +100,10 @@ namespace IsntGwent.Scripts.Accounts.Client
             Rank.Value = msg.MyRank;
         }
 
-        private void OnResult(LoginResultMessage msg)
-        {
-            if (!msg.IsSuccess)
-            {
-                IsLoggedIn.Value = false;
-
-                if (msg.Error == AccountError.AlreadyOnline)
-                    ScheduleRetry();
-                else
-                    _pending = null;
-
-                OnLoginFailed.OnNext(msg.Error);
-                return;
-            }
-
-            _retry.Disposable = null;
-            _pending = null;
-
-            Nickname.Value = msg.Nickname;
-            Points.Value = msg.Points;
-            Rank.Value = msg.Rank;
-            IsLoggedIn.Value = true;
-
-            PlayerPrefs.SetString(NicknameKey, msg.Nickname ?? string.Empty);
-            PlayerPrefs.Save();
-
-            OnLoggedIn.OnNext(Unit.Default);
-        }
-
         public void Dispose()
         {
+            AccountAuthenticator.ClientToken = null;
+
             _disposables.Dispose();
         }
     }

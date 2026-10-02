@@ -9,12 +9,12 @@ namespace IsntGwent.Scripts.Diagnostics
 
         public static bool Has(string name)
         {
-            return Array.Exists(Environment.GetCommandLineArgs(), arg => arg == name);
+            return Array.Exists(Args(), arg => arg == name);
         }
 
         public static string Value(string name)
         {
-            var args = Environment.GetCommandLineArgs();
+            var args = Args();
 
             for (var i = 0; i < args.Length - 1; i++)
             {
@@ -26,7 +26,16 @@ namespace IsntGwent.Scripts.Diagnostics
 
         public static string CommandLine()
         {
-            return string.Join(" ", Environment.GetCommandLineArgs());
+            return string.Join(" ", Args());
+        }
+
+        /// В браузере командной строки нет вовсе: аргументы там не читаем,
+        /// чтобы веб-клиент не зависел от того, что вернёт рантайм на несуществующий процесс.
+        private static string[] Args()
+        {
+            if (Application.platform == RuntimePlatform.WebGLPlayer) return Array.Empty<string>();
+
+            return Environment.GetCommandLineArgs();
         }
     }
 }

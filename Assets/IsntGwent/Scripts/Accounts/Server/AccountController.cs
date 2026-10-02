@@ -1,11 +1,12 @@
 using System;
+using System.Globalization;
 using IsntGwent.Scripts.Accounts.Core;
+using IsntGwent.Scripts.Accounts.Server.Itch;
+using IsntGwent.Scripts.Diagnostics;
 using IsntGwent.Scripts.Messages;
 using IsntGwent.Scripts.Network;
 using Mirror;
 using UniRx;
-using IsntGwent.Scripts.Diagnostics;
-using UnityEngine;
 using Zenject;
 
 namespace IsntGwent.Scripts.Accounts.Server
@@ -16,22 +17,19 @@ namespace IsntGwent.Scripts.Accounts.Server
 
         [Inject] private readonly AccountServerHandler _handler;
         [Inject] private readonly AccountRegistry _registry;
-        [Inject] private readonly IAccountStore _store;
         [Inject] private readonly Leaderboard _leaderboard;
+        [Inject] private readonly ItchAuthService _itch;
 
         private readonly CompositeDisposable _disposables = new();
+
+        private int _guestCounter;
 
         public void Initialize()
         {
             if (!NetworkServer.active) return;
 
-            _handler.OnLogin
-                .Subscribe(t => OnLogin(t.conn, t.msg))
-                .AddTo(_disposables);
-
-            _handler.OnNicknameCheck
-                .Subscribe(t => OnNicknameCheck(t.conn, t.msg))
-                .AddTo(_disposables);
+            // Личность ставится на рукопожатии соединения — см. AccountAuthenticator.
+            AccountAuthenticator.ServerAuthenticate = Authenticate;
 
             _handler.OnLeaderboardRequested
                 .Subscribe(SendLeaderboard)
@@ -42,107 +40,58 @@ namespace IsntGwent.Scripts.Accounts.Server
                 .AddTo(_disposables);
         }
 
-        private void OnLogin(NetworkConnectionToClient conn, LoginMessage msg)
+        /// <summary>
+        /// Пустой токен — гость (редактор, десктопная сборка). Непустой — сессия, выданная
+        /// ItchAuthService после того, как itch подтвердил, чей это ключ.
+        /// Своего ника и своего id клиент не присылает вовсе: подделывать нечего.
+        /// </summary>
+        private AuthResponseMessage Authenticate(NetworkConnectionToClient conn, string session)
         {
-            if (conn == null) return;
+            if (conn == null) return Reject(AccountError.Unknown);
 
-            if (!NicknameRules.IsValid(msg.Nickname))
-            {
-                Reject(conn, AccountError.BadNickname);
-                return;
-            }
+            var account = string.IsNullOrEmpty(session)
+                ? NewGuest()
+                : _itch.Resolve(session);
 
-            var id = NicknameRules.Normalize(msg.Nickname);
+            if (account == null) return Reject(AccountError.BadSession);
 
-            if (_registry.IsOnlineElsewhere(id, conn))
-            {
-                Reject(conn, AccountError.AlreadyOnline);
-                return;
-            }
-
-            var nickname = NicknameRules.Trim(msg.Nickname);
-            var current = _registry.Resolve(conn);
-
-            var account = current != null && current.Id != id
-                ? Rename(conn, current, id, nickname)
-                : Enter(conn, id, nickname);
-
-            if (account == null) return;
+            if (_registry.IsOnlineElsewhere(account.Id, conn))
+                return Reject(AccountError.AlreadyOnline);
 
             _registry.Login(conn, account);
 
-            conn.Send(new LoginResultMessage
+            Log.Info(LogTag.Accounts, "signed in: " + account.Id + " (" + account.Nickname + ")");
+
+            return new AuthResponseMessage
             {
                 IsSuccess = true,
                 Nickname = account.Nickname,
                 Points = account.Points,
-                Rank = _leaderboard.RankOf(account.Id),
-            });
+                Rank = account.IsGuest ? 0 : _leaderboard.RankOf(account.Id),
+                IsGuest = account.IsGuest,
+            };
         }
 
-        private void OnNicknameCheck(NetworkConnectionToClient conn, NicknameCheckMessage msg)
+        /// <summary>
+        /// Гость живёт только в памяти: в хранилище не пишется, в таблицу не попадает, очков не копит.
+        /// Нужен затем, что itch неоткуда взять в редакторе и в десктопной сборке, а упираться
+        /// в экран входа при разработке нельзя.
+        /// </summary>
+        private AccountData NewGuest()
         {
-            if (conn == null) return;
+            _guestCounter++;
 
-            conn.Send(new NicknameCheckResultMessage
+            return new AccountData
             {
-                Nickname = NicknameRules.Trim(msg.Nickname),
-                Error = CheckNickname(conn, msg.Nickname),
-            });
+                Id = ItchConfig.GuestIdPrefix + Guid.NewGuid().ToString("N"),
+                Nickname = "Guest " + _guestCounter.ToString(CultureInfo.InvariantCulture),
+                IsGuest = true,
+            };
         }
 
-        private AccountError CheckNickname(NetworkConnectionToClient conn, string nickname)
+        private static AuthResponseMessage Reject(AccountError error)
         {
-            if (!NicknameRules.IsValid(nickname)) return AccountError.BadNickname;
-
-            var id = NicknameRules.Normalize(nickname);
-            var current = _registry.Resolve(conn);
-
-            if (current != null && current.Id == id) return AccountError.None;
-            if (_registry.IsOnlineElsewhere(id, conn)) return AccountError.AlreadyOnline;
-            if (current != null && _store.Find(id) != null) return AccountError.NicknameTaken;
-
-            return AccountError.None;
-        }
-
-        private AccountData Rename(NetworkConnectionToClient conn, AccountData account, string id, string nickname)
-        {
-            if (!_store.Rename(account, id, nickname))
-            {
-                Reject(conn, AccountError.NicknameTaken);
-                return null;
-            }
-
-            _leaderboard.Touch();
-            Log.Info(LogTag.Accounts, "Account renamed to " + id);
-
-            return account;
-        }
-
-        private AccountData Enter(NetworkConnectionToClient conn, string id, string nickname)
-        {
-            var isNew = _store.Find(id) == null;
-            var account = _store.GetOrCreate(id, nickname);
-
-            if (account == null)
-            {
-                Reject(conn, AccountError.Unknown);
-                return null;
-            }
-
-            if (isNew || account.Nickname != nickname)
-            {
-                account.Nickname = nickname;
-                _store.Save(account);
-                _leaderboard.Touch();
-            }
-
-            return account;
-        }
-
-        private static void Reject(NetworkConnectionToClient conn, AccountError error)
-        {
-            conn.Send(new LoginResultMessage { IsSuccess = false, Error = error });
+            return new AuthResponseMessage { IsSuccess = false, Error = error };
         }
 
         private void SendLeaderboard(NetworkConnectionToClient conn)
@@ -156,12 +105,13 @@ namespace IsntGwent.Scripts.Accounts.Server
                 entries[i] = ToEntry(top[i]);
 
             var account = _registry.Resolve(conn);
+            var isRanked = account != null && !account.IsGuest;
 
             conn.Send(new LeaderboardResultMessage
             {
                 Top = entries,
-                Me = account != null ? ToEntry(account) : default,
-                MyRank = account != null ? _leaderboard.RankOf(account.Id) : 0,
+                Me = isRanked ? ToEntry(account) : default,
+                MyRank = isRanked ? _leaderboard.RankOf(account.Id) : 0,
             });
         }
 
@@ -179,6 +129,9 @@ namespace IsntGwent.Scripts.Accounts.Server
 
         public void Dispose()
         {
+            if (AccountAuthenticator.ServerAuthenticate == Authenticate)
+                AccountAuthenticator.ServerAuthenticate = null;
+
             _registry.Clear();
             _disposables.Dispose();
         }

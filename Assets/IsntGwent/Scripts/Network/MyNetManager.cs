@@ -1,4 +1,4 @@
-﻿using Mirror;
+using Mirror;
 using UniRx;
 using IsntGwent.Scripts.Diagnostics;
 using UnityEngine;
@@ -16,6 +16,12 @@ namespace IsntGwent.Scripts.Network
         public override void Awake()
         {
             onlineScene = MenuScene;
+
+            // Аутентификатор нужен обеим сторонам и раньше, чем соберётся сцена, поэтому он
+            // вешается кодом, а не полем в инспекторе: в сцене его забыли бы при первом же переносе.
+            if (authenticator == null)
+                authenticator = gameObject.AddComponent<AccountAuthenticator>();
+
             base.Awake();
         }
 

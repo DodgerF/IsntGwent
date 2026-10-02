@@ -842,7 +842,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 2160, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -5121,8 +5121,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 69
-  m_fontSizeBase: 69
+  m_fontSize: 52
+  m_fontSizeBase: 52
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5308,7 +5308,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 10
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 542003bbfaef2b340bdb6a0e04910410, type: 2}
   m_sharedMaterial: {fileID: 2777985140735628838, guid: 542003bbfaef2b340bdb6a0e04910410, type: 2}
@@ -8947,7 +8947,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 10
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 542003bbfaef2b340bdb6a0e04910410, type: 2}
   m_sharedMaterial: {fileID: 2777985140735628838, guid: 542003bbfaef2b340bdb6a0e04910410, type: 2}
@@ -10037,10 +10037,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ecc4e67382f6b64081bffb57f1aa943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsntGwent.Scripts.Cards.UI.HandOutlineView
-  glowWidth: 26
-  color: {r: 0.42, g: 0.76, b: 1, a: 0.8}
+  auraWidth: 56
+  halftoneColor: {r: 0.88, g: 0.7, b: 0.38, a: 0.72}
+  inkColor: {r: 0.97, g: 0.93, b: 0.8, a: 0.95}
   fadeDuration: 0.2
-  glowMaterial: {fileID: 2100000, guid: a4b378d051a9282418712703e36d57ef, type: 2}
+  showMotes: 1
+  moteCount: 24
+  moteColor: {r: 0.96, g: 0.88, b: 0.66, a: 0.62}
+  warmupDuration: 1.5
 --- !u!114 &1983199167
 MonoBehaviour:
   m_ObjectHideFlags: 0

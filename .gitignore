@@ -80,3 +80,6 @@ crashlytics-build.properties
 
 *.md
 .claude
+# Локальное: скриншоты и настройки MCP
+/[Cc]aptures/
+/.mcp.json
