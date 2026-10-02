@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Cards.Definitions;
 using IsntGwent.Scripts.Diagnostics;
@@ -23,7 +23,7 @@ namespace IsntGwent.Scripts.Tutorial.Client
     {
         private const string StateKey = "tutorial.state";
         private const string StepKey = "tutorial.step";
-        private const string NicknameKey = "account.nick";
+        private const string SessionKey = "account.session";
 
         [Inject] private readonly TutorialScriptProvider _provider;
         [Inject] private readonly LobbyClientHandler _handler;
@@ -44,7 +44,6 @@ namespace IsntGwent.Scripts.Tutorial.Client
         public bool IsMenuPhase => State.Value == TutorialState.Menu;
         public bool IsIntro { get; private set; }
         public bool IsResuming { get; private set; }
-        public bool WantsNickname => State.Value is TutorialState.Menu or TutorialState.Done;
 
         public void Initialize()
         {
@@ -54,9 +53,11 @@ namespace IsntGwent.Scripts.Tutorial.Client
 
             if (string.IsNullOrEmpty(saved))
             {
-                var hasNickname = !string.IsNullOrEmpty(PlayerPrefs.GetString(NicknameKey, string.Empty));
+                // Отметки об обучении нет, но сессия itch есть — значит игрок уже играл
+                // до того, как обучение завели, и гонять его по нему заново незачем.
+                var hasSession = !string.IsNullOrEmpty(PlayerPrefs.GetString(SessionKey, string.Empty));
 
-                if (hasNickname) SetState(TutorialState.Done);
+                if (hasSession) SetState(TutorialState.Done);
 
                 return;
             }

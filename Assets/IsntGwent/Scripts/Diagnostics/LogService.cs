@@ -36,6 +36,11 @@ namespace IsntGwent.Scripts.Diagnostics
 
             if (Application.isEditor && !EnableInEditor) return;
 
+            // В браузере файлового лога нет смысла заводить вовсе: игрок его не достанет,
+            // а persistentDataPath там — IndexedDB, куда каждая строка едет отложенной записью.
+            // Уровни и вывод в консоль браузера при этом остаются.
+            if (Application.platform == RuntimePlatform.WebGLPlayer) return;
+
             _root = AppRole.Value("-logDir");
             if (string.IsNullOrEmpty(_root)) _root = Application.persistentDataPath;
 

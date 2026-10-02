@@ -172,7 +172,7 @@
   "menuSteps": [
     {
       "id": "nickname",
-      "text": "Time to pick a name. Other players will see it, and your wins are counted under it.",
+      "text": "Time to sign in with itch.io. Your name there is what other players see, and your wins are counted under it.",
       "action": "openNickname",
       "highlight": ["nickname_window"],
       "aura": false,

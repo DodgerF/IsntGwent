@@ -1,8 +1,9 @@
-﻿using IsntGwent.Scripts.Audio;
+using IsntGwent.Scripts.Audio;
 using IsntGwent.Scripts.Cards.Server;
 using IsntGwent.Scripts.Cards.Client;
 using IsntGwent.Scripts.Cards.UI;
 using IsntGwent.Scripts.Accounts.Server;
+using IsntGwent.Scripts.Accounts.Server.Itch;
 using IsntGwent.Scripts.Lobby.Client;
 using IsntGwent.Scripts.Lobby.UI;
 using IsntGwent.Scripts.Core;
@@ -64,6 +65,7 @@ namespace IsntGwent.Scripts.Installers
                 .NonLazy();
             
             Container.BindInterfacesAndSelfTo<FileAccountStore>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<ItchAuthService>().AsSingle().NonLazy();
             Container.Bind<AccountRegistry>().AsSingle();
             Container.Bind<Leaderboard>().AsSingle();
             Container.BindInterfacesAndSelfTo<AccountServerHandler>().AsSingle().NonLazy();

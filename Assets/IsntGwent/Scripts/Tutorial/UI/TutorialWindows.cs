@@ -16,7 +16,7 @@ namespace IsntGwent.Scripts.Tutorial.UI
             var roots = new List<GameObject>();
 
             foreach (var view in All<SettingsWindowUI>()) Add(roots, view.gameObject);
-            foreach (var view in All<NicknameWindow>()) Add(roots, view.gameObject);
+            foreach (var view in All<ItchLoginWindow>()) Add(roots, view.gameObject);
             foreach (var view in All<JoinByCodeWindow>()) Add(roots, view.gameObject);
             foreach (var view in All<PileWindowView>()) Add(roots, view.window);
             foreach (var view in All<ConfirmWindow>()) Add(roots, view.panel);

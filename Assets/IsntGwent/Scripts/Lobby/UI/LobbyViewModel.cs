@@ -22,7 +22,7 @@ namespace IsntGwent.Scripts.Lobby.UI
         [InjectOptional] private TutorialService _tutorial;
 
         public readonly ReactiveProperty<bool> IsJoinCodeWindowOpen = new(false);
-        public readonly ReactiveProperty<bool> IsNicknameWindowOpen = new(false);
+        public readonly ReactiveProperty<bool> IsLoginWindowOpen = new(false);
         public readonly ReactiveProperty<bool> IsSearching = new(false);
         public readonly ReactiveProperty<bool> CanPlay = new(false);
 
@@ -46,6 +46,7 @@ namespace IsntGwent.Scripts.Lobby.UI
                         deck != null && isConnected && !isPending && rulesLoaded && isLoggedIn &&
                         _validator.IsValid(deck))
                 .CombineLatest(tutorialPassed, (canPlay, isPassed) => canPlay && isPassed)
+                .CombineLatest(_account.NeedsItchLogin, (canPlay, needsLogin) => canPlay && !needsLogin)
                 .Subscribe(canPlay => CanPlay.Value = canPlay)
                 .AddTo(_disposables);
 
@@ -74,23 +75,29 @@ namespace IsntGwent.Scripts.Lobby.UI
                 .Subscribe(_ => IsSearching.Value = false)
                 .AddTo(_disposables);
 
-            _account.IsLoggedIn
-                .Where(isLoggedIn => isLoggedIn)
-                .Select(_ => Unit.Default)
-                .Merge(_account.OnLoggedIn)
-                .Subscribe(_ => IsNicknameWindowOpen.Value = false)
+            // Окно входа открывается на том же месте, где раньше спрашивали ник: после обучения.
+            // Пока обучение идёт, окно ведёт его сценарий (шаг с action openNickname), поэтому
+            // отсюда оно открывается только у того, кто обучение уже прошёл.
+            var loginWanted = _tutorial == null
+                ? Observable.Return(true)
+                : _tutorial.State.Select(state => state == TutorialState.Done);
+
+            _account.NeedsItchLogin
+                .CombineLatest(loginWanted, (needsLogin, isWanted) => (needsLogin, isWanted))
+                .Subscribe(t =>
+                {
+                    if (t.needsLogin && t.isWanted) IsLoginWindowOpen.Value = true;
+                    else if (!t.needsLogin) IsLoginWindowOpen.Value = false;
+                })
                 .AddTo(_disposables);
 
             _account.OnLoginFailed
-                .Where(_ => WantsNickname)
-                .Subscribe(_ => IsNicknameWindowOpen.Value = true)
+                .Where(_ => WantsLogin)
+                .Subscribe(_ => IsLoginWindowOpen.Value = true)
                 .AddTo(_disposables);
-
-            if (!_account.HasNickname && WantsNickname)
-                IsNicknameWindowOpen.Value = true;
         }
 
-        private bool WantsNickname => _tutorial == null || _tutorial.WantsNickname;
+        private bool WantsLogin => _tutorial == null || _tutorial.IsDone;
 
         public void TogglePlay()
         {
@@ -136,14 +143,14 @@ namespace IsntGwent.Scripts.Lobby.UI
             IsJoinCodeWindowOpen.Value = false;
         }
 
-        public void OpenNicknameWindow()
+        public void OpenLoginWindow()
         {
-            IsNicknameWindowOpen.Value = true;
+            IsLoginWindowOpen.Value = true;
         }
 
-        public void CloseNicknameWindow()
+        public void CloseLoginWindow()
         {
-            IsNicknameWindowOpen.Value = false;
+            IsLoginWindowOpen.Value = false;
         }
 
         private void BeginPending()

@@ -3,29 +3,21 @@ using Mirror;
 
 namespace IsntGwent.Scripts.Messages
 {
-    public struct LoginMessage : NetworkMessage
+    /// Личность игрока приезжает на этапе аутентификации соединения, а не отдельным логином:
+    /// пустой токен = гость (редактор, десктоп), непустой = сессия, выданная сервером после itch.
+    public struct AuthRequestMessage : NetworkMessage
     {
-        public string Nickname;
+        public string SessionToken;
     }
 
-    public struct LoginResultMessage : NetworkMessage
+    public struct AuthResponseMessage : NetworkMessage
     {
         public bool IsSuccess;
         public AccountError Error;
         public string Nickname;
         public int Points;
         public int Rank;
-    }
-
-    public struct NicknameCheckMessage : NetworkMessage
-    {
-        public string Nickname;
-    }
-
-    public struct NicknameCheckResultMessage : NetworkMessage
-    {
-        public string Nickname;
-        public AccountError Error;
+        public bool IsGuest;
     }
 
     public struct LeaderboardRequestMessage : NetworkMessage

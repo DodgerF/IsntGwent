@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using IsntGwent.Scripts.Accounts.Client;
 using IsntGwent.Scripts.Core;
@@ -244,16 +244,20 @@ namespace IsntGwent.Scripts.Tutorial.UI
 
         private void RunAction(string action)
         {
-            if (action == OpenNicknameAction)
-                _lobby.OpenNicknameWindow();
+            // Вход стоит на том же месте, где раньше стоял ввод ника: сразу после обучения.
+            // Гость тоже "вошёл" (IsLoggedIn), поэтому спрашиваем именно про itch.
+            if (action == OpenNicknameAction && _account.NeedsItchLogin.Value)
+                _lobby.OpenLoginWindow();
         }
 
         private IObservable<Unit> Trigger(TutorialStep step)
         {
             var advance = step.Advance ?? "tap";
 
+            // Шаг держится, пока игрок не войдёт через itch; там, где вход не нужен вовсе
+            // (десктоп, редактор), ReactiveProperty отдаёт false сразу и шаг проходит мимо.
             if (advance.StartsWith("nickname", StringComparison.OrdinalIgnoreCase))
-                return _account.OnLoggedIn;
+                return _account.NeedsItchLogin.Where(needsLogin => !needsLogin).AsUnitObservable();
 
             if (advance.StartsWith("deckSelected", StringComparison.OrdinalIgnoreCase))
                 return _deckSelect.SelectedDeck.Skip(1).AsUnitObservable();

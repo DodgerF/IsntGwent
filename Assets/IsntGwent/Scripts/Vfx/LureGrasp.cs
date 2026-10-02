@@ -52,28 +52,46 @@ namespace IsntGwent.Scripts.Vfx
             var to = GrabPoint(card, from);
             var toward = to - from;
 
+            // UIParticle в режиме Transform гасит масштаб холста у своего объекта, а рука —
+            // его дочка: без поправки она одного размера в пикселях на любом экране и в маленьком
+            // окне браузера выходит крупнее карт, когтями мимо. Возвращаем ей масштаб холста.
+            // Частицы рукава UIParticle при отрисовке домножает на масштаб холста сам, поэтому
+            // их не трогаем, но рукаву надо знать полный множитель, иначе его точки съезжают.
+            var fit = CanvasFit();
+
             hand.position = from;
             hand.localRotation = Quaternion.Euler(0f, 0f,
                 Mathf.Atan2(toward.y, toward.x) * Mathf.Rad2Deg);
-            hand.localScale = Vector3.one * startScale;
+            hand.localScale = Vector3.one * (startScale * fit);
 
             if (handImage != null) handImage.sprite = openSprite;
             SetAlpha(0f);
 
             if (sleeve != null)
                 sleeve.Bind(source, Vector3.zero, hand, new Vector3(-wristOffset, 0f, 0f),
-                    0f, sleeveSag, _particle != null ? _particle.scale : 1f);
+                    0f, sleeveSag * fit,(_particle != null ? _particle.scale : 1f) * fit);
 
             _sequence = DOTween.Sequence();
             _sequence.Append(hand.DOMove(to, reach).SetEase(Ease.InQuad));
-            _sequence.Join(hand.DOScale(Vector3.one, reach).SetEase(Ease.OutQuad));
+            _sequence.Join(hand.DOScale(Vector3.one * fit, reach).SetEase(Ease.OutQuad));
             _sequence.Join(DOVirtual.Float(0f, 1f, reach * 0.45f, SetAlpha));
             _sequence.AppendCallback(() => Grip(onGrip));
-            _sequence.Append(hand.DOScale(Vector3.one * gripScale, grip * 0.4f).SetEase(Ease.OutQuad));
-            _sequence.Append(hand.DOScale(Vector3.one * holdScale, grip * 0.6f).SetEase(Ease.InQuad));
+            _sequence.Append(hand.DOScale(Vector3.one * (gripScale * fit), grip * 0.4f).SetEase(Ease.OutQuad));
+            _sequence.Append(hand.DOScale(Vector3.one * (holdScale * fit), grip * 0.6f).SetEase(Ease.InQuad));
             _sequence.AppendInterval(drag);
             _sequence.AppendCallback(Retract);
             _sequence.Append(DOVirtual.Float(1f, 0f, release, SetAlpha));
+        }
+
+        /// Во сколько раз холст сжат относительно своего мира. В режиме Transform UIParticle держит
+        /// мировой масштаб своего объекта единичным, поэтому нужный множитель — масштаб родителя.
+        private float CanvasFit()
+        {
+            if (_particle == null || _particle.autoScalingMode != UIParticle.AutoScalingMode.Transform)
+                return 1f;
+
+            var parent = transform.parent;
+            return parent != null ? parent.lossyScale.x : 1f;
         }
 
         private Vector3 GrabPoint(RectTransform card, Vector3 from)

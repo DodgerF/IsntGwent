@@ -43,6 +43,8 @@ namespace IsntGwent.Scripts.Tutorial.UI
         private RectTransform _panelLine;
         private bool _hasPanelLine;
         private Tween _messageTimer;
+        private Vector2 _placedRoot;
+        private Vector2 _placedPanel;
 
         public void Bind(RectTransform overlayRoot, CanvasGroup canvasGroup, RectTransform tapArea,
             RectTransform panel, TextMeshProUGUI label, Button catcher)
@@ -188,7 +190,20 @@ namespace IsntGwent.Scripts.Tutorial.UI
             text.text = string.IsNullOrEmpty(_source) ? string.Empty : Loc.T(_source);
         }
 
-        private void PlacePanel(IReadOnlyList<RectTransform> anchors, IReadOnlyList<RectTransform> panelAnchors)
+        /// Панель ставится по своему размеру и размеру экрана на момент показа. Оба меняются и после:
+        /// перевод и перенос строк растят текст, окно браузера разворачивается во весь экран. Без
+        /// перестановки панель оставалась на старом месте и уезжала за край (шаг входа через itch).
+        private void LateUpdate()
+        {
+            if (!_isOpen || textPanel == null || root == null) return;
+
+            if (root.rect.size == _placedRoot && textPanel.rect.size == _placedPanel) return;
+
+            PlacePanel(_anchors, _panelAnchors, false);
+        }
+
+        private void PlacePanel(IReadOnlyList<RectTransform> anchors, IReadOnlyList<RectTransform> panelAnchors,
+            bool pop = true)
         {
             if (textPanel == null) return;
 
@@ -196,6 +211,9 @@ namespace IsntGwent.Scripts.Tutorial.UI
 
             var half = root.rect.size * 0.5f;
             var panel = textPanel.rect.size;
+
+            _placedRoot = root.rect.size;
+            _placedPanel = panel;
 
             if (TryUnion(panelAnchors, out var seat))
             {
@@ -207,7 +225,7 @@ namespace IsntGwent.Scripts.Tutorial.UI
                     Mathf.Clamp(seat.center.x, -half.x + panel.x * 0.5f, half.x - panel.x * 0.5f),
                     Clamp(fits ? above : below, panel.y, half.y));
 
-                Pop();
+                if (pop) Pop();
                 return;
             }
 
@@ -216,7 +234,7 @@ namespace IsntGwent.Scripts.Tutorial.UI
             if (!TryUnion(anchors, out var area))
             {
                 textPanel.anchoredPosition = new Vector2(0f, hasLine ? Clamp(lineY, panel.y, half.y) : 0f);
-                Pop();
+                if (pop) Pop();
                 return;
             }
 
@@ -242,7 +260,7 @@ namespace IsntGwent.Scripts.Tutorial.UI
 
             textPanel.anchoredPosition = new Vector2(x, y);
 
-            Pop();
+            if (pop) Pop();
         }
 
         private static float Clamp(float y, float panelHeight, float halfHeight)

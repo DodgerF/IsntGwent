@@ -53,7 +53,13 @@ namespace IsntGwent.Scripts.Match.UI
         private void ShowGameState(string text)
         {
             title.text = Loc.T("Game Over") + "\n\n" + Loc.T(text);
-            
+
+            // Кнопка возвращает в меню, и подпись говорит ровно это: «Выйти» после обучения
+            // читалось как выход из игры.
+            var label = leaveButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+                label.text = Loc.T("Back to menu");
+
             title.gameObject.SetActive(true);
             background.gameObject.SetActive(true);
             leaveButton.gameObject.SetActive(true);

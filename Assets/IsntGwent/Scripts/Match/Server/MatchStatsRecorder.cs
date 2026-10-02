@@ -45,6 +45,12 @@ namespace IsntGwent.Scripts.Match.Server
                 return;
             }
 
+            if (firstAccount.IsGuest || secondAccount.IsGuest)
+            {
+                Log.Info(LogTag.Stats, "skipped: guest account");
+                return;
+            }
+
             if (firstAccount.Id == secondAccount.Id)
             {
                 Log.Warn(LogTag.Stats, "skipped: same account on both seats");

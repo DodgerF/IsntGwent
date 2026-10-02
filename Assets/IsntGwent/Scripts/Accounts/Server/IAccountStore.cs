@@ -12,7 +12,5 @@ namespace IsntGwent.Scripts.Accounts.Server
         AccountData GetOrCreate(string id, string nickname);
 
         void Save(AccountData account);
-
-        bool Rename(AccountData account, string newId, string newNickname);
     }
 }

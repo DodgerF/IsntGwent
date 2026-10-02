@@ -46,9 +46,11 @@ namespace IsntGwent.Scripts.Accounts.UI
 
             _scrollArea.offsetMin = new Vector2(_scrollArea.offsetMin.x, listBottomPadding);
 
-            _panel.anchorMin = new Vector2(_panel.anchorMin.x, 0f);
-            _panel.anchorMax = new Vector2(_panel.anchorMax.x, 0f);
-            _panel.pivot = new Vector2(_panel.pivot.x, 0f);
+            // Панель висит на верхнем якоре и растёт вниз: таблица начинается сразу под кнопками
+            // лобби, а не прижимается к низу экрана (так было до 2026-10-01).
+            _panel.anchorMin = new Vector2(_panel.anchorMin.x, 1f);
+            _panel.anchorMax = new Vector2(_panel.anchorMax.x, 1f);
+            _panel.pivot = new Vector2(_panel.pivot.x, 1f);
         }
 
         private void Start()
@@ -105,7 +107,7 @@ namespace IsntGwent.Scripts.Accounts.UI
             var maxHeight = Mathf.Max(minHeight, available);
             var height = Mathf.Clamp(LayoutUtility.GetPreferredHeight(_content) + chrome, minHeight, maxHeight);
 
-            _panel.anchoredPosition = new Vector2(_panel.anchoredPosition.x, _bottomInset);
+            _panel.anchoredPosition = new Vector2(_panel.anchoredPosition.x, -_topInset);
             _panel.sizeDelta = new Vector2(_panel.sizeDelta.x, height);
 
             if (_scroll != null)

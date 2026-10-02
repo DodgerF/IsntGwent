@@ -9,8 +9,6 @@ namespace IsntGwent.Scripts.Accounts.Client
 {
     public class AccountClientHandler : IInitializable, IDisposable
     {
-        public readonly Subject<LoginResultMessage> OnLoginResult = new();
-        public readonly Subject<NicknameCheckResultMessage> OnNicknameChecked = new();
         public readonly Subject<LeaderboardResultMessage> OnLeaderboard = new();
 
         private readonly CompositeDisposable _disposables = new();
@@ -25,20 +23,6 @@ namespace IsntGwent.Scripts.Accounts.Client
                 RegisterHandlers();
         }
 
-        public void SendLogin(string nickname)
-        {
-            if (!NetworkClient.isConnected) return;
-
-            NetworkClient.Send(new LoginMessage { Nickname = nickname });
-        }
-
-        public void SendNicknameCheck(string nickname)
-        {
-            if (!NetworkClient.isConnected) return;
-
-            NetworkClient.Send(new NicknameCheckMessage { Nickname = nickname });
-        }
-
         public void RequestLeaderboard()
         {
             if (!NetworkClient.isConnected) return;
@@ -48,8 +32,6 @@ namespace IsntGwent.Scripts.Accounts.Client
 
         private void RegisterHandlers()
         {
-            NetworkClient.ReplaceHandler<LoginResultMessage>(msg => OnLoginResult.OnNext(msg));
-            NetworkClient.ReplaceHandler<NicknameCheckResultMessage>(msg => OnNicknameChecked.OnNext(msg));
             NetworkClient.ReplaceHandler<LeaderboardResultMessage>(msg => OnLeaderboard.OnNext(msg));
         }
 

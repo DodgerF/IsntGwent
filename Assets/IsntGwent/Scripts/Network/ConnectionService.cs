@@ -47,6 +47,26 @@ namespace IsntGwent.Scripts.Network
                 _reconnectLoop.Disposable = null;
         }
         
+        /// <summary>
+        /// Переподнять соединение с новой сессией: личность вешается на соединение при рукопожатии,
+        /// поменять её на живом соединении нечем. Обрыв подхватит цикл переподключения.
+        /// </summary>
+        public void Restart()
+        {
+            if (NetworkManager.singleton == null) return;
+            if (NetworkServer.active) return;
+
+            SetAutoReconnect(true);
+
+            if (NetworkClient.active)
+            {
+                NetworkManager.singleton.StopClient();
+                return;
+            }
+
+            TryReconnect();
+        }
+
         public void RetryNow()
         {
             if (NetworkManager.singleton == null) return;
